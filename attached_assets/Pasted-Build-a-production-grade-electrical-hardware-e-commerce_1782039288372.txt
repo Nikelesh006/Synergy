@@ -1,0 +1,500 @@
+Build a production-grade electrical hardware e-commerce website named “Synergy”.
+
+Project goal:
+Create a modern, professional e-commerce frontend for a general electrical board, switchgear, wiring accessories, tools, safety items, and industrial electrical components store. Use Robu.in as a structural reference only for content density and commerce flow, but do not copy its branding, exact layout, or wording. The result should feel like a real Indian electrical hardware commerce platform for contractors, electricians, builders, maintenance teams, workshops, institutions, and retail buyers. The UI must look deliberate and professionally designed, not like a generic AI-generated landing page.
+
+Design direction:
+- Brand name: Synergy
+- Industry: Electrical board hardware and electrical supplies e-commerce
+- Tone: professional, industrial, trustworthy, clean, commerce-first
+- Avoid: emojis, sparkle icons, glowing gradients, purple AI-style visuals, generic “future of” copy, over-rounded cards, floating abstract blobs, and empty decorative sections
+- Visual language: structured grid, dense but readable catalog UI, practical product discovery, subtle depth, clean shadows, restrained borders
+- Color palette:
+  - Primary red for CTA and highlights
+  - Secondary blue for navigation, accents, trust sections, and filters
+  - White / off-white background for clarity
+  - Use neutral grays for text, borders, and surfaces
+- Overall look: premium industrial catalog, not startup SaaS, not flashy tech template
+
+Tech stack requirements:
+- Next.js
+- React
+- Tailwind CSS
+- Vite-style component cleanliness and fast frontend structure inspiration, but the actual app should be built in Next.js
+- MongoDB schema placeholders only
+- Do NOT connect the database
+- Add models, types, mock data structures, API placeholder files, and comments showing where connection will be added later
+- Use TypeScript
+- Use App Router
+- Use reusable components
+- Keep codebase clean and scalable
+
+Important architecture note:
+Because Next.js and Vite are separate app systems, use Next.js as the actual framework. Follow a modular frontend structure inspired by modern Vite React organization: clean folders, reusable UI components, isolated mock data, typed utilities, and maintainable architecture.
+
+Core business concept:
+Synergy is an electrical hardware and components commerce site that sells:
+- MCBs, MCCBs, RCCBs, isolators
+- Distribution boards and enclosures
+- Switches, sockets, plates, modular accessories
+- Wires, cables, cable ties, lugs, glands, conduits
+- Contactors, relays, timers, push buttons, indicators
+- Fans, lights, drivers, holders, LED accessories
+- Power tools and testing instruments
+- Industrial electrical consumables
+- Safety products such as gloves, tape, helmets, lockout items
+- Panels, connectors, terminals, ferrules, busbars
+- Motors, starters, panel accessories
+- General electrician tools and workshop essentials
+
+Reference-based content structure to include:
+Take inspiration from the reference site’s commerce sections:
+- top utility bar with contact/help/order tracking
+- searchable product header
+- category-heavy navigation
+- hero banners for featured offers or product lines
+- product category blocks
+- featured products
+- new arrivals
+- service/solution sections
+- blog/tutorial content
+- brand strip
+- trust signals
+- footer with policies/account/help/contact
+
+But adapt this for electrical hardware instead of robotics/electronics. The reference site contains sections like categories, featured products, services, trust/reviews, videos/blogs/tutorials, brands, account/help links, and shipping/support information; Synergy should include equivalent sections suited to electrical commerce. [page:1]
+
+Pages to build:
+1. Home page
+2. Shop / product listing page
+3. Category page
+4. Product details page
+5. Cart page
+6. Checkout page UI only
+7. Wishlist page
+8. Account dashboard UI only
+9. Order tracking page UI only
+10. Bulk enquiry page
+11. Services page
+12. Brands page
+13. Blog listing page
+14. Blog article page
+15. Contact page
+16. About page
+17. FAQ page
+18. Policies pages:
+   - Privacy Policy
+   - Terms and Conditions
+   - Shipping Policy
+   - Return / Refund Policy
+
+Home page requirements:
+- Professional top announcement/utility bar with phone, support, bulk orders, tracking
+- Sticky header with:
+  - Synergy logo
+  - large search bar
+  - category dropdown
+  - account
+  - wishlist
+  - cart
+- Primary mega navigation with major categories
+- Hero section with 2–3 rotating banners:
+  - electrical protection devices
+  - wiring accessories
+  - contractor supplies
+- Category shortcuts grid
+- Featured categories section
+- Featured products carousel/grid
+- New arrivals section
+- Best sellers section
+- Bulk and B2B enquiry CTA strip
+- Service blocks such as:
+  - Panel assembly support
+  - Bulk supply for projects
+  - Electrical board component sourcing
+  - Custom quotation assistance
+- Shop by brand strip
+- Industry use-case section:
+  - Residential
+  - Commercial
+  - Industrial
+  - Maintenance
+- Blog / knowledge center preview
+- Trust and assurance section:
+  - genuine products
+  - GST billing
+  - support assistance
+  - dispatch updates
+  - bulk order support
+- Strong footer with multi-column navigation
+
+Product catalog requirements:
+- Advanced product cards with:
+  - product image
+  - title
+  - SKU
+  - brand
+  - short specification
+  - price
+  - discount badge if applicable
+  - stock status
+  - Add to Cart button
+  - Wishlist button
+  - Compare button
+- Product listing page must support:
+  - filters sidebar
+  - sorting
+  - price range
+  - brand filter
+  - category filter
+  - availability filter
+  - rating filter
+  - pagination or load more
+- Product detail page must include:
+  - gallery
+  - title
+  - brand
+  - SKU
+  - price
+  - availability
+  - key specifications
+  - quantity selector
+  - Add to Cart
+  - Buy Now
+  - wishlist
+  - compare
+  - delivery/pincode placeholder
+  - tabs for description, specifications, applications, shipping, reviews
+  - related products
+  - frequently bought together
+- Include realistic electrical product mock data
+
+Category taxonomy:
+Use categories appropriate for an electrical hardware store, such as:
+- Circuit Protection
+- Switchgear
+- Distribution Boards
+- Switches & Sockets
+- Wires & Cables
+- Conduits & Fittings
+- Connectors & Terminals
+- Industrial Controls
+- Relays & Timers
+- Indicators & Push Buttons
+- Lighting Accessories
+- Tools & Test Equipment
+- Safety Products
+- Panel Accessories
+- Motors & Starters
+- Hardware & Fasteners
+- Project Supplies
+- Brands
+
+Services and B2B:
+Create service-oriented sections and pages inspired by the reference site’s service blocks and business enquiry flows, but adapted to electrical supply. The reference site prominently features manufacturing/service offerings and bulk enquiry paths, so Synergy should include equivalent B2B-oriented support such as sourcing, quotations, project supply, and panel-related assistance. [page:1]
+Include:
+- Bulk order enquiry form
+- BOM / project requirement upload placeholder
+- Contractor / dealer support
+- Institutional procurement section
+- GST invoice note
+- Custom quotation request form
+- Call-back request UI
+
+Blog and resource section:
+The reference site includes blogs and tutorials, so add a practical knowledge center for Synergy with content like buying guides, product explainers, wiring accessory comparisons, MCB vs MCCB articles, electrical safety basics, and installation best practices. [page:1]
+Include:
+- blog listing
+- article detail page
+- featured article cards
+- category tags
+- search
+- latest posts sidebar
+
+UI/UX style rules:
+- No generic AI-site hero copy
+- No centered everything; align content like a serious commerce platform
+- Use left-aligned headings in most sections
+- Make the header and product discovery experience strong
+- Keep commerce actions above the fold
+- Use practical spacing and dense but readable information hierarchy
+- Use tasteful hover states, subtle transitions, and accessible focus states
+- Use clear labels instead of icon-only ambiguity
+- Use desktop-first commerce density while remaining mobile-friendly
+- On mobile:
+  - collapsible menu
+  - bottom sticky cart actions on product pages
+  - compact filters drawer
+  - thumb-friendly buttons
+- Support dark mode toggle, but light mode should be the default and best-polished mode
+
+Typography:
+- Use a professional sans-serif font pairing
+- Avoid overly playful or futuristic fonts
+- Use compact web-app scale, not giant marketing typography
+- Product/store UI should feel like a serious catalog
+
+Component requirements:
+Build reusable components for:
+- Header
+- TopBar
+- MegaMenu
+- SearchBar
+- CategoryCard
+- ProductCard
+- ProductGrid
+- FilterSidebar
+- SortBar
+- BrandStrip
+- ServiceCard
+- BlogCard
+- TrustBadge
+- Footer
+- Breadcrumbs
+- QuantitySelector
+- CartDrawer
+- ReviewCard
+- SectionHeader
+- Pagination
+- EmptyState
+- LoadingSkeleton
+
+Data and backend placeholders:
+Set up MongoDB-related files but keep DB unconnected.
+Include:
+- lib/db.ts placeholder
+- models/Product.ts
+- models/Category.ts
+- models/Brand.ts
+- models/Order.ts
+- models/User.ts
+- models/Enquiry.ts
+- models/Blog.ts
+- types/index.ts
+- mock data files
+- sample API route placeholders
+- comments saying:
+  “MongoDB connection intentionally left unconnected. Replace with actual connection string and production logic later.”
+
+Suggested fields:
+
+Product:
+- _id
+- name
+- slug
+- sku
+- brand
+- category
+- subcategory
+- shortDescription
+- description
+- specifications
+- features
+- applications
+- images
+- price
+- compareAtPrice
+- currency
+- stock
+- inStock
+- minOrderQty
+- rating
+- reviewCount
+- tags
+- isFeatured
+- isNewArrival
+- isBestSeller
+- attributes
+- shippingInfo
+- warrantyInfo
+- createdAt
+- updatedAt
+
+Category:
+- _id
+- name
+- slug
+- description
+- image
+- parentCategory
+- featured
+- icon
+- sortOrder
+
+Brand:
+- _id
+- name
+- slug
+- logo
+- description
+- featured
+
+Order:
+- _id
+- orderNumber
+- userId
+- items
+- subtotal
+- tax
+- shippingCharge
+- total
+- paymentStatus
+- orderStatus
+- shippingAddress
+- billingAddress
+- createdAt
+- updatedAt
+
+User:
+- _id
+- name
+- email
+- phone
+- role
+- addresses
+- wishlist
+- orders
+
+Enquiry:
+- _id
+- companyName
+- contactPerson
+- email
+- phone
+- enquiryType
+- message
+- attachment
+- createdAt
+
+Blog:
+- _id
+- title
+- slug
+- excerpt
+- content
+- coverImage
+- author
+- category
+- tags
+- publishedAt
+- featured
+
+Cart logic:
+- Use local React state, context, or lightweight store
+- Since DB is not connected, use mock state only
+- Add clear abstraction so backend integration can be added later
+
+Folder structure:
+Create a clean project structure like:
+
+/app
+  /(store)
+    /page.tsx
+    /shop/page.tsx
+    /category/[slug]/page.tsx
+    /product/[slug]/page.tsx
+    /cart/page.tsx
+    /checkout/page.tsx
+    /wishlist/page.tsx
+    /account/page.tsx
+    /track-order/page.tsx
+    /bulk-enquiry/page.tsx
+    /services/page.tsx
+    /brands/page.tsx
+    /blog/page.tsx
+    /blog/[slug]/page.tsx
+    /contact/page.tsx
+    /about/page.tsx
+    /faq/page.tsx
+    /policies/privacy/page.tsx
+    /policies/terms/page.tsx
+    /policies/shipping/page.tsx
+    /policies/refund/page.tsx
+/components
+/lib
+/models
+/data
+/types
+/hooks
+/context
+/utils
+/public/images
+
+Content writing style:
+- Practical, specific, and business-like
+- Speak like a real commerce company
+- Avoid “revolutionary”, “magic”, “AI-powered”, “smart future”, “spark”, “unlock”
+- Use domain-relevant phrases such as:
+  - project supply
+  - bulk availability
+  - electrical distribution
+  - industrial components
+  - contractor support
+  - ready stock
+  - genuine brand supply
+  - panel accessories
+  - control gear
+  - wiring solutions
+
+Include these ecommerce sections in a realistic way:
+- search-focused header
+- category-led browsing
+- offers banner
+- featured products
+- recommended products
+- related items
+- recently viewed placeholder
+- compare products
+- wishlist
+- cart drawer
+- checkout form UI
+- account pages UI
+- order tracking form UI
+- newsletter section
+- support/contact footer
+- policies and help links
+
+Trust elements:
+- Genuine products
+- Structured support
+- GST billing
+- Dispatch assistance
+- Bulk enquiry support
+- Secure checkout UI indicators
+- Easy quotation request
+
+Brand identity:
+Create a custom “Synergy” logo using a clean geometric electrical/industrial motif. It should work well in red, blue, and monochrome. Avoid flashy logo styles.
+
+Tailwind guidance:
+- Use Tailwind cleanly with extracted reusable utility patterns or helper components
+- No messy class overload where avoidable
+- Keep cards, forms, nav, and buttons consistent
+- Use subtle border and shadow system
+- Professional radius values, not oversized pill shapes everywhere
+
+Accessibility and quality:
+- Semantic HTML
+- Keyboard focus states
+- Mobile responsiveness
+- Good contrast
+- Reusable components
+- Clean TypeScript typing
+- No placeholder lorem ipsum
+- Use realistic electrical product names and specs
+- Use polished empty states and skeleton loaders
+
+Deliverables:
+1. Full Next.js codebase
+2. Tailwind setup
+3. Reusable components
+4. Mock product data
+5. MongoDB model placeholders without actual connection
+6. Multiple pages with routing
+7. Clean, professional UI in red, blue, and white
+8. No AI-looking design patterns
+9. Ready for later backend integration
+10. Include brief setup instructions in README
+
+Final expectation:
+This should feel like a credible electrical hardware e-commerce platform for the Indian market, taking inspiration from the structure and content depth of Robu.in but adapted into an original Synergy brand experience for electrical board and hardware commerce. The reference site shows a strong mix of categories, featured products, services, educational content, brands, support, and account flows; preserve that breadth in Synergy while changing the domain focus, content, styling, and layout language. [page:1]

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Synergy – Electrical Hardware E-Commerce"
+version = "1.0.0"
+id = "artifacts/synergy"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18854
+
+[services.development]
+run = "pnpm --filter @workspace/synergy run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/synergy", "run", "build" ]
+publicDir = "artifacts/synergy/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18854"
+BASE_PATH = "/"
