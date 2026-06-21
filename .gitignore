@@ -10,6 +10,11 @@ out-tsc
 
 # dependencies
 node_modules
+.pnpm-store/
+
+# alternate package-manager lockfiles
+package-lock.json
+yarn.lock
 
 # IDEs and editors
 /.idea
@@ -47,3 +52,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# local run workspace created for Windows permission isolation
+.run-workspace/
