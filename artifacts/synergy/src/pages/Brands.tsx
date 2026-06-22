@@ -8,7 +8,7 @@ export default function Brands() {
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Shop by Brand</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            We partner with the world's leading electrical manufacturers to bring you genuine, high-quality products.
+            We partner with leading tech manufacturers to bring you high-quality components and tools.
           </p>
         </div>
 

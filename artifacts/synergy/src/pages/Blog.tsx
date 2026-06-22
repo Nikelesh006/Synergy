@@ -11,7 +11,7 @@ export default function Blog() {
       <div className="container mx-auto px-4">
         <div className="mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Knowledge Center</h1>
-          <p className="text-gray-600">Guides, tips, and industry news for electrical professionals.</p>
+          <p className="text-gray-600">Insights, tutorials, and news on Embedded Systems, IoT, Robotics, and AI.</p>
         </div>
 
         {/* Featured Post */}

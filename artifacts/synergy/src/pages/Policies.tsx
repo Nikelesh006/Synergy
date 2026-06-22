@@ -24,7 +24,7 @@ export default function Policies() {
             <p>Last Updated: October 24, 2024</p>
             
             <h3>1. Introduction</h3>
-            <p>This is a placeholder for the legal policy text. In a production environment, this would contain the actual legal language drafted by counsel for Synergy Electrical Solutions Pvt. Ltd.</p>
+            <p>This is a placeholder for the legal policy text. In a production environment, this would contain the actual legal language drafted by counsel for Synergy Tech Labs.</p>
             
             <h3>2. Information We Collect</h3>
             <p>We collect information to provide better services to our users. We process your information for the purposes described in this policy.</p>
@@ -33,7 +33,7 @@ export default function Policies() {
             <p>We use the information we collect from all our services to provide, maintain, protect and improve them, to develop new ones, and to protect Synergy and our users.</p>
             
             <h3>4. Contact Us</h3>
-            <p>If you have any questions about this policy, please contact us at legal@synergy-electrical.in.</p>
+            <p>If you have any questions about this policy, please contact us at legal@synergytechlabs.in.</p>
           </div>
         </div>
       </div>

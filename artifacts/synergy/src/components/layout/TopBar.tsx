@@ -8,11 +8,11 @@ export default function TopBar() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Phone className="h-3 w-3" />
-            <span>+91 1800 123 4567</span>
+            <span>+91 98425 84477</span>
           </div>
           <div className="flex items-center gap-2">
             <Mail className="h-3 w-3" />
-            <span>sales@synergy-electrical.in</span>
+            <span>sales@synergy.in</span>
           </div>
         </div>
         <div className="flex items-center gap-6">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, User, Heart, ShoppingCart, Zap, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
@@ -34,7 +34,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="bg-red-600 text-white p-1 rounded-sm">
-              <Zap className="h-6 w-6 fill-current" />
+              <Cpu className="h-6 w-6 fill-current" />
             </div>
             <span className="font-bold text-2xl tracking-tight text-gray-900 hidden sm:block">SYNERGY</span>
           </Link>
@@ -62,6 +62,11 @@ export default function Header() {
             <Link href="/account" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
               <User className="h-5 w-5 md:h-6 md:w-6" />
               <span className="text-[10px] font-medium hidden md:block">Account</span>
+            </Link>
+
+            <Link href="/admin/products" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+              <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="text-[10px] font-medium hidden md:block">Admin</span>
             </Link>
             
             <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
@@ -115,7 +120,7 @@ export default function Header() {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-slate-900 text-white">
               <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 fill-red-500 text-red-500" />
+                <Flame className="h-5 w-5 fill-red-500 text-red-500" />
                 <span className="font-bold text-lg">SYNERGY</span>
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)}>
@@ -144,6 +149,7 @@ export default function Header() {
               </Link>
               
               <div className="px-4 pt-6 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Quick Links</div>
+              <Link href="/admin/products" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Admin Products</Link>
               <Link href="/bulk-enquiry" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Bulk Orders</Link>
               <Link href="/brands" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Shop by Brand</Link>
               <Link href="/track-order" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Track Order</Link>

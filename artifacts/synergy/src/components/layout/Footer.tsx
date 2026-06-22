@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Zap, Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Cpu, Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -10,38 +10,38 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-6">
               <div className="bg-red-600 text-white p-1 rounded-sm">
-                <Zap className="h-6 w-6 fill-current" />
+                <Cpu className="h-6 w-6 fill-current" />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-white">SYNERGY</span>
+              <span className="font-bold text-2xl tracking-tight text-white">SYNERGY TECH LABS</span>
             </Link>
             <p className="text-sm text-gray-400 mb-6 max-w-sm">
-              India's premier electrical hardware supply platform for contractors, electricians, builders, and institutions. Genuine products, GST billing, and bulk pricing.
+              Innovation-driven technology company specializing in Embedded Systems, IoT, Edge AI, Robotics, and Industrial Automation solutions.
             </p>
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-gray-500 shrink-0 mt-0.5" />
-                <span>123 Industrial Area, Phase 1, New Delhi, 110020, India</span>
+                <span>No 24, S.V.L. Nagar,Sulur, Coimbatore -641402</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-gray-500 shrink-0" />
-                <span>1800 123 4567 (Toll Free)</span>
+                <span>+91 98425 84477</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-gray-500 shrink-0" />
-                <span>sales@synergy-electrical.in</span>
+                <span>sales@synergytechlabs.in</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">Categories</h3>
+            <h3 className="text-white font-semibold mb-6 uppercase tracking-wider text-sm">Solutions</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/category/circuit-protection" className="hover:text-blue-400 transition-colors">Circuit Protection</Link></li>
-              <li><Link href="/category/wires-cables" className="hover:text-blue-400 transition-colors">Wires & Cables</Link></li>
-              <li><Link href="/category/switches-sockets" className="hover:text-blue-400 transition-colors">Switches & Sockets</Link></li>
-              <li><Link href="/category/industrial-controls" className="hover:text-blue-400 transition-colors">Industrial Controls</Link></li>
-              <li><Link href="/category/lighting" className="hover:text-blue-400 transition-colors">Lighting Solutions</Link></li>
-              <li><Link href="/category/safety-products" className="hover:text-blue-400 transition-colors">Safety Gear</Link></li>
+              <li><Link href="/services#embedded" className="hover:text-blue-400 transition-colors">Embedded Systems</Link></li>
+              <li><Link href="/services#iot" className="hover:text-blue-400 transition-colors">IoT & Cloud Integration</Link></li>
+              <li><Link href="/services#edge-ai" className="hover:text-blue-400 transition-colors">Edge AI Analytics</Link></li>
+              <li><Link href="/services#robotics" className="hover:text-blue-400 transition-colors">Robotics</Link></li>
+              <li><Link href="/services#automation" className="hover:text-blue-400 transition-colors">Industrial Automation</Link></li>
+              <li><Link href="/services#training" className="hover:text-blue-400 transition-colors">Skill Development</Link></li>
             </ul>
           </div>
 
@@ -77,7 +77,8 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Synergy Electrical Solutions Pvt. Ltd. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Synergy Tech Labs. All rights reserved.</p>
+          <p className="text-center font-semibold">Powered by <a href="https://www.codecraftnet.com/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors font-bold">Code Craft</a></p>
           <div className="flex items-center gap-4">
             <span className="font-mono">GSTIN: 07AABCU9603R1ZX</span>
             <div className="flex gap-2">

@@ -8,7 +8,7 @@ export default function Services() {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">Our Services</h1>
           <p className="text-gray-300 max-w-2xl mx-auto text-lg">
-            Beyond supplying hardware, Synergy offers value-added services to make your electrical projects seamless.
+            Synergy Tech Labs delivers customized solutions spanning product development, system integration, and technology education.
           </p>
         </div>
       </div>
@@ -20,9 +20,9 @@ export default function Services() {
             <div className="h-14 w-14 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-6">
               <Wrench className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-3">Panel Assembly Support</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">Product Development & System Integration</h2>
             <p className="text-gray-600 leading-relaxed">
-              We assist panel builders by sourcing all necessary components—from switchgear to lugs and wires—matching exact specifications to streamline your assembly process.
+              We specialize in transforming ideas into reliable, scalable products. Our expertise covers hardware design, firmware development, and end-to-end system integration for industrial and research applications.
             </p>
           </div>
 
@@ -30,9 +30,9 @@ export default function Services() {
             <div className="h-14 w-14 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-6">
               <PackageCheck className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-3">Project Supply Management</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">IoT & Cloud Integration</h2>
             <p className="text-gray-600 leading-relaxed">
-              For large construction projects, we offer staggered delivery schedules. Get your conduits in month one, wires in month two, and switches at finishing to optimize your cash flow and storage.
+              We develop smart, connected systems by integrating wireless communication with robust cloud platforms, enabling seamless data collection and operational efficiency for your business.
             </p>
           </div>
 
@@ -40,9 +40,9 @@ export default function Services() {
             <div className="h-14 w-14 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-6">
               <FileSpreadsheet className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-3">Custom BOM Quotation</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">Edge AI & Intelligent Analytics</h2>
             <p className="text-gray-600 leading-relaxed">
-              Upload your Bill of Materials and our technical team will cross-reference it with our catalog, suggesting equivalent alternatives if items are out of stock, providing a comprehensive quote.
+              Leveraging advanced algorithms, we build Edge AI solutions that process data locally for real-time, predictive decision-making without relying solely on cloud connectivity.
             </p>
           </div>
 
@@ -50,9 +50,9 @@ export default function Services() {
             <div className="h-14 w-14 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-6">
               <HardHat className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-3">Contractor Support</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">Technology Education & Training</h2>
             <p className="text-gray-600 leading-relaxed">
-              Dedicated account managers for regular contractors. Enjoy priority sourcing, credit terms (subject to approval), and easy re-ordering of your standard requirements.
+              We conduct hands-on training programs, workshops, and skill development initiatives in Embedded Systems, IoT, Robotics, and AI, collaborating with academic institutions to bridge the gap between emerging tech and real-world skills.
             </p>
           </div>
 

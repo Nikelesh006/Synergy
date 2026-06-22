@@ -39,8 +39,8 @@ export default function Contact() {
               <Mail className="h-6 w-6 text-red-600 shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-gray-900 mb-1">Email Us</h3>
-                <p className="text-sm text-gray-600 mb-1">Support: support@synergy-electrical.in</p>
-                <p className="text-sm text-gray-600">Sales: sales@synergy-electrical.in</p>
+                <p className="text-sm text-gray-600 mb-1">Support: support@synergytechlabs.in</p>
+                <p className="text-sm text-gray-600">Sales: sales@synergytechlabs.in</p>
               </div>
             </div>
 
@@ -78,10 +78,10 @@ export default function Contact() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                   <select className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option>Order Inquiry</option>
-                    <option>Product Information</option>
+                    <option>Product Development Inquiry</option>
+                    <option>IoT & Automation Solutions</option>
+                    <option>Training & Workshops</option>
                     <option>Technical Support</option>
-                    <option>Returns/Refunds</option>
                     <option>Other</option>
                   </select>
                 </div>

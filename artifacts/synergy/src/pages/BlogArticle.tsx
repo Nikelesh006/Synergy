@@ -41,7 +41,7 @@ export default function BlogArticle() {
           <p>{post.content}</p>
           
           <h2>The Importance of Correct Selection</h2>
-          <p>When working on electrical projects, selecting the right components isn't just about functionality—it's about safety, longevity, and compliance with local standards.</p>
+          <p>When developing embedded systems and IoT solutions, selecting the right components isn't just about functionality—it's about scalability, reliability, and security.</p>
           
           <h3>Key Considerations</h3>
           <ul>
@@ -51,7 +51,7 @@ export default function BlogArticle() {
             <li>Regulatory compliance (IS/IEC standards)</li>
           </ul>
           
-          <p>Always consult with a certified electrical engineer or contractor when planning major installations. Synergy provides technical support to help you match the right products to your specifications.</p>
+          <p>Always consult with technology experts when architecting complex IoT and Edge AI systems. Synergy Tech Labs provides the expertise and technical support to help you build smart, scalable solutions.</p>
         </div>
       </div>
     </div>

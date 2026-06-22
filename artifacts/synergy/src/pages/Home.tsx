@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, Zap, ShieldAlert, Truck, ChevronRight, Package } from "lucide-react";
+import { ArrowRight, ShieldAlert, Truck, ChevronRight, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { products } from "@/data/products";
@@ -18,24 +18,24 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('https://placehold.co/1920x600/1a1a2e/333333?text=Industrial+Background')] opacity-20 bg-cover bg-center mix-blend-overlay"></div>
         <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
           <div className="max-w-2xl">
-            <span className="inline-block py-1 px-3 bg-red-600 text-white text-xs font-bold tracking-wider rounded-sm mb-6 uppercase">
-              B2B & Contractor Supply
+            <span className="inline-block py-1 px-3 bg-blue-600 text-white text-xs font-bold tracking-wider rounded-sm mb-6 uppercase">
+              Innovation & Technology Partner
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-              Protect Your Circuits — MCBs & RCCBs from Top Brands
+              Next-Gen Solutions for Industry 4.0
             </h1>
             <p className="text-lg text-gray-300 mb-8 max-w-xl">
-              Genuine electrical components for industrial, commercial, and residential projects. Get project pricing and GST invoices.
+              Specializing in Embedded Systems, IoT, Edge AI, Robotics, and Industrial Automation. We transform ideas into reliable, scalable products.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link href="/shop">
-                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white rounded-sm px-8 font-semibold h-12">
-                  Shop Switchgear
+              <Link href="/about">
+                <Button size="lg" className="bg-red-600 hover:bg-red-800 text-white rounded-sm px-8 font-semibold h-12">
+                  Discover Our Mission
                 </Button>
               </Link>
-              <Link href="/bulk-enquiry">
+              <Link href="/contact">
                 <Button size="lg" variant="outline" className="bg-transparent border-gray-600 text-white hover:bg-slate-800 rounded-sm px-8 font-semibold h-12">
-                  Request Bulk Quote
+                  Partner With Us
                 </Button>
               </Link>
             </div>
@@ -55,7 +55,7 @@ export default function Home() {
           </div>
           <div className="hidden md:block w-px bg-gray-200"></div>
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <Zap className="h-8 w-8 text-yellow-500" />
+            <Receipt className="h-8 w-8 text-yellow-500" />
             <div>
               <h4 className="font-bold text-gray-900 text-sm">GST Billing</h4>
               <p className="text-xs text-gray-500">Input tax credit available</p>
@@ -88,7 +88,7 @@ export default function Home() {
             <Link key={cat.id} href={`/category/${cat.slug}`} className="flex flex-col items-center p-4 bg-gray-50 rounded-md hover:bg-blue-50 border border-gray-100 transition-colors text-center group">
               <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:shadow text-blue-600">
                 {/* Generic icon placeholder based on category */}
-                <Zap className="h-6 w-6" />
+                <Package className="h-6 w-6" />
               </div>
               <span className="text-xs font-semibold text-gray-800 group-hover:text-blue-700 leading-tight">
                 {cat.name}
@@ -117,14 +117,14 @@ export default function Home() {
       <section className="container mx-auto px-4">
         <div className="bg-blue-900 rounded-lg overflow-hidden flex flex-col md:flex-row items-center">
           <div className="p-8 md:p-12 md:w-2/3">
-            <Badge className="bg-blue-800 text-blue-200 hover:bg-blue-800 mb-4 px-3 py-1">CONTRACTORS & INSTITUTIONS</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Need Bulk Supply for Your Project?</h2>
+            <Badge className="bg-blue-800 text-blue-200 hover:bg-blue-800 mb-4 px-3 py-1">INDUSTRY & ACADEMIA</Badge>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Looking for Custom Solutions or Training?</h2>
             <p className="text-blue-100 mb-8 max-w-xl">
-              Upload your Bill of Materials (BOM) and our project sales team will provide a customized quotation within 24 hours with special volume pricing.
+              We offer specialized hands-on training programs in IoT, Robotics, and Edge AI, as well as customized industrial implementations to bridge the gap between emerging tech and real-world applications.
             </p>
-            <Link href="/bulk-enquiry">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white rounded-sm font-semibold">
-                Upload BOM / Request Quote
+            <Link href="/contact">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm font-semibold">
+                Request a Consultation
               </Button>
             </Link>
           </div>
