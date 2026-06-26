@@ -109,6 +109,59 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Blogs */}
+      <section className="container mx-auto px-4">
+        <div className="flex justify-between items-end mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Blogs</h2>
+          <Link href="/blogs" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            See More <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={`blog-${item}`} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
+              <div className="w-full aspect-[4/3] bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                <img src={`https://placehold.co/400x300/e2e8f0/475569?text=Blog+Image+${item}`} alt={`Blog ${item}`} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div className="p-4">
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 mb-2 border-none">Technology</Badge>
+                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">Latest Insights on Embedded Systems</h3>
+                <p className="text-sm text-gray-500 line-clamp-2">Discover the newest trends and practical applications of embedded systems in industrial automation and IoT devices.</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Tutorials */}
+      <section className="container mx-auto px-4">
+        <div className="flex justify-between items-end mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Tutorials</h2>
+          <Link href="/tutorials" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            See More <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={`tutorial-${item}`} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
+              <div className="w-full aspect-video bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                <img src={`https://placehold.co/400x225/e2e8f0/475569?text=Video+Thumbnail+${item}`} alt={`Tutorial ${item}`} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors cursor-pointer">
+                  <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
+                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <Badge className="bg-red-100 text-red-800 hover:bg-red-200 mb-2 border-none">Video Guide</Badge>
+                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">Getting Started with Edge AI</h3>
+                <p className="text-sm text-gray-500 line-clamp-2">A comprehensive video guide to setting up your first Edge AI project using our development boards.</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* B2B Strip */}
       <section className="container mx-auto px-4">
         <div className="bg-blue-900 rounded-lg overflow-hidden flex flex-col md:flex-row items-center">
