@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowRight, ShieldAlert, Truck, ChevronRight, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,90 +8,85 @@ import { categories } from "@/data/categories";
 import { brands } from "@/data/brands";
 import ProductCard from "@/components/product/ProductCard";
 
+const banners = [
+  "/banner-1.jpg",
+  "/banner-2.jpg",
+  "/banner-3.jpg",
+  "/banner-4.jpg",
+];
+
 export default function Home() {
+  const [currentBanner, setCurrentBanner] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
   const featuredProducts = products.filter(p => p.isFeatured).slice(0, 8);
   const topCategories = categories.slice(0, 8);
 
   return (
     <div className="flex flex-col gap-12 pb-16">
       {/* Hero Section */}
-      <section className="bg-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://placehold.co/1920x600/1a1a2e/333333?text=Industrial+Background')] opacity-20 bg-cover bg-center mix-blend-overlay"></div>
-        <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
-          <div className="max-w-2xl">
-            <span className="inline-block py-1 px-3 bg-blue-600 text-white text-xs font-bold tracking-wider rounded-sm mb-6 uppercase">
-              Innovation & Technology Partner
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-              Next-Gen Solutions for Industry 4.0
-            </h1>
-            <p className="text-lg text-gray-300 mb-8 max-w-xl">
-              Specializing in Embedded Systems, IoT, Edge AI, Robotics, and Industrial Automation. We transform ideas into reliable, scalable products.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/about">
-                <Button size="lg" className="bg-red-600 hover:bg-red-800 text-white rounded-sm px-8 font-semibold h-12">
-                  Discover Our Mission
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="outline" className="bg-transparent border-gray-600 text-white hover:bg-slate-800 rounded-sm px-8 font-semibold h-12">
-                  Partner With Us
-                </Button>
-              </Link>
-            </div>
+      <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden">
+        {banners.map((bg, index) => (
+          <div 
+            key={index} 
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+          >
+            <img 
+              src={bg} 
+              alt={`Banner ${index + 1}`} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = `https://placehold.co/1920x720/1a1a2e/ffffff?text=Banner+${index + 1}+-+8:3+Ratio`;
+              }}
+            />
           </div>
+        ))}
+        
+        {/* Navigation Dots */}
+        <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center gap-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentBanner(index)}
+              className={`h-2 rounded-full transition-all duration-300 shadow-sm ${index === currentBanner ? "bg-white w-8" : "bg-white/50 hover:bg-white/80 w-2"}`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="container mx-auto px-4 -mt-16 relative z-20">
-        <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6 flex flex-wrap md:flex-nowrap justify-between gap-6">
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <ShieldAlert className="h-8 w-8 text-blue-600" />
-            <div>
-              <h4 className="font-bold text-gray-900 text-sm">Genuine Products</h4>
-              <p className="text-xs text-gray-500">100% authentic sourced directly</p>
-            </div>
-          </div>
-          <div className="hidden md:block w-px bg-gray-200"></div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Receipt className="h-8 w-8 text-yellow-500" />
-            <div>
-              <h4 className="font-bold text-gray-900 text-sm">GST Billing</h4>
-              <p className="text-xs text-gray-500">Input tax credit available</p>
-            </div>
-          </div>
-          <div className="hidden md:block w-px bg-gray-200"></div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Truck className="h-8 w-8 text-green-600" />
-            <div>
-              <h4 className="font-bold text-gray-900 text-sm">Fast Dispatch</h4>
-              <p className="text-xs text-gray-500">Pan-India delivery network</p>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* Categories */}
-      <section className="container mx-auto px-4">
+      <section className="container mx-auto px-4 mt-8">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Shop by Category</h2>
-            <p className="text-sm text-gray-500 mt-1">Explore our comprehensive industrial catalog</p>
+            <h2 className="text-3xl font-bold text-gray-900 pb-2">Categories</h2>
+            <p className="text-sl text-gray-500 mt-1 pb-5">Explore our comprehensive industrial catalog</p>
           </div>
           <Link href="/shop" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
             View All <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {topCategories.map(cat => (
-            <Link key={cat.id} href={`/category/${cat.slug}`} className="flex flex-col items-center p-4 bg-gray-50 rounded-md hover:bg-blue-50 border border-gray-100 transition-colors text-center group">
-              <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:shadow text-blue-600">
-                {/* Generic icon placeholder based on category */}
-                <Package className="h-6 w-6" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {[
+            { id: 1, name: <>IOT Development<br/>Boards</>, slug: "iot" },
+            { id: 2, name: <>AI Development<br/>Boards</>, slug: "ai" },
+            { id: 3, name: <>Robotics Development<br/>Boards</>, slug: "robotics" },
+            { id: 4, name: <>Embedded Systems<br/>Development Boards</>, slug: "embedded-systems-boards" },
+            { id: 5, name: "Lab Equipments", slug: "lab-equipments" }
+          ].map(cat => (
+            <Link key={cat.id} href={`/category/${cat.slug}`} className="flex flex-col items-center group">
+              <div className="w-full aspect-square bg-gray-50 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center mb-4 group-hover:shadow-md group-hover:border-blue-300 transition-all overflow-hidden relative">
+                {/* Fallback Icon - you can replace this completely with an <img /> tag when ready */}
+                <Package className="h-12 w-12 text-blue-500/50 absolute" />
               </div>
-              <span className="text-xs font-semibold text-gray-800 group-hover:text-blue-700 leading-tight">
+              <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 text-center leading-tight">
                 {cat.name}
               </span>
             </Link>

@@ -129,31 +129,20 @@ export default function Header() {
             </div>
             
             <div className="flex-1 overflow-y-auto py-4">
-              <div className="px-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Categories</div>
-              {categories.slice(0, 10).map(cat => (
-                <Link 
-                  key={cat.id} 
-                  href={`/category/${cat.slug}`}
-                  className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {cat.name}
-                </Link>
-              ))}
-              <Link 
-                href="/shop"
-                className="block px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 border-b border-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                View All Categories
-              </Link>
+              <Link href="/" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
               
-              <div className="px-4 pt-6 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Quick Links</div>
-              <Link href="/admin/products" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Admin Products</Link>
-              <Link href="/bulk-enquiry" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Bulk Orders</Link>
-              <Link href="/brands" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Shop by Brand</Link>
-              <Link href="/track-order" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Track Order</Link>
-              <Link href="/contact" className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Contact Support</Link>
+              <div className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Development Boards</div>
+              <Link href="/category/iot" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>IOT</Link>
+              <Link href="/category/ai" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>AI</Link>
+              <Link href="/category/robotics" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Robotics</Link>
+              <Link href="/category/embedded-systems-boards" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Embedded Systems Boards</Link>
+              
+              <Link href="/category/lab-equipments" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Lab Equipments</Link>
+              <Link href="/blogs" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Blogs</Link>
+              <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+              <Link href="/contact" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+              <Link href="/faq" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>FAQ</Link>
+              <Link href="/shop" className="block px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>All Products</Link>
             </div>
           </div>
         </div>
