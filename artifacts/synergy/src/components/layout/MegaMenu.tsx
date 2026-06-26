@@ -32,10 +32,18 @@ export default function MegaMenu() {
             </div>
           </div>
         </li>
-        <li>
-          <Link href="/category/lab-equipments" className="block py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize">
+        <li className="group relative">
+          <Link href="/category/lab-equipments" className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize">
             Lab equipments
+            <ChevronDown className="h-4 w-4" />
           </Link>
+          <div className="absolute top-full left-0 w-72 bg-white shadow-lg border border-gray-200 rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform translate-y-2 group-hover:translate-y-0">
+            <div className="p-2">
+              <Link href="/category/sensors-instrumentation-mr3461" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
+                Sensors and Instrumentation (MR3461)
+              </Link>
+            </div>
+          </div>
         </li>
         <li className="group relative">
           <Link href="/blogs" className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize">

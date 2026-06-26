@@ -24,6 +24,7 @@ import Services from "@/pages/Services";
 import Brands from "@/pages/Brands";
 import Blog from "@/pages/Blog";
 import BlogArticle from "@/pages/BlogArticle";
+import Tutorials from "@/pages/Tutorials";
 import Contact from "@/pages/Contact";
 import About from "@/pages/About";
 import FAQ from "@/pages/FAQ";
@@ -48,8 +49,9 @@ function Router() {
         <Route path="/bulk-enquiry" component={BulkEnquiry} />
         <Route path="/services" component={Services} />
         <Route path="/brands" component={Brands} />
-        <Route path="/blog" component={Blog} />
+        <Route path="/blogs" component={Blog} />
         <Route path="/blog/:slug" component={BlogArticle} />
+        <Route path="/tutorials" component={Tutorials} />
         <Route path="/contact" component={Contact} />
         <Route path="/about" component={About} />
         <Route path="/faq" component={FAQ} />

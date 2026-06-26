@@ -78,7 +78,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
           <p>&copy; {new Date().getFullYear()} Synergy Tech Labs. All rights reserved.</p>
-          <p className="text-center font-semibold">Powered by <a href="https://www.codecraftnet.com/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors font-bold">Code Craft</a></p>
+          <p className="text-center font-semibold text-sm">Powered by <a href="https://www.codecraftnet.com/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors font-bold">Code Craft</a></p>
           <div className="flex items-center gap-4">
             <span className="font-mono">GSTIN: 07AABCU9603R1ZX</span>
             <div className="flex gap-2">

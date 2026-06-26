@@ -50,12 +50,13 @@ export interface BlogPost {
   title: string;
   slug: string;
   excerpt: string;
-  content: string;
+  content?: string;
   author: string;
   date: string;
   category: string;
   readTime: string;
   image: string;
+  youtubeUrl?: string;
 }
 
 export interface CartItem {
