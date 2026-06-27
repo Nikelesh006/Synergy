@@ -15,6 +15,7 @@ export default function Category() {
   if (!category) return <NotFound />;
   
   const categoryProducts = products.filter(p => p.category === category.name);
+  const subcategories = Array.from(new Set(categoryProducts.map(p => p.subcategory).filter(Boolean)));
   
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
@@ -49,6 +50,25 @@ export default function Category() {
                 <Filter className="h-5 w-5 text-gray-700" />
                 <h2 className="font-bold text-gray-900">Filters</h2>
               </div>
+              
+              {/* Subcategories Filter */}
+              {subcategories.length > 0 && (
+                <div className="mb-6 border-b border-gray-100 pb-6">
+                  <h3 className="font-semibold text-sm text-gray-900 mb-3 flex justify-between items-center">
+                    Categories <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </h3>
+                  <ul className="space-y-2">
+                    {subcategories.map((sub, idx) => (
+                      <li key={idx}>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                          <span className="text-sm text-gray-600 group-hover:text-blue-600">{sub}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               
               {/* Brand Filter */}
               <div className="mb-6">

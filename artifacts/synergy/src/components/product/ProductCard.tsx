@@ -34,9 +34,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
   };
 
-  const discount = product.compareAtPrice 
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100) 
-    : 0;
+  const discount = 18;
+  const originalPrice = Math.round(product.price / 0.82);
 
   return (
     <Link href={`/product/${product.slug}`} className="group flex flex-col bg-white border border-gray-200 rounded-md hover:shadow-md transition-shadow duration-200 overflow-hidden relative">
@@ -47,11 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {discount}% OFF
           </Badge>
         )}
-        {product.isNewArrival && (
-          <Badge className="bg-blue-600 hover:bg-blue-600 rounded-sm font-bold px-2 py-0.5 text-xs">
-            NEW
-          </Badge>
-        )}
+
       </div>
 
       {/* Image */}
@@ -66,9 +61,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute right-2 top-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={handleWishlist}
-            className={`p-2 bg-white rounded-full shadow-md hover:bg-gray-50 border border-gray-100 transition-colors ${isInWishlist(product.id) ? 'text-red-500' : 'text-gray-500'}`}
+            className={`group/wishlist p-2 bg-white rounded-full shadow-md hover:bg-red-50 border border-gray-100 transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
           >
-            <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+            <Heart className={`h-4 w-4 transition-all duration-300 ${isInWishlist(product.id) ? 'fill-current' : 'group-hover/wishlist:fill-current group-hover/wishlist:scale-110'}`} />
           </button>
         </div>
       </div>
@@ -81,21 +76,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
         
-        <div className="flex items-center gap-1 mb-3">
-          <div className="flex items-center text-yellow-500">
-            <Star className="h-3.5 w-3.5 fill-current" />
-            <span className="text-xs font-bold ml-1 text-gray-700">{product.rating}</span>
-          </div>
-          <span className="text-xs text-gray-400">({product.reviewCount})</span>
-        </div>
+
 
         <div className="mt-auto pt-2 flex items-end justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
-              {product.compareAtPrice && (
-                <span className="text-xs text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
-              )}
+              <span className="text-xs text-gray-400 line-through">₹{originalPrice.toLocaleString('en-IN')}</span>
             </div>
             <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
               <ShieldCheck className="h-3 w-3 text-green-600" />
@@ -105,10 +92,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           
           <Button 
             onClick={handleAddToCart}
-            size="icon" 
-            className="h-10 w-10 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+            className="group/btn relative h-10 w-10 p-0 hover:w-24 rounded-full bg-slate-900 text-white shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-300 ease-out flex items-center justify-center overflow-hidden border-0"
           >
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover/btn:-translate-x-5 group-hover/btn:scale-110" />
+            <span className="absolute right-4 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 text-sm font-bold whitespace-nowrap">
+              Add
+            </span>
           </Button>
         </div>
       </div>

@@ -16,18 +16,18 @@ export default function MegaMenu() {
             <ChevronDown className="h-4 w-4" />
           </Link>
           <div className="absolute top-full left-0 w-64 bg-white shadow-lg border border-gray-200 rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform translate-y-2 group-hover:translate-y-0">
-            <div className="p-2">
+            <div className="p-2 flex flex-col gap-1">
               <Link href="/category/iot" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
                 IoT
               </Link>
               <Link href="/category/ai" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
                 AI
               </Link>
-              <Link href="/category/robotics" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm capitalize">
-                Robotics
+              <Link href="/category/embedded-systems-boards" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
+                Embedded Systems
               </Link>
-              <Link href="/category/embedded-systems-boards" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm capitalize">
-                Embedded systems boards
+              <Link href="/category/robotics" className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
+                Robotics
               </Link>
             </div>
           </div>

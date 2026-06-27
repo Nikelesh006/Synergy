@@ -1,5 +1,5 @@
-import { Link, useParams } from "wouter";
-import { Star, Shield, Truck, Check, Heart, Share2, Info } from "lucide-react";
+import { Link, useParams, useLocation } from "wouter";
+import { Star, Shield, Truck, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag } from "lucide-react";
 import { products } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import NotFound from "./not-found";
 
 export default function ProductDetail() {
   const { slug } = useParams();
+  const [, setLocation] = useLocation();
   const product = products.find(p => p.slug === slug);
   const { addToCart, addToWishlist, isInWishlist } = useStore();
   const [qty, setQty] = useState(1);
@@ -17,9 +18,8 @@ export default function ProductDetail() {
 
   if (!product) return <NotFound />;
 
-  const discount = product.compareAtPrice 
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100) 
-    : 0;
+  const discount = 18;
+  const originalPrice = Math.round(product.price / 0.82);
 
   return (
     <div className="bg-white py-8">
@@ -64,22 +64,12 @@ export default function ProductDetail() {
             
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
             
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
-                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                <span className="ml-1 text-sm font-bold text-yellow-700">{product.rating}</span>
-                <span className="mx-1 text-yellow-300">|</span>
-                <span className="text-sm text-yellow-700">{product.reviewCount} Ratings</span>
-              </div>
-              <button className="text-sm text-blue-600 hover:underline">Write a Review</button>
-            </div>
+
 
             <div className="mb-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
               <div className="flex items-end gap-3 mb-2">
                 <span className="text-4xl font-extrabold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
-                {product.compareAtPrice && (
-                  <span className="text-lg text-gray-400 line-through mb-1">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
-                )}
+                <span className="text-lg text-gray-400 line-through mb-1">₹{originalPrice.toLocaleString('en-IN')}</span>
               </div>
               <p className="text-sm text-green-700 font-medium mb-4">Inclusive of all taxes (18% GST)</p>
               
@@ -132,18 +122,34 @@ export default function ProductDetail() {
               
               <Button 
                 onClick={() => addToCart(product, qty)}
-                className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-sm shadow-sm"
+                className="flex-1 h-12 bg-red-500 hover:bg-red-600 text-white text-lg font-bold rounded-2xl shadow-sm group"
               >
-                Add to Cart
+                <div className="flex items-center justify-center">
+                  <span>Add to Cart</span>
+                  <ShoppingCart strokeWidth={3} className="w-0 h-7 opacity-0 group-hover:w-7 group-hover:scale-125 group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out origin-left" />
+                </div>
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  addToCart(product, qty);
+                  setLocation('/checkout');
+                }}
+                className="flex-1 h-12 bg-gray-700 hover:bg-gray-800 text-white text-lg font-bold rounded-2xl shadow-sm group"
+              >
+                <div className="flex items-center justify-center">
+                  <span>Buy Now</span>
+                  <ShoppingBag strokeWidth={3} className="w-0 h-7 opacity-0 group-hover:w-7 group-hover:scale-125 group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out origin-left" />
+                </div>
               </Button>
             </div>
 
             <div className="flex items-center gap-6 border-t border-gray-200 pt-6">
               <button 
                 onClick={() => addToWishlist(product)}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors ${isInWishlist(product.id) ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
+                className={`group/wishlist flex items-center gap-2 text-sm font-medium transition-colors ${isInWishlist(product.id) ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
               >
-                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                <Heart className={`h-5 w-5 transition-all duration-300 ${isInWishlist(product.id) ? 'fill-current' : 'group-hover/wishlist:fill-current group-hover/wishlist:scale-110'}`} />
                 {isInWishlist(product.id) ? 'Saved to Wishlist' : 'Add to Wishlist'}
               </button>
               <button className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
