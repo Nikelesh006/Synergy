@@ -17,7 +17,10 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Wishlist from "@/pages/Wishlist";
 import Account from "@/pages/Account";
+import AdminBlogs from "@/pages/AdminBlogs";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminSection from "@/pages/AdminSection";
+import AdminTutorials from "@/pages/AdminTutorials";
 import TrackOrder from "@/pages/TrackOrder";
 import BulkEnquiry from "@/pages/BulkEnquiry";
 import Services from "@/pages/Services";
@@ -32,6 +35,14 @@ import Policies from "@/pages/Policies";
 
 const queryClient = new QueryClient();
 
+function AdminProducts() {
+  return <AdminSection title="Products" />;
+}
+
+function AdminOrders() {
+  return <AdminSection title="Orders" />;
+}
+
 function Router() {
   return (
     <AppLayout>
@@ -44,7 +55,12 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/wishlist" component={Wishlist} />
         <Route path="/account" component={Account} />
-        <Route path="/admin/products" component={AdminDashboard} />
+        <Route path="/admin/add-product" component={AdminDashboard} />
+        <Route path="/admin/blogs" component={AdminBlogs} />
+        <Route path="/admin/tutorials" component={AdminTutorials} />
+        <Route path="/admin/products" component={AdminProducts} />
+        <Route path="/admin/orders" component={AdminOrders} />
+        <Route path="/admin" component={AdminDashboard} />
         <Route path="/track-order" component={TrackOrder} />
         <Route path="/bulk-enquiry" component={BulkEnquiry} />
         <Route path="/services" component={Services} />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
 import { useStore } from "@/context/StoreContext";
 import { categories } from "@/data/categories";
+import { adminLinks } from "@/components/admin/AdminNav";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,10 +65,28 @@ export default function Header() {
               <span className="text-[10px] font-medium hidden md:block">Account</span>
             </Link>
 
-            <Link href="/admin/products" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
-              <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
-              <span className="text-[10px] font-medium hidden md:block">Admin</span>
-            </Link>
+            <div className="group relative">
+              <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+                <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
+                <span className="text-[10px] font-medium hidden md:block">Admin</span>
+              </Link>
+              <div className="invisible absolute right-0 top-full z-50 mt-3 w-48 translate-y-2 rounded-md border border-gray-200 bg-white p-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                {adminLinks.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
             
             <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
               <Heart className="h-5 w-5 md:h-6 md:w-6" />
@@ -138,6 +157,17 @@ export default function Header() {
               <Link href="/category/embedded-systems-boards" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Embedded Systems Boards</Link>
               
               <Link href="/category/lab-equipments" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Lab Equipments</Link>
+              <div className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Admin</div>
+              {adminLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
               <Link href="/blogs" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Blogs</Link>
               <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
               <Link href="/contact" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
