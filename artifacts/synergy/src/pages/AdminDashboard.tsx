@@ -31,17 +31,12 @@ type AdminProduct = {
   brand: string;
   category: string;
   subcategory: string;
-  shortDescription: string;
   description: string;
   images: string;
   price: string;
   offerPrice: string;
   stock: string;
   mpn: string;
-  inputVoltage: string;
-  outputVoltage: string;
-  outputVoltageAdjustment: string;
-  outputCurrent: string;
   tags: string;
   isFeatured: boolean;
   inStock: boolean;
@@ -54,7 +49,6 @@ const defaultProduct: AdminProduct = {
   brand: "Synergy Controls",
   category: "Smart Boards & IoT",
   subcategory: "Relay Controller",
-  shortDescription: "Wi-Fi enabled smart board controller for automation panels.",
   description:
     "Industrial IoT smart board with 8 relay outputs, app-ready control, sensor inputs, and DIN rail mounting for automation projects.",
   images:
@@ -63,10 +57,6 @@ const defaultProduct: AdminProduct = {
   offerPrice: "2999",
   stock: "24",
   mpn: "N/A",
-  inputVoltage: "4.5V - 28V",
-  outputVoltage: "0.8V - 20V",
-  outputVoltageAdjustment: "On-board potentiometer",
-  outputCurrent: "1.8A (typical), 3.0A (max)",
   tags: "Power Supply,DC Power Supply,Voltage Regulator",
   isFeatured: true,
   inStock: true,
@@ -80,15 +70,11 @@ const initialProducts: AdminProduct[] = [
     name: "ESP32 Smart Energy Monitor Board",
     sku: "IOT-EM-ESP32-CT",
     subcategory: "Energy Monitor",
-    shortDescription: "ESP32 based board for current sensing and energy telemetry.",
+    description: "ESP32 based board for current sensing and energy telemetry.",
     price: "2199",
     offerPrice: "1899",
     stock: "36",
     mpn: "N/A",
-    inputVoltage: "5V DC",
-    outputVoltage: "3.3V DC",
-    outputVoltageAdjustment: "Fixed",
-    outputCurrent: "1A",
     tags: "ESP32,Energy Monitor",
     isFeatured: false,
   },
@@ -149,7 +135,6 @@ export default function AdminDashboard() {
       id: `iot-smart-board-${String(products.length + 1).padStart(3, "0")}`,
       name: "",
       sku: "",
-      shortDescription: "",
       description: "",
       images: "",
     });
@@ -201,24 +186,21 @@ export default function AdminDashboard() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className={panelClass}>
-              <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-5 border-b border-slate-200 pb-5">
                 <div>
                   <div className="mb-2 h-1 w-16 rounded-full bg-blue-700" />
                   <h2 className={sectionTitleClass}>Basic Details</h2>
                   <p className="mt-1 text-sm text-black">Required catalog identity and dropdown classification.</p>
                 </div>
-                <Badge variant="outline" className="w-fit border-blue-200 bg-white text-black">
-                  MongoDB ready
-                </Badge>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-black">Product Name</Label>
+                <Label htmlFor="name" className="text-sm font-semibold text-black">Product Name <span className="text-red-600">*</span></Label>
                 <Input id="name" value={form.name} onChange={(event) => updateField("name", event.target.value)} className={fieldClass} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sku" className="text-sm font-semibold text-black">SKU</Label>
+                <Label htmlFor="sku" className="text-sm font-semibold text-black">SKU <span className="text-red-600">*</span></Label>
                 <Input id="sku" value={form.sku} onChange={(event) => updateField("sku", event.target.value)} className={fieldClass} required />
               </div>
               <div className="space-y-2">
@@ -226,10 +208,7 @@ export default function AdminDashboard() {
                 <Input id="brand" value={form.brand} onChange={(event) => updateField("brand", event.target.value)} className={fieldClass} />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-semibold text-black">Category</Label>
-                  <span className="rounded-md border border-blue-200 bg-white px-2 py-0.5 text-xs font-semibold text-black">Required</span>
-                </div>
+                <Label className="text-sm font-semibold text-black">Category <span className="text-red-600">*</span></Label>
                 <Select value={form.category} onValueChange={(value) => updateField("category", value)}>
                   <SelectTrigger className={fieldClass}>
                     <SelectValue placeholder="Select category" />
@@ -271,41 +250,11 @@ export default function AdminDashboard() {
                 <Label htmlFor="tags" className="text-sm font-semibold text-black">Tags</Label>
                 <Input id="tags" value={form.tags} onChange={(event) => updateField("tags", event.target.value)} className={fieldClass} />
               </div>
-              </div>
-            </div>
-
-            <div className={panelClass}>
-              <div className="mb-5 border-b border-slate-200 pb-5">
-                <div className="mb-2 h-1 w-16 rounded-full bg-blue-700" />
-                <h2 className={sectionTitleClass}>Electrical Specifications</h2>
-                <p className="mt-1 text-sm text-black">Voltage, current, and adjustment details for the listing.</p>
-              </div>
-              <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="inputVoltage" className="text-sm font-semibold text-black">Input Voltage</Label>
-                <Input id="inputVoltage" value={form.inputVoltage} onChange={(event) => updateField("inputVoltage", event.target.value)} className={fieldClass} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="outputVoltage" className="text-sm font-semibold text-black">Output Voltage</Label>
-                <Input id="outputVoltage" value={form.outputVoltage} onChange={(event) => updateField("outputVoltage", event.target.value)} className={fieldClass} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="outputVoltageAdjustment" className="text-sm font-semibold text-black">Output Voltage Adj</Label>
-                <Input id="outputVoltageAdjustment" value={form.outputVoltageAdjustment} onChange={(event) => updateField("outputVoltageAdjustment", event.target.value)} className={fieldClass} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="outputCurrent" className="text-sm font-semibold text-black">Output Current</Label>
-                <Input id="outputCurrent" value={form.outputCurrent} onChange={(event) => updateField("outputCurrent", event.target.value)} className={fieldClass} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="shortDescription" className="text-sm font-semibold text-black">Short Description</Label>
-                <Input id="shortDescription" value={form.shortDescription} onChange={(event) => updateField("shortDescription", event.target.value)} className={fieldClass} />
-              </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-semibold text-black">Description</Label>
                 <Textarea id="description" value={form.description} onChange={(event) => updateField("description", event.target.value)} className={textareaClass} />
               </div>
-            </div>
+              </div>
             </div>
 
 
@@ -394,7 +343,7 @@ export default function AdminDashboard() {
               <div className="mt-4 space-y-3">
                 <div>
                   <h3 className="font-bold text-black">{form.name || "Untitled product"}</h3>
-                  <p className="mt-1 text-sm text-black">{form.shortDescription || "Short catalog description"}</p>
+                  <p className="mt-1 text-sm text-black">{form.description || "Product description"}</p>
                 </div>
                 <div className="flex items-end gap-2">
                   <span className="text-2xl font-bold text-black">Rs. {form.offerPrice || form.price || "0"}</span>

@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { ChevronDown } from "lucide-react";
-import { adminLinks } from "@/components/admin/AdminNav";
 
 export default function MegaMenu() {
   return (
@@ -76,26 +75,6 @@ export default function MegaMenu() {
           <Link href="/faq" className="block py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide">
             FAQ
           </Link>
-        </li>
-        <li className="group relative">
-          <Link href="/admin/add-product" className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize">
-            Admin
-            <ChevronDown className="h-4 w-4" />
-          </Link>
-          <div className="absolute top-full right-0 w-52 bg-white shadow-lg border border-gray-200 rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform translate-y-2 group-hover:translate-y-0">
-            <div className="p-2 flex flex-col gap-1">
-              {adminLinks.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <Link key={item.href} href={item.href} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-sm">
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
         </li>
         <li>
           <Link href="/shop" className="block py-3 px-3 text-[14px] font-semibold text-red-600 hover:text-red-700 transition-colors tracking-wide capitalize">
