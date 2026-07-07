@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,28 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { cartCount, wishlist } = useStore();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== 'undefined') {
+        if (window.scrollY > lastScrollY && window.scrollY > 100) {
+          setIsVisible(false);
+        } else {
+          setIsVisible(true);
+        }
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', controlNavbar);
+      return () => {
+        window.removeEventListener('scroll', controlNavbar);
+      };
+    }
+  }, [lastScrollY]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +41,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <header className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="container mx-auto px-4">
         {/* Main Header Row */}
         <div className="flex items-center justify-between py-4 gap-4 md:gap-8">
@@ -33,11 +55,8 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="bg-red-600 text-white p-1 rounded-sm">
-              <Cpu className="h-6 w-6 fill-current" />
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-gray-900 hidden sm:block">SYNERGY</span>
+          <Link href="/" className="flex items-center flex-shrink-0">
+            <img src="/synergy-logo.png" alt="Synergy" className="h-12 md:h-16 w-auto" />
           </Link>
 
           {/* Search Bar (Desktop) */}
@@ -137,12 +156,11 @@ export default function Header() {
             className="w-4/5 max-w-sm h-full bg-white shadow-xl flex flex-col"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-slate-900 text-white">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white text-gray-900">
               <div className="flex items-center gap-2">
-                <Flame className="h-5 w-5 fill-red-500 text-red-500" />
-                <span className="font-bold text-lg">SYNERGY</span>
+                <img src="/synergy-logo.png" alt="Synergy" className="h-10 w-auto" />
               </div>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-6 w-6" />
               </button>
             </div>
@@ -170,7 +188,6 @@ export default function Header() {
               ))}
               <Link href="/blogs" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Blogs</Link>
               <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-              <Link href="/contact" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
               <Link href="/faq" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>FAQ</Link>
               <Link href="/shop" className="block px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>All Products</Link>
             </div>

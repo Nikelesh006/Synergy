@@ -109,6 +109,17 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Product Banner Placeholder */}
+      <section className="container mx-auto px-4">
+        <div className="relative aspect-[5/1] min-h-[150px] overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm">
+          <img
+            src="https://placehold.co/1600x320/e2e8f0/334155?text=Product+Banner+Placeholder"
+            alt="Product banner placeholder"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </section>
+
       {/* Blogs */}
       <section className="container mx-auto px-4">
         <div className="flex justify-between items-end mb-6">

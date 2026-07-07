@@ -8,11 +8,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="bg-red-600 text-white p-1 rounded-sm">
-                <Cpu className="h-6 w-6 fill-current" />
-              </div>
-              <span className="font-bold text-2xl tracking-tight text-white">SYNERGY TECH LABS</span>
+            <Link href="/" className="flex items-center mb-6">
+              <img src="/synergy-logo-footer.png" alt="Synergy Tech Labs" className="h-14 md:h-16 w-auto" />
             </Link>
             <p className="text-sm text-gray-400 mb-6 max-w-sm">
               Innovation-driven technology company specializing in Embedded Systems, IoT, Edge AI, Robotics, and Industrial Automation solutions.

@@ -3,7 +3,6 @@ import { Link, useParams } from "wouter";
 import { Filter, ChevronDown, Package } from "lucide-react";
 import { products } from "@/data/products";
 import { categories } from "@/data/categories";
-import { brands } from "@/data/brands";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import NotFound from "./not-found";
@@ -69,23 +68,6 @@ export default function Category() {
                   </ul>
                 </div>
               )}
-              
-              {/* Brand Filter */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-sm text-gray-900 mb-3 flex justify-between items-center">
-                  Brands <ChevronDown className="h-4 w-4 text-gray-400" />
-                </h3>
-                <ul className="space-y-2">
-                  {brands.slice(0, 6).map(brand => (
-                    <li key={brand.id}>
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                        <span className="text-sm text-gray-600 group-hover:text-blue-600">{brand.name}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
           </aside>
 

@@ -103,9 +103,9 @@ export default function ProductDetail() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <div className="flex items-center border border-gray-300 rounded-md h-12 w-32 shrink-0">
+              <div className="flex items-center border border-gray-300 rounded-2xl h-12 w-32 shrink-0 overflow-hidden">
                 <button 
-                  className="px-4 text-gray-500 hover:bg-gray-100 h-full flex items-center justify-center rounded-l-md"
+                  className="px-4 text-gray-500 hover:bg-gray-100 h-full flex items-center justify-center rounded-l-2xl"
                   onClick={() => setQty(Math.max(1, qty - 1))}
                 >-</button>
                 <input 
@@ -115,7 +115,7 @@ export default function ProductDetail() {
                   className="w-full text-center border-0 font-medium text-gray-900 p-0 focus:ring-0"
                 />
                 <button 
-                  className="px-4 text-gray-500 hover:bg-gray-100 h-full flex items-center justify-center rounded-r-md"
+                  className="px-4 text-gray-500 hover:bg-gray-100 h-full flex items-center justify-center rounded-r-2xl"
                   onClick={() => setQty(qty + 1)}
                 >+</button>
               </div>

@@ -5,7 +5,6 @@ import {
   IndianRupee,
   PackagePlus,
   Save,
-  Sparkles,
   UploadCloud,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +31,8 @@ type AdminProduct = {
   category: string;
   subcategory: string;
   description: string;
+  keyFeatures: string;
+  specifications: string;
   images: string;
   price: string;
   offerPrice: string;
@@ -47,10 +48,12 @@ const defaultProduct: AdminProduct = {
   name: "IoT Smart Board Controller 8 Relay",
   sku: "IOT-SB-8R-WIFI",
   brand: "Synergy Controls",
-  category: "Smart Boards & IoT",
-  subcategory: "Relay Controller",
+  category: "IOT",
+  subcategory: "ESP32 (Rex32)",
   description:
     "Industrial IoT smart board with 8 relay outputs, app-ready control, sensor inputs, and DIN rail mounting for automation projects.",
+  keyFeatures: "8 relay outputs, WiFi control, DIN rail mounting",
+  specifications: "Input: 12V DC, Connectivity: WiFi, Relay Rating: 10A",
   images:
     "https://placehold.co/700x700/e8f1ff/1f2937?text=IoT+Smart+Board\nhttps://placehold.co/700x700/ecfdf5/1f2937?text=Relay+Module",
   price: "3499",
@@ -69,7 +72,7 @@ const initialProducts: AdminProduct[] = [
     id: "iot-smart-board-002",
     name: "ESP32 Smart Energy Monitor Board",
     sku: "IOT-EM-ESP32-CT",
-    subcategory: "Energy Monitor",
+    subcategory: "ESP32 (Rex32)",
     description: "ESP32 based board for current sensing and energy telemetry.",
     price: "2199",
     offerPrice: "1899",
@@ -81,12 +84,20 @@ const initialProducts: AdminProduct[] = [
 ];
 
 const categories = [
-  "Smart Boards & IoT",
-  "Circuit Protection",
-  "Distribution Boards",
-  "Sensors & Modules",
-  "Automation Panels",
+  "IOT",
+  "AI",
+  "Embedded Systems",
+  "Robotics",
+  "Lab Equipments",
 ];
+
+const subcategoriesByCategory: Record<string, string[]> = {
+  IOT: ["ESP32 (Rex32)"],
+  AI: ["ESP32 AI (Rex32 AI)"],
+  "Embedded Systems": ["Arduino"],
+  Robotics: ["ESP32 servo drivers", "ESP32 DC drivers", "ESP32 stepper drivers"],
+  "Lab Equipments": ["Sensors and Instruments (MR34461)"],
+};
 
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";
@@ -106,6 +117,14 @@ export default function AdminDashboard() {
 
   const updateField = (field: keyof AdminProduct, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setForm((current) => ({
+      ...current,
+      category,
+      subcategory: subcategoriesByCategory[category]?.[0] ?? "",
+    }));
   };
 
   const handleSingleImageUpload = (index: number, event: ChangeEvent<HTMLInputElement>) => {
@@ -136,6 +155,8 @@ export default function AdminDashboard() {
       name: "",
       sku: "",
       description: "",
+      keyFeatures: "",
+      specifications: "",
       images: "",
     });
 
@@ -204,12 +225,8 @@ export default function AdminDashboard() {
                 <Input id="sku" value={form.sku} onChange={(event) => updateField("sku", event.target.value)} className={fieldClass} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="brand" className="text-sm font-semibold text-black">Brand</Label>
-                <Input id="brand" value={form.brand} onChange={(event) => updateField("brand", event.target.value)} className={fieldClass} />
-              </div>
-              <div className="space-y-2">
                 <Label className="text-sm font-semibold text-black">Category <span className="text-red-600">*</span></Label>
-                <Select value={form.category} onValueChange={(value) => updateField("category", value)}>
+                <Select value={form.category} onValueChange={handleCategoryChange}>
                   <SelectTrigger className={fieldClass}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -221,8 +238,17 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="subcategory" className="text-sm font-semibold text-black">Subcategory</Label>
-                <Input id="subcategory" value={form.subcategory} onChange={(event) => updateField("subcategory", event.target.value)} className={fieldClass} />
+                <Label className="text-sm font-semibold text-black">Subcategory</Label>
+                <Select value={form.subcategory} onValueChange={(value) => updateField("subcategory", value)}>
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Select subcategory" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(subcategoriesByCategory[form.category] ?? []).map((subcategory) => (
+                      <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stock" className="text-sm font-semibold text-black">Stock Quantity</Label>
@@ -253,6 +279,14 @@ export default function AdminDashboard() {
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-semibold text-black">Description</Label>
                 <Textarea id="description" value={form.description} onChange={(event) => updateField("description", event.target.value)} className={textareaClass} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="keyFeatures" className="text-sm font-semibold text-black">Key Features</Label>
+                <Input id="keyFeatures" value={form.keyFeatures} onChange={(event) => updateField("keyFeatures", event.target.value)} className={fieldClass} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="specifications" className="text-sm font-semibold text-black">Specifications</Label>
+                <Input id="specifications" value={form.specifications} onChange={(event) => updateField("specifications", event.target.value)} className={fieldClass} />
               </div>
               </div>
             </div>
@@ -354,7 +388,7 @@ export default function AdminDashboard() {
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="border-blue-200 bg-white text-black">{form.category}</Badge>
                   <Badge variant="outline" className="border-slate-200 bg-white text-black">{form.mpn || "No MPN"}</Badge>
-                  {form.isFeatured && <Badge variant="outline" className="border-slate-200 bg-white text-black"><Sparkles className="mr-1 h-3 w-3" /> Featured</Badge>}
+                  {form.isFeatured && <Badge variant="outline" className="border-slate-200 bg-white text-black">Featured</Badge>}
                 </div>
               </div>
             </section>
