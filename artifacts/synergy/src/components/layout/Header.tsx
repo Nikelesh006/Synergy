@@ -5,8 +5,59 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
 import { useStore } from "@/context/StoreContext";
-import { categories } from "@/data/categories";
 import { adminLinks } from "@/components/admin/AdminNav";
+
+const SEARCH_PHRASES = [
+  "AI Development Boards",
+  "Rex32",
+  "Arduino Boards",
+  "ESP32 Servo Drivers",
+  "DC Drivers",
+  "Embedded Systems Development Boards",
+  "Robotics Development Boards",
+  "Lab Equipments",
+  "ESP32 Stepper Drivers",
+];
+
+function useTypewriter(phrases: string[]) {
+  const [text, setText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = phrases[phraseIndex];
+    const isAtEnd = !isDeleting && text === current;
+    const isAtStart = isDeleting && text === "";
+    const typingSpeed = isDeleting ? 50 : 120;
+    const pauseAtEnd = 2200;
+    const pauseAtStart = 600;
+
+    let delay = typingSpeed;
+    if (isAtEnd) delay = pauseAtEnd;
+    else if (isAtStart) delay = pauseAtStart;
+
+    const timer = window.setTimeout(() => {
+      if (isAtEnd) {
+        setIsDeleting(true);
+        return;
+      }
+      if (isAtStart) {
+        setIsDeleting(false);
+        setPhraseIndex((i) => (i + 1) % phrases.length);
+        return;
+      }
+      setText(
+        isDeleting
+          ? current.slice(0, text.length - 1)
+          : current.slice(0, text.length + 1)
+      );
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [text, isDeleting, phraseIndex, phrases]);
+
+  return text;
+}
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,6 +65,9 @@ export default function Header() {
   const { cartCount, wishlist } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const desktopPlaceholder = useTypewriter(SEARCH_PHRASES);
+  const mobilePlaceholder = useTypewriter(SEARCH_PHRASES);
 
   useEffect(() => {
     const controlNavbar = () => {
@@ -56,40 +110,30 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
-            <img src="/synergy-logo.png" alt="Synergy" className="h-12 md:h-16 w-auto" />
+            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 md:h-12 w-auto select-none" />
           </Link>
 
           {/* Search Bar (Desktop) */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl items-center border border-gray-300 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
-            <select className="bg-gray-50 border-r border-gray-300 py-2.5 px-3 text-sm text-gray-700 outline-none w-40 flex-shrink-0 cursor-pointer">
-              <option value="">All Categories</option>
-              {categories.slice(0, 10).map(cat => (
-                <option key={cat.id} value={cat.slug}>{cat.name}</option>
-              ))}
-            </select>
-            <Input 
-              type="search" 
-              placeholder="Search by product name, brand, or SKU..." 
-              className="border-0 rounded-none shadow-none focus-visible:ring-0 px-4 py-6"
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl items-center border border-gray-300 rounded-full overflow-hidden shadow-md transition-all">
+            <Input
+              type="search"
+              placeholder={searchFocused ? "" : `Search for ${desktopPlaceholder}`}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className="border-0 rounded-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-6"
             />
-            <Button type="submit" variant="secondary" className="rounded-none px-6 h-[48px]">
+            <Button type="submit" variant="secondary" className="rounded-none px-6 h-[48px] shadow-md">
               <Search className="h-5 w-5" />
             </Button>
           </form>
 
           {/* Icons */}
           <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
-            <Link href="/account" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
-              <User className="h-5 w-5 md:h-6 md:w-6" />
-              <span className="text-[10px] font-medium hidden md:block">Account</span>
-            </Link>
-
             <div className="group relative">
               <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
                 <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
-                <span className="text-[10px] font-medium hidden md:block">Admin</span>
               </Link>
-              <div className="invisible absolute right-0 top-full z-50 mt-3 w-48 translate-y-2 rounded-md border border-gray-200 bg-white p-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+              <div className="invisible absolute left-0 top-full z-50 mt-3 w-48 translate-y-2 rounded-md border border-gray-200 bg-white p-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                 {adminLinks.map((item) => {
                   const Icon = item.icon;
 
@@ -106,7 +150,11 @@ export default function Header() {
                 })}
               </div>
             </div>
-            
+
+            <Link href="/account" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+              <User className="h-5 w-5 md:h-6 md:w-6" />
+            </Link>
+
             <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
               <Heart className="h-5 w-5 md:h-6 md:w-6" />
               {wishlist.length > 0 && (
@@ -114,7 +162,6 @@ export default function Header() {
                   {wishlist.length}
                 </span>
               )}
-              <span className="text-[10px] font-medium hidden md:block">Wishlist</span>
             </Link>
 
             <Link href="/cart" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
@@ -124,20 +171,21 @@ export default function Header() {
                   {cartCount}
                 </span>
               )}
-              <span className="text-[10px] font-medium hidden md:block">Cart</span>
             </Link>
           </div>
         </div>
         
         {/* Search Bar (Mobile) */}
         <div className="md:hidden pb-4">
-          <form onSubmit={handleSearch} className="flex border border-gray-300 rounded-md overflow-hidden">
-            <Input 
-              type="search" 
-              placeholder="Search products..." 
+          <form onSubmit={handleSearch} className="flex border border-gray-300 rounded-full overflow-hidden shadow-md">
+            <Input
+              type="search"
+              placeholder={searchFocused ? "" : `Search for ${mobilePlaceholder}`}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
               className="border-0 rounded-none shadow-none focus-visible:ring-0"
             />
-            <Button type="submit" variant="secondary" className="rounded-none px-4">
+            <Button type="submit" variant="secondary" className="rounded-none px-4 shadow-md">
               <Search className="h-4 w-4" />
             </Button>
           </form>
@@ -158,7 +206,7 @@ export default function Header() {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white text-gray-900">
               <div className="flex items-center gap-2">
-                <img src="/synergy-logo.png" alt="Synergy" className="h-10 w-auto" />
+                <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 w-auto select-none" />
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-6 w-6" />

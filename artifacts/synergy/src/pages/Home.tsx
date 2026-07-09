@@ -28,7 +28,7 @@ export default function Home() {
   const topCategories = categories.slice(0, 8);
 
   return (
-    <div className="flex flex-col gap-12 pb-16">
+    <div className="flex flex-col gap-20 pb-20">
       {/* Hero Section */}
       <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden">
         {banners.map((bg, index) => (
@@ -63,7 +63,7 @@ export default function Home() {
 
 
       {/* Categories */}
-      <section className="container mx-auto px-4 mt-8">
+      <section className="container mx-auto px-4 mt-4">
         <div className="flex justify-between items-end mb-6">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 pb-2">Categories</h2>

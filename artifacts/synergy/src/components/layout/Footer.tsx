@@ -9,7 +9,7 @@ export default function Footer() {
           
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center mb-6">
-              <img src="/synergy-logo-footer.png" alt="Synergy Tech Labs" className="h-14 md:h-16 w-auto" />
+              <img src="/synergy-logo-footer.png" alt="Synergy Tech Labs" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-14 md:h-16 w-auto select-none" />
             </Link>
             <p className="text-sm text-gray-400 mb-6 max-w-sm">
               Innovation-driven technology company specializing in Embedded Systems, IoT, Edge AI, Robotics, and Industrial Automation solutions.
