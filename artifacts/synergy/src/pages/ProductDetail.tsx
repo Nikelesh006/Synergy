@@ -1,9 +1,8 @@
 import { Link, useParams, useLocation } from "wouter";
-import { Star, Shield, Truck, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag } from "lucide-react";
+import { Star, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag } from "lucide-react";
 import { products } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import NotFound from "./not-found";
@@ -15,11 +14,14 @@ export default function ProductDetail() {
   const { addToCart, addToWishlist, isInWishlist } = useStore();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
+  const [activeImage, setActiveImage] = useState(0);
 
   if (!product) return <NotFound />;
 
-  const discount = 18;
-  const originalPrice = Math.round(product.price / 0.82);
+  const roundToEnding9 = (n: number) => Math.floor(n / 10) * 10 - 1;
+  const sellingPrice = roundToEnding9(product.price);
+  const originalPrice = roundToEnding9(product.price / 0.82);
+  const savings = Math.max(0, originalPrice - sellingPrice);
 
   return (
     <div className="bg-white py-8">
@@ -36,18 +38,19 @@ export default function ProductDetail() {
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Image Gallery */}
           <div className="w-full lg:w-5/12 flex flex-col gap-4">
-            <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 p-8 flex items-center justify-center relative">
-               <img src={product.images[0]} alt={product.name} className="max-w-full max-h-full mix-blend-multiply object-contain" />
-               {discount > 0 && (
-                <Badge variant="destructive" className="absolute top-4 left-4 bg-red-600 text-sm py-1">
-                  {discount}% OFF
-                </Badge>
-               )}
+            <div className="aspect-square bg-white rounded-lg border border-gray-200 flex items-center justify-center relative overflow-hidden">
+               <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
             </div>
             {product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto">
                 {product.images.map((img, i) => (
-                  <button key={i} className={`w-20 h-20 bg-gray-50 rounded-md border ${i === 0 ? 'border-blue-600 ring-1 ring-blue-600' : 'border-gray-200'} p-2 flex-shrink-0`}>
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActiveImage(i)}
+                    aria-label={`Show image ${i + 1}`}
+                    className={`w-20 h-20 bg-white rounded-md border ${i === activeImage ? 'border-blue-600 ring-1 ring-blue-600' : 'border-gray-200'} flex-shrink-0 overflow-hidden`}
+                  >
                     <img src={img} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                   </button>
                 ))}
@@ -67,24 +70,34 @@ export default function ProductDetail() {
 
 
             <div className="mb-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
-              <div className="flex items-end gap-3 mb-2">
-                <span className="text-4xl font-extrabold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
-                <span className="text-lg text-gray-400 line-through mb-1">₹{originalPrice.toLocaleString('en-IN')}</span>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <div className="flex items-end gap-3">
+                  <span className="text-4xl font-extrabold text-gray-900">₹{sellingPrice.toLocaleString('en-IN')}</span>
+                  <span className="text-lg text-gray-400 line-through mb-1">₹{originalPrice.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center gap-4 pt-1">
+                  <button
+                    onClick={() => addToWishlist(product)}
+                    aria-label="Add to wishlist"
+                    className={`group/wishlist flex items-center gap-1.5 text-sm font-medium transition-colors ${isInWishlist(product.id) ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
+                  >
+                    <Heart className={`h-5 w-5 transition-all duration-300 ${isInWishlist(product.id) ? 'fill-current' : 'group-hover/wishlist:fill-current group-hover/wishlist:scale-110'}`} />
+                    <span>{isInWishlist(product.id) ? 'Saved' : 'Wishlist'}</span>
+                  </button>
+                  <button
+                    aria-label="Share product"
+                    className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Share2 className="h-5 w-5" />
+                    <span>Share</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-green-700 font-medium mb-4">Inclusive of all taxes (18% GST)</p>
-              
+              <p className="text-sm text-green-700 font-medium mb-4">You save ₹{savings.toLocaleString('en-IN')}</p>
+
               <Separator className="my-4 bg-slate-200" />
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Shield className="h-5 w-5 text-blue-600" />
-                  <span>{product.warrantyInfo}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Truck className="h-5 w-5 text-green-600" />
-                  <span>{product.shippingInfo}</span>
-                </div>
-              </div>
+
+              <p className="text-xs text-gray-500">Taxes (18% GST) are excluded</p>
             </div>
 
             <p className="text-gray-700 mb-8 leading-relaxed">
@@ -142,20 +155,6 @@ export default function ProductDetail() {
                   <ShoppingBag strokeWidth={3} className="w-0 h-7 opacity-0 group-hover:w-7 group-hover:scale-125 group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out origin-left" />
                 </div>
               </Button>
-            </div>
-
-            <div className="flex items-center gap-6 border-t border-gray-200 pt-6">
-              <button 
-                onClick={() => addToWishlist(product)}
-                className={`group/wishlist flex items-center gap-2 text-sm font-medium transition-colors ${isInWishlist(product.id) ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
-              >
-                <Heart className={`h-5 w-5 transition-all duration-300 ${isInWishlist(product.id) ? 'fill-current' : 'group-hover/wishlist:fill-current group-hover/wishlist:scale-110'}`} />
-                {isInWishlist(product.id) ? 'Saved to Wishlist' : 'Add to Wishlist'}
-              </button>
-              <button className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
-                <Share2 className="h-5 w-5" />
-                Share
-              </button>
             </div>
           </div>
         </div>

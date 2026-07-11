@@ -142,8 +142,16 @@ export default function AdminDashboard() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const normalizeToEndsIn9 = (value: string) => {
+      const num = parseFloat(value);
+      if (!Number.isFinite(num) || num <= 0) return value;
+      return String(Math.floor(num / 10) * 10 - 1);
+    };
+
     const productToSave = {
       ...form,
+      price: normalizeToEndsIn9(form.price),
+      offerPrice: normalizeToEndsIn9(form.offerPrice),
       id: form.id || `product-${Date.now()}`,
       images: imageList.join("\n"),
     };

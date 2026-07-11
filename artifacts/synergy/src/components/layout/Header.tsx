@@ -110,7 +110,7 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
-            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 md:h-12 w-auto select-none" />
+            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 md:h-12 w-auto select-none scale-125 md:scale-130" />
           </Link>
 
           {/* Search Bar (Desktop) */}
@@ -133,21 +133,29 @@ export default function Header() {
               <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
                 <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
               </Link>
-              <div className="invisible absolute left-0 top-full z-50 mt-3 w-48 translate-y-2 rounded-md border border-gray-200 bg-white p-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                {adminLinks.map((item) => {
-                  const Icon = item.icon;
+              {/* Hover bridge so the cursor stays in the group while moving down to the panel */}
+              <div className="absolute top-full left-0 pt-3 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
+                <div
+                  className="w-52 origin-top-left rounded-xl border border-gray-100 bg-white/95 p-2 shadow-lg shadow-gray-900/5 ring-1 ring-black/5 backdrop-blur-sm
+                             opacity-0 -translate-y-1 scale-[0.98]
+                             transition-all duration-200 ease-out
+                             group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100"
+                >
+                  {adminLinks.map((item) => {
+                    const Icon = item.icon;
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="group/item flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:text-blue-600"
+                      >
+                        <Icon className="h-4 w-4 text-gray-400 transition-colors group-hover/item:text-blue-600" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -206,7 +214,7 @@ export default function Header() {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white text-gray-900">
               <div className="flex items-center gap-2">
-                <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 w-auto select-none" />
+                <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 w-auto select-none scale-125" />
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-6 w-6" />

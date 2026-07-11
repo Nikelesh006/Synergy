@@ -7,6 +7,8 @@ import { products } from "@/data/products";
 import { categories } from "@/data/categories";
 import { brands } from "@/data/brands";
 import ProductCard from "@/components/product/ProductCard";
+import SectionHeader from "@/components/layout/SectionHeader";
+import BlogsSlider from "@/components/blog/BlogsSlider";
 
 const banners = [
   "/banner-1.jpg",
@@ -24,13 +26,14 @@ export default function Home() {
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
   const featuredProducts = products.filter(p => p.isFeatured).slice(0, 8);
   const topCategories = categories.slice(0, 8);
 
   return (
     <div className="flex flex-col gap-20 pb-20">
       {/* Hero Section */}
-      <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden">
+      <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden pb-6">
         {banners.map((bg, index) => (
           <div 
             key={index} 
@@ -63,16 +66,17 @@ export default function Home() {
 
 
       {/* Categories */}
-      <section className="container mx-auto px-4 mt-4">
-        <div className="flex justify-between items-end mb-6">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 pb-2">Categories</h2>
-            <p className="text-sl text-gray-500 mt-1 pb-5">Explore our comprehensive industrial catalog</p>
-          </div>
-          <Link href="/shop" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            View All <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+      <section className="container mx-auto px-4 mt-4 pb-6">
+        <SectionHeader
+          title="Categories"
+          subtitle="Explore our comprehensive industrial catalog"
+          action={
+            <Link href="/shop" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              View All <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+          className="mb-5"
+        />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {[
             { id: 1, name: <>IOT Development<br/>Boards</>, slug: "iot" },
@@ -95,14 +99,17 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-          <Link href="/shop" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            See More <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="container mx-auto px-4 pb-6">
+        <SectionHeader
+          title="Featured Products"
+          action={
+            <Link href="/shop" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              See More <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+          className="mb-5"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
           {featuredProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -110,7 +117,7 @@ export default function Home() {
       </section>
 
       {/* Product Banner Placeholder */}
-      <section className="container mx-auto px-4">
+      <section className="container mx-auto px-4 pb-6">
         <div className="relative aspect-[5/1] min-h-[150px] overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm">
           <img
             src="https://placehold.co/1600x320/e2e8f0/334155?text=Product+Banner+Placeholder"
@@ -120,39 +127,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Blogs */}
-      <section className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Blogs</h2>
-          <Link href="/blogs" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            See More <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={`blog-${item}`} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
-              <div className="w-full aspect-[4/3] bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                <img src={`https://placehold.co/400x300/e2e8f0/475569?text=Blog+Image+${item}`} alt={`Blog ${item}`} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <div className="p-4">
-                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 mb-2 border-none">Technology</Badge>
-                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">Latest Insights on Embedded Systems</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">Discover the newest trends and practical applications of embedded systems in industrial automation and IoT devices.</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Blogs — sliding row, advances one card at a time, loops, pauses on hover */}
+      <section className="container mx-auto px-4 pb-6">
+        <SectionHeader
+          title="Blogs"
+          action={
+            <Link href="/blog" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              See More <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+          className="mb-10"
+        />
+        <BlogsSlider />
       </section>
 
       {/* Tutorials */}
-      <section className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Tutorials</h2>
-          <Link href="/tutorials" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            See More <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="container mx-auto px-4 pb-6">
+        <SectionHeader
+          title="Tutorials"
+          action={
+            <Link href="/tutorials" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              See More <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+          className="mb-5"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
           {[1, 2, 3, 4].map((item) => (
             <div key={`tutorial-${item}`} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
               <div className="w-full aspect-video bg-gray-100 flex items-center justify-center relative overflow-hidden">
@@ -174,7 +174,7 @@ export default function Home() {
       </section>
 
       {/* B2B Strip */}
-      <section className="container mx-auto px-4">
+      <section className="container mx-auto px-4 pb-6">
         <div className="bg-blue-900 rounded-lg overflow-hidden flex flex-col md:flex-row items-center">
           <div className="p-8 md:p-12 md:w-2/3">
             <Badge className="bg-blue-800 text-blue-200 hover:bg-blue-800 mb-4 px-3 py-1">INDUSTRY & ACADEMIA</Badge>
@@ -197,7 +197,7 @@ export default function Home() {
       </section>
 
       {/* Brands Strip */}
-      <section className="container mx-auto px-4 py-8 border-y border-gray-200 mt-4">
+      <section className="container mx-auto px-4 py-8 border-y border-gray-200 mt-4 pb-6">
         <h3 className="text-center text-sm font-bold text-gray-400 uppercase tracking-wider mb-8">Trusted by industry leaders</h3>
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
           {brands.slice(0, 6).map(brand => (
