@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ShieldAlert, Truck, ChevronRight, Package, Receipt } from "lucide-react";
+import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { products } from "@/data/products";
 import { categories } from "@/data/categories";
 import { brands } from "@/data/brands";
+import { tutorialPosts } from "@/data/tutorials";
 import ProductCard from "@/components/product/ProductCard";
 import SectionHeader from "@/components/layout/SectionHeader";
 import BlogsSlider from "@/components/blog/BlogsSlider";
@@ -150,48 +150,137 @@ export default function Home() {
               See More <ArrowRight className="h-4 w-4" />
             </Link>
           }
-          className="mb-5"
+          className="mb-10"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={`tutorial-${item}`} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group">
-              <div className="w-full aspect-video bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                <img src={`https://placehold.co/400x225/e2e8f0/475569?text=Video+Thumbnail+${item}`} alt={`Tutorial ${item}`} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors cursor-pointer">
-                  <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
-                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tutorialPosts.map((tutorial) => (
+            <Link
+              key={tutorial.id}
+              href={`/tutorials/${tutorial.slug}`}
+              className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+              aria-label={`Watch: ${tutorial.title}`}
+            >
+              {/* Cover — same aspect ratio as blogs, no card chrome */}
+              <div className="relative w-full aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
+                <img
+                  src={tutorial.image}
+                  alt={tutorial.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Centered play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-14 h-14 bg-white/95 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-white transition-all duration-300 ring-4 ring-white/30">
+                    <Play className="h-6 w-6 text-slate-900 fill-slate-900 ml-0.5" />
                   </div>
                 </div>
+
+
               </div>
-              <div className="p-4">
-                <Badge className="bg-red-100 text-red-800 hover:bg-red-200 mb-2 border-none">Video Guide</Badge>
-                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">Getting Started with Edge AI</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">A comprehensive video guide to setting up your first Edge AI project using our development boards.</p>
+
+              {/* Title — same editorial typography as blogs */}
+              <div className="mt-5 px-1">
+                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                  <span className="h-px w-5 bg-slate-300" />
+                  <span>Video Tutorial</span>
+                </div>
+                <h3 className="mt-3 text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
+                  {tutorial.title}
+                </h3>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* B2B Strip */}
+      {/* B2B Strip — Custom Solutions & Training Banner */}
       <section className="container mx-auto px-4 pb-6">
-        <div className="bg-blue-900 rounded-lg overflow-hidden flex flex-col md:flex-row items-center">
-          <div className="p-8 md:p-12 md:w-2/3">
-            <Badge className="bg-blue-800 text-blue-200 hover:bg-blue-800 mb-4 px-3 py-1">INDUSTRY & ACADEMIA</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Looking for Custom Solutions or Training?</h2>
-            <p className="text-blue-100 mb-8 max-w-xl">
-              We offer specialized hands-on training programs in IoT, Robotics, and Edge AI, as well as customized industrial implementations to bridge the gap between emerging tech and real-world applications.
-            </p>
-            <Link href="/contact">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm font-semibold">
-                Request a Consultation
-              </Button>
-            </Link>
-          </div>
-          <div className="md:w-1/3 bg-blue-800 w-full h-full min-h-[200px] flex items-center justify-center relative overflow-hidden">
-            {/* Visual placeholder */}
-            <div className="absolute inset-0 opacity-20 bg-[url('https://placehold.co/600x400/000000/333333?text=Blueprint')] bg-cover"></div>
-            <Package className="h-24 w-24 text-blue-400 opacity-50 relative z-10" />
+        <div
+          className="relative overflow-hidden rounded-2xl shadow-2xl shadow-black/40"
+          style={{ backgroundColor: "#0f172b" }}
+        >
+          <div className="relative flex flex-col md:flex-row items-stretch">
+            {/* Left content */}
+            <div className="p-8 md:p-12 lg:p-14 md:w-3/5 flex flex-col justify-center">
+              <div className="inline-flex items-center bg-white/15 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider w-fit mb-5">
+                <span>INDUSTRY & ACADEMIA</span>
+              </div>
+
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
+                <span className="whitespace-nowrap">Custom Solutions <span className="text-blue-300">&amp; Hands-on</span></span>
+                <span className="block text-blue-300">Training Programs</span>
+              </h2>
+
+              <p className="text-blue-50/90 text-base md:text-lg mb-8 max-w-xl leading-relaxed">
+                Specialized programs in <span className="font-semibold text-white">IoT</span>, <span className="font-semibold text-white">Robotics</span>, and <span className="font-semibold text-white">Edge AI</span> — plus custom industrial implementations that bridge emerging tech with real-world applications.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href="/contact">
+                  <Button
+                    size="lg"
+                    className="bg-white text-blue-700 hover:bg-blue-50 rounded-full font-bold shadow-lg shadow-blue-900/30"
+                  >
+                    Request a Consultation
+                  </Button>
+                </Link>
+                <Link href="/services">
+                  <Button
+                    size="lg"
+                    variant="ghost"
+                    className="text-white hover:bg-white/10 rounded-full font-semibold"
+                  >
+                    Explore Services
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right visual — bulb with hover glow */}
+            <div className="md:w-2/5 relative min-h-[280px] md:min-h-[420px] flex items-center justify-center group">
+              <div className="relative flex flex-col items-center">
+                {/* Bulb — proper unlit shape, glows softly on hover */}
+                <div className="relative w-32 h-40 flex flex-col items-center transition-all duration-700 group-hover:drop-shadow-[0_0_20px_rgba(253,224,71,0.35)]">
+                  {/* Glass dome — contains the centered glow effects */}
+                  <div className="relative w-28 h-28">
+                    {/* Outer glow rings — centered on the dome, soft on hover */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-yellow-300/0 blur-3xl transition-all duration-700 group-hover:bg-yellow-300/[0.05]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full bg-yellow-400/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-400/[0.08]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-yellow-300/0 blur-xl transition-all duration-700 group-hover:bg-yellow-300/[0.12]" />
+
+                    {/* Concentric pulse rings — centered on the dome */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.12] group-hover:scale-100" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.18] group-hover:scale-100" />
+
+                    {/* Glowing aura behind bulb — centered on the dome */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-yellow-300/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-300/[0.22]" />
+
+                    {/* Glass dome face */}
+                    <div className="relative w-28 h-28 rounded-full bg-white border-2 border-gray-300 group-hover:border-yellow-300 group-hover:bg-gradient-to-br group-hover:from-yellow-50 group-hover:to-yellow-200 flex items-center justify-center transition-all duration-700">
+                      <Lightbulb
+                        className="h-14 w-14 text-gray-500 group-hover:text-yellow-600 transition-colors duration-700"
+                        strokeWidth={1.8}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Screw base (ribbed lines) */}
+                  <div className="-mt-1 flex flex-col items-center">
+                    <div className="w-14 h-1.5 bg-gray-300 group-hover:bg-yellow-400 rounded-sm transition-colors duration-700" />
+                    <div className="w-14 h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
+                    <div className="w-14 h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
+                    <div className="w-12 h-2 bg-gray-500 group-hover:bg-yellow-600 rounded-b-md mt-0.5 transition-colors duration-700" />
+                  </div>
+                </div>
+
+                {/* Sparkle dots — appear on hover, positioned around the dome */}
+                <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-yellow-200 opacity-0 shadow-[0_0_6px_2px_rgba(253,224,71,0.5)] transition-opacity duration-700 group-hover:opacity-70" />
+                <div className="absolute top-8 left-0 w-1 h-1 rounded-full bg-yellow-100 opacity-0 shadow-[0_0_4px_1px_rgba(253,224,71,0.4)] transition-opacity duration-700 group-hover:opacity-60" />
+                <div className="absolute top-20 right-0 w-1 h-1 rounded-full bg-yellow-200 opacity-0 shadow-[0_0_4px_1px_rgba(253,224,71,0.45)] transition-opacity duration-700 group-hover:opacity-70" />
+                <div className="absolute top-24 left-2 w-1 h-1 rounded-full bg-yellow-100 opacity-0 shadow-[0_0_3px_1px_rgba(253,224,71,0.4)] transition-opacity duration-700 group-hover:opacity-60" />
+              </div>
+            </div>
           </div>
         </div>
       </section>

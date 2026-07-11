@@ -70,23 +70,21 @@ export default function Header() {
   const mobilePlaceholder = useTypewriter(SEARCH_PHRASES);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const controlNavbar = () => {
-      if (typeof window !== 'undefined') {
-        if (window.scrollY > lastScrollY && window.scrollY > 100) {
-          setIsVisible(false);
-        } else {
-          setIsVisible(true);
-        }
-        setLastScrollY(window.scrollY);
+      if (window.scrollY > lastScrollY && window.scrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
       }
+      setLastScrollY(window.scrollY);
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', controlNavbar);
-      return () => {
-        window.removeEventListener('scroll', controlNavbar);
-      };
-    }
+    window.addEventListener('scroll', controlNavbar);
+    return () => {
+      window.removeEventListener('scroll', controlNavbar);
+    };
   }, [lastScrollY]);
 
   const handleSearch = (e: React.FormEvent) => {

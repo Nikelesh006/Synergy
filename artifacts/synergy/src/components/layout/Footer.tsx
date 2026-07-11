@@ -78,10 +78,11 @@ export default function Footer() {
           <p className="text-center font-semibold text-sm">Powered by <a href="https://www.codecraftnet.com/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors font-bold">Code Craft</a></p>
           <div className="flex items-center gap-4">
             <span className="font-mono">GSTIN: 07AABCU9603R1ZX</span>
-            <div className="flex gap-2">
-              <img src="https://placehold.co/40x25/222/666?text=Visa" alt="Visa" className="rounded" />
-              <img src="https://placehold.co/40x25/222/666?text=MC" alt="Mastercard" className="rounded" />
-              <img src="https://placehold.co/40x25/222/666?text=UPI" alt="UPI" className="rounded" />
+            <div className="flex items-center gap-1.5">
+              <img src="/visa.svg" alt="Visa" className="h-7 w-12 object-contain bg-white rounded p-1" draggable={false} />
+              <img src="/mastercard.svg" alt="Mastercard" className="h-7 w-12 object-contain bg-white rounded p-1" draggable={false} />
+              <img src="/rupay.svg" alt="RuPay" className="h-7 w-12 object-contain bg-white rounded p-1" draggable={false} />
+              <img src="/upi.svg" alt="UPI" className="h-7 w-12 object-contain bg-white rounded p-1" draggable={false} />
             </div>
           </div>
         </div>
