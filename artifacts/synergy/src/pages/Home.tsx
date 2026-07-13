@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight } from "lucide-react";
+import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight, Cpu, Wifi, CircuitBoard, Layers, Microchip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { products } from "@/data/products";
 import { categories } from "@/data/categories";
@@ -116,14 +116,141 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Product Banner Placeholder */}
+      {/* Product Spotlight Banner — Rex32 AI */}
       <section className="container mx-auto px-4 pb-6">
-        <div className="relative aspect-[5/1] min-h-[150px] overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm">
-          <img
-            src="https://placehold.co/1600x320/e2e8f0/334155?text=Product+Banner+Placeholder"
-            alt="Product banner placeholder"
-            className="h-full w-full object-cover"
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white shadow-2xl shadow-black/40">
+          {/* Decorative pattern + grid */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.25),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(14,165,233,0.18),transparent_50%)]" />
+          <div
+            className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:32px_32px]"
+            aria-hidden
           />
+          {/* Soft top/bottom fade */}
+          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" aria-hidden />
+
+          <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 py-10 md:px-10 md:py-12">
+            {/* Left: copy */}
+            <div className="lg:col-span-7">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-tight text-white">
+                REX32 AI Dev Board
+              </h2>
+
+              <p className="mt-3 text-base md:text-lg text-white/70 max-w-2xl">
+                Dual-core ESP32-S3 platform built for edge ML, computer vision, and always-on IoT — with on-board AI acceleration and a rich camera/microphone interface.
+              </p>
+
+              {/* Specs pills */}
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {[
+                  "Dual-core Xtensa LX7",
+                  "8 MB PSRAM",
+                  "Wi-Fi + BLE 5",
+                  "Camera Interface",
+                  "AI Accelerator",
+                ].map((p) => (
+                  <li
+                    key={p}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-white/5 text-white/80 ring-1 ring-white/10 backdrop-blur-sm"
+                  >
+                    <Microchip className="h-3 w-3 text-white/60" />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTAs */}
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/product/esp32-ai-rex32-ai"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-sm"
+                >
+                  View Product
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/category/iot"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white/90 ring-1 ring-white/15 hover:bg-white/5 transition-colors"
+                >
+                  Browse Dev Boards
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: visual cluster */}
+            <div className="lg:col-span-5 hidden lg:flex justify-end">
+              <div className="relative w-full max-w-sm">
+                {/* Glow blob */}
+                <div className="absolute -inset-6 rounded-3xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 blur-2xl opacity-70" aria-hidden />
+
+                {/* Main card */}
+                <div className="relative rounded-2xl bg-white/[0.04] backdrop-blur-md ring-1 ring-blue-400/30 p-5 shadow-2xl">
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase bg-blue-500/15 text-blue-300">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                      REX32 AI
+                    </div>
+                    <Layers className="h-4 w-4 text-white/40" />
+                  </div>
+
+                  {/* Board illustration */}
+                  <div className="mt-4 relative aspect-[5/3] rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 ring-1 border border-blue-400/20 overflow-hidden">
+                    {/* PCB traces */}
+                    <svg viewBox="0 0 200 120" className="absolute inset-0 w-full h-full" aria-hidden>
+                      <defs>
+                        <linearGradient id="trace-blue-product" x1="0" x2="1" y1="0" y2="0">
+                          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0" />
+                          <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.7" />
+                          <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <g stroke="url(#trace-blue-product)" strokeWidth="1" fill="none">
+                        <path d="M0 30 H60 L80 50 H120 L140 30 H200" />
+                        <path d="M0 70 H40 L60 90 H100 L120 70 H200" />
+                        <path d="M0 100 H200" />
+                      </g>
+                      <g fill="#60a5fa" opacity="0.9">
+                        <circle cx="40" cy="30" r="2" />
+                        <circle cx="80" cy="50" r="2" />
+                        <circle cx="140" cy="30" r="2" />
+                        <circle cx="60" cy="90" r="2" />
+                        <circle cx="120" cy="70" r="2" />
+                      </g>
+                    </svg>
+                    {/* Chip */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="h-14 w-14 rounded-md bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-blue-400/30 flex items-center justify-center shadow-lg">
+                        <Cpu className="h-7 w-7 text-white/80" />
+                      </div>
+                    </div>
+                    {/* Side modules */}
+                    <div className="absolute left-3 top-3 h-6 w-8 rounded-sm bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/20 flex items-center justify-center">
+                      <CircuitBoard className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="absolute right-3 bottom-3 h-6 w-8 rounded-sm bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/20 flex items-center justify-center">
+                      <Wifi className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-white/[0.04] ring-1 ring-blue-400/30 px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-wider text-white/50">Processor</div>
+                      <div className="mt-0.5 text-sm font-semibold text-white">
+                        Dual-core LX7
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.04] ring-1 ring-blue-400/30 px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-wider text-white/50">Memory</div>
+                      <div className="mt-0.5 text-lg font-bold text-blue-300">
+                        8 MB
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

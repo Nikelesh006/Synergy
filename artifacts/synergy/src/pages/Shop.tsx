@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Filter, ChevronDown } from "lucide-react";
 import { products } from "@/data/products";
 import ProductCard from "@/components/product/ProductCard";
+import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
 import { Button } from "@/components/ui/button";
 
 const developmentBoardFilters = [
@@ -39,6 +39,9 @@ const developmentBoardFilters = [
 export default function Shop() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
+  const [selectedPrice, setSelectedPrice] = useState<string[]>([]);
 
   const selectedFilters = developmentBoardFilters.filter((filter) =>
     selectedCategories.includes(filter.category)
@@ -47,6 +50,92 @@ export default function Shop() {
   const selectedSubcategoryFilters = developmentBoardFilters.flatMap((filter) =>
     filter.subcategories.filter((subcategory) => selectedSubcategories.includes(subcategory.value))
   );
+
+  // Derive available brands from products so counts are always accurate
+  const brandOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach((p) => {
+      if (!p.brand) return;
+      counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([brand, count]) => ({ value: brand, label: brand, count }));
+  }, []);
+
+  const toggle = (
+    value: string,
+    list: string[],
+    setter: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
+
+  const filterGroups: FilterGroup[] = [
+    {
+      id: "category",
+      title: "Development Boards",
+      defaultOpen: true,
+      options: developmentBoardFilters.map((f) => ({
+        value: f.category,
+        label: f.name,
+        count: f.productCount,
+      })),
+    },
+    {
+      id: "brand",
+      title: "Brand",
+      defaultOpen: true,
+      options: brandOptions,
+    },
+    {
+      id: "price",
+      title: "Price",
+      defaultOpen: false,
+      options: [
+        { value: "u500", label: "Under ₹500" },
+        { value: "500-1000", label: "₹500 – ₹1,000" },
+        { value: "1000-2500", label: "₹1,000 – ₹2,500" },
+        { value: "2500-5000", label: "₹2,500 – ₹5,000" },
+        { value: "a5000", label: "Over ₹5,000" },
+      ],
+    },
+    {
+      id: "availability",
+      title: "Availability",
+      defaultOpen: false,
+      options: [
+        { value: "in-stock", label: "In stock" },
+        { value: "on-sale", label: "On sale" },
+        { value: "new", label: "New arrivals" },
+        { value: "bestseller", label: "Bestsellers" },
+      ],
+    },
+  ];
+
+  const allSelected = [
+    ...selectedCategories,
+    ...selectedSubcategories,
+    ...selectedBrands,
+    ...selectedAvailability,
+    ...selectedPrice,
+  ];
+
+  const onToggleSelected = (groupId: string, value: string) => {
+    if (groupId === "category") toggleCategory(value);
+    else if (groupId === "brand") toggle(value, selectedBrands, setSelectedBrands);
+    else if (groupId === "price") toggle(value, selectedPrice, setSelectedPrice);
+    else if (groupId === "availability")
+      toggle(value, selectedAvailability, setSelectedAvailability);
+  };
+
+  const resetAll = () => {
+    setSelectedCategories([]);
+    setSelectedSubcategories([]);
+    setSelectedBrands([]);
+    setSelectedAvailability([]);
+    setSelectedPrice([]);
+  };
 
   const visibleProducts = useMemo(() => {
     let filteredProducts = products;
@@ -59,8 +148,48 @@ export default function Shop() {
       filteredProducts = filteredProducts.filter((product) => selectedSubcategories.includes(product.subcategory));
     }
 
+    if (selectedBrands.length > 0) {
+      filteredProducts = filteredProducts.filter((product) =>
+        product.brand ? selectedBrands.includes(product.brand) : false
+      );
+    }
+
+    if (selectedPrice.length > 0) {
+      filteredProducts = filteredProducts.filter((product) => {
+        return selectedPrice.some((range) => {
+          const p = product.price;
+          switch (range) {
+            case "u500":
+              return p < 500;
+            case "500-1000":
+              return p >= 500 && p < 1000;
+            case "1000-2500":
+              return p >= 1000 && p < 2500;
+            case "2500-5000":
+              return p >= 2500 && p < 5000;
+            case "a5000":
+              return p >= 5000;
+            default:
+              return false;
+          }
+        });
+      });
+    }
+
+    if (selectedAvailability.length > 0) {
+      filteredProducts = filteredProducts.filter((product) =>
+        selectedAvailability.every((flag) => {
+          if (flag === "in-stock") return product.inStock;
+          if (flag === "on-sale") return Boolean(product.compareAtPrice && product.compareAtPrice > product.price);
+          if (flag === "new") return product.isNewArrival;
+          if (flag === "bestseller") return product.isBestSeller;
+          return true;
+        })
+      );
+    }
+
     return filteredProducts;
-  }, [selectedCategories, selectedSubcategories]);
+  }, [selectedCategories, selectedSubcategories, selectedBrands, selectedPrice, selectedAvailability]);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((current) => {
@@ -119,60 +248,15 @@ export default function Shop() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <aside className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white border border-gray-200 rounded-md p-5 sticky top-24">
-              <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-                <Filter className="h-5 w-5 text-gray-700" />
-                <h2 className="font-bold text-gray-900">Filters</h2>
-              </div>
-
-              {/* Development Boards Filter */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-sm text-gray-900 mb-3 flex justify-between items-center">
-                  Development Boards <ChevronDown className="h-4 w-4 text-gray-400" />
-                </h3>
-                <ul className="space-y-2">
-                  {developmentBoardFilters.map((filter) => (
-                    <li key={filter.category}>
-                      <label className="flex cursor-pointer items-center gap-2 rounded-sm py-1 text-sm text-gray-600 transition-colors hover:text-blue-600">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(filter.category)}
-                          onChange={() => toggleCategory(filter.category)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span>{filter.name}</span>
-                        <span className="ml-auto text-xs text-gray-400">({filter.productCount})</span>
-                      </label>
-                      {selectedCategories.includes(filter.category) && (
-                        <div className="ml-6 mt-2 rounded-md border border-gray-100 bg-gray-50 p-2">
-                          <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase text-gray-500">
-                            Sub Category
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          </div>
-                          <ul className="space-y-1.5">
-                            {filter.subcategories.map((subcategory) => (
-                              <li key={subcategory.value}>
-                                <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-600 transition-colors hover:text-blue-600">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedSubcategories.includes(subcategory.value)}
-                                    onChange={() => toggleSubcategory(subcategory.value)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                  />
-                                  <span>{subcategory.name}</span>
-                                </label>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </aside>
+          <FilterSidebar
+            groups={filterGroups}
+            selected={allSelected}
+            onToggle={(value) => {
+              const group = filterGroups.find((g) => g.options.some((o) => o.value === value));
+              if (group) onToggleSelected(group.id, value);
+            }}
+            onReset={resetAll}
+          />
 
           {/* Main Content */}
           <main className="flex-1">
