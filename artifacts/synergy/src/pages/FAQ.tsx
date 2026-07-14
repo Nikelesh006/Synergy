@@ -1,88 +1,179 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type FaqItem = { id: string; question: string; answer: string };
+type FaqCategory = { title: string; items: FaqItem[] };
+
+const faqData: FaqCategory[] = [
+  {
+    title: "Orders & Shipping",
+    items: [
+      {
+        id: "shipping-charges",
+        question: "What are your shipping charges?",
+        answer:
+          "We offer free shipping on all orders above ₹5,000. For orders below this amount, a standard shipping fee of ₹250 applies. Bulk project deliveries may have custom freight charges based on weight and distance.",
+      },
+      {
+        id: "delivery-time",
+        question: "How long does delivery take?",
+        answer:
+          "Standard items are dispatched within 24-48 hours. Delivery typically takes 3-5 business days to metro cities and 5-7 days to other locations. Specialized or out-of-stock items will have lead times mentioned on their product pages.",
+      },
+      {
+        id: "site-delivery",
+        question: "Do you deliver to construction sites?",
+        answer:
+          "Yes, we regularly deliver to project sites. Please ensure clear address details and site contact person information is provided during checkout or bulk order placement.",
+      },
+    ],
+  },
+  {
+    title: "B2B & Bulk Orders",
+    items: [
+      {
+        id: "gst-invoice",
+        question: "Do you provide GST invoices?",
+        answer:
+          "Yes, 100%. All our products are billed with valid GST invoices. You can enter your company's GSTIN during checkout or in your account profile to claim Input Tax Credit (ITC).",
+      },
+      {
+        id: "project-quote",
+        question: "How do I get a quote for my project BOM?",
+        answer:
+          "You can visit our Bulk Enquiry page to upload your Bill of Materials (Excel/PDF). Our technical sales team will review it and provide a customized quotation with volume discounts within 24 hours.",
+      },
+    ],
+  },
+  {
+    title: "Products & Warranty",
+    items: [
+      {
+        id: "genuine-products",
+        question: "Are your products genuine?",
+        answer:
+          "Absolutely. Synergy is an authorized partner/distributor for major brands like Havells, Legrand, Schneider Electric, and Polycab. All products are 100% genuine and come in original manufacturer packaging.",
+      },
+      {
+        id: "warranty-claim",
+        question: "How do I claim a warranty?",
+        answer:
+          "Warranty is provided directly by the manufacturer. You can visit the respective brand's authorized service center with the Synergy GST invoice. If you face issues, our support team can help connect you with the right brand representative.",
+      },
+    ],
+  },
+];
 
 export default function FAQ() {
+  const [openId, setOpenId] = useState<string | undefined>("shipping-charges");
+
   return (
-    <div className="bg-white min-h-screen py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h1>
-          <p className="text-gray-600 mb-8">Find answers to common questions about our products, shipping, and B2B services.</p>
-          
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input className="pl-10 h-12 bg-gray-50 border-gray-200 focus:bg-white" placeholder="Search FAQs..." />
+    <div className="bg-background min-h-screen">
+      <section className="container mx-auto max-w-3xl px-4 py-20 md:py-28">
+        <div className="mb-24 text-center md:mb-32">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <span className="h-px w-8 bg-foreground/30" />
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Help Center
+            </span>
+            <span className="h-px w-8 bg-foreground/30" />
           </div>
+          <h1 className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl">
+            Frequently Asked{" "}
+            <span className="text-blue-600">Questions</span>
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
+            Find quick answers about products, shipping, and B2B services.
+          </p>
         </div>
 
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Orders & Shipping</h2>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">What are your shipping charges?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  We offer free shipping on all orders above ₹5,000. For orders below this amount, a standard shipping fee of ₹250 applies. Bulk project deliveries may have custom freight charges based on weight and distance.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">How long does delivery take?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  Standard items are dispatched within 24-48 hours. Delivery typically takes 3-5 business days to metro cities and 5-7 days to other locations. Specialized or out-of-stock items will have lead times mentioned on their product pages.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">Do you deliver to construction sites?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  Yes, we regularly deliver to project sites. Please ensure clear address details and site contact person information is provided during checkout or bulk order placement.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+        <div className="space-y-10">
+          {faqData.map((cat) => (
+            <div key={cat.title}>
+              <div className="mb-4 flex items-center gap-2">
+                <span className="h-px w-6 bg-foreground/30" />
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {cat.title}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {cat.items.map((item) => {
+                  const isOpen = openId === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all duration-300",
+                        isOpen
+                          ? "border-blue-600/40 shadow-md ring-1 ring-blue-600/10"
+                          : "hover:border-foreground/20 hover:shadow-md",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenId(isOpen ? undefined : item.id)
+                        }
+                        aria-expanded={isOpen}
+                        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left sm:px-7"
+                      >
+                        <span
+                          className={cn(
+                            "text-sm font-semibold transition-colors sm:text-base",
+                            isOpen ? "text-blue-600" : "text-foreground",
+                          )}
+                        >
+                          {item.question}
+                        </span>
+                        <motion.span
+                          animate={{ rotate: isOpen ? 180 : 0 }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.4, 0, 0.2, 1],
+                          }}
+                          className={cn(
+                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors",
+                            isOpen
+                              ? "border-blue-600 bg-blue-600 text-white"
+                              : "border-border/70 bg-background text-foreground/70",
+                          )}
+                        >
+                          <ChevronDown
+                            className="h-4 w-4"
+                            strokeWidth={2.25}
+                          />
+                        </motion.span>
+                      </button>
 
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">B2B & Bulk Orders</h2>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">Do you provide GST invoices?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  Yes, 100%. All our products are billed with valid GST invoices. You can enter your company's GSTIN during checkout or in your account profile to claim Input Tax Credit (ITC).
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">How do I get a quote for my project BOM?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  You can visit our Bulk Enquiry page to upload your Bill of Materials (Excel/PDF). Our technical sales team will review it and provide a customized quotation with volume discounts within 24 hours.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">Products & Warranty</h2>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-6">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">Are your products genuine?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  Absolutely. Synergy is an authorized partner/distributor for major brands like Havells, Legrand, Schneider Electric, and Polycab. All products are 100% genuine and come in original manufacturer packaging.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-7">
-                <AccordionTrigger className="text-left font-semibold text-gray-800">How do I claim a warranty?</AccordionTrigger>
-                <AccordionContent className="text-gray-600">
-                  Warranty is provided directly by the manufacturer. You can visit the respective brand's authorized service center with the Synergy GST invoice. If you face issues, our support team can help connect you with the right brand representative.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            key="content"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{
+                              height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                              opacity: { duration: 0.25, ease: "easeOut" },
+                            }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-t border-border/60 px-6 py-5 text-sm leading-relaxed text-muted-foreground sm:px-7">
+                              {item.answer}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

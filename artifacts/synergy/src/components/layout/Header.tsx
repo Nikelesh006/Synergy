@@ -62,7 +62,7 @@ function useTypewriter(phrases: string[]) {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { cartCount, wishlist } = useStore();
+  const { cartCount, wishlist, openAuth } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -157,9 +157,14 @@ export default function Header() {
               </div>
             </div>
 
-            <Link href="/account" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+            <button
+              type="button"
+              onClick={() => openAuth("signin")}
+              className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              aria-label="Sign in"
+            >
               <User className="h-5 w-5 md:h-6 md:w-6" />
-            </Link>
+            </button>
 
             <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
               <Heart className="h-5 w-5 md:h-6 md:w-6" />
@@ -220,6 +225,16 @@ export default function Header() {
             </div>
             
             <div className="flex-1 overflow-y-auto py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openAuth("signin");
+                }}
+                className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left"
+              >
+                Sign in / Create account
+              </button>
               <Link href="/" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
               
               <div className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Development Boards</div>

@@ -1,9 +1,11 @@
 import { Link, useParams, useLocation } from "wouter";
-import { Star, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag } from "lucide-react";
+import { Star, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag, ArrowRight } from "lucide-react";
 import { products } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useState } from "react";
 import NotFound from "./not-found";
 
@@ -12,6 +14,7 @@ export default function ProductDetail() {
   const [, setLocation] = useLocation();
   const product = products.find(p => p.slug === slug);
   const { addToCart, addToWishlist, isInWishlist } = useStore();
+  const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
@@ -77,7 +80,24 @@ export default function ProductDetail() {
                 </div>
                 <div className="flex items-center gap-4 pt-1">
                   <button
-                    onClick={() => addToWishlist(product)}
+                    onClick={() => {
+                      if (isInWishlist(product.id)) return;
+                      addToWishlist(product);
+                      toast({
+                        title: "Saved to Wishlist",
+                        description: `${product.name} has been added to your wishlist.`,
+                        variant: "wishlist",
+                        duration: 3000,
+                        action: (
+                          <ToastAction altText="View wishlist" asChild>
+                            <Link href="/wishlist" className="inline-flex items-center gap-1">
+                              View Wishlist
+                              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </Link>
+                          </ToastAction>
+                        ),
+                      });
+                    }}
                     aria-label="Add to wishlist"
                     className={`group/wishlist flex items-center gap-1.5 text-sm font-medium transition-colors ${isInWishlist(product.id) ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
                   >
@@ -133,8 +153,24 @@ export default function ProductDetail() {
                 >+</button>
               </div>
               
-              <Button 
-                onClick={() => addToCart(product, qty)}
+              <Button
+                onClick={() => {
+                  addToCart(product, qty);
+                  toast({
+                    title: "Added to Cart",
+                    description: `${product.name} has been added to your cart.`,
+                    variant: "cart",
+                    duration: 3000,
+                    action: (
+                      <ToastAction altText="View cart" asChild>
+                        <Link href="/cart" className="inline-flex items-center gap-1">
+                          View Cart
+                          <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                        </Link>
+                      </ToastAction>
+                    ),
+                  });
+                }}
                 className="flex-1 h-12 bg-red-500 hover:bg-red-600 text-white text-lg font-bold rounded-2xl shadow-sm group"
               >
                 <div className="flex items-center justify-center">

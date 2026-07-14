@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { blogPosts } from "@/data/blog";
 import { Link } from "wouter";
 import {
@@ -8,7 +8,6 @@ import {
   Calendar,
   Clock,
   Search,
-  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,67 +68,40 @@ export default function Blog() {
           }}
         />
 
-        <div className="container relative mx-auto grid min-h-[calc(100vh-6rem)] grid-cols-1 items-start gap-8 px-4 pt-4 pb-8 lg:grid-cols-12 lg:gap-10 lg:pt-6 lg:pb-10">
-          {/* Left: copy + search */}
-          <div className="lg:col-span-6">
-            <Badge
-              variant="secondary"
-              className="mb-3 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]"
-            >
-              The Knowledge Center
-            </Badge>
-            <h1 className="text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-              Sharper choices for
-              <br className="hidden sm:block" />
-              <span className="text-blue-600"> electrical professionals.</span>
+        <div className="container relative mx-auto grid min-h-[calc(100vh-6rem)] grid-cols-1 items-center gap-8 px-4 pt-4 pb-8 lg:grid-cols-12 lg:gap-10 lg:pt-6 lg:pb-10">
+          {/* Left: copy + search (centered within hero viewport) */}
+          <div className="flex flex-col items-center text-center lg:col-span-6">
+            
+            <h1 className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Start Learning{" "}
+              <span className="text-blue-600">Embedded Innovation</span>
             </h1>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Buying guides, comparisons, and field notes from our engineers.
+            <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+              Dive into IoT, AI, and robotics tutorials powered by our
+              development boards.
             </p>
 
             {/* Search */}
-            <div className="mt-5 max-w-md">
+            <div className="mt-6 w-full max-w-lg">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
                     setVisibleCount(PAGE_SIZE);
                   }}
-                  placeholder="Search articles, guides, authors…"
-                  className="h-12 rounded-full border-border/80 bg-background pl-11 pr-4 text-sm shadow-sm focus-visible:ring-2"
+                  placeholder="Search articles, guides…"
+                  className="h-14 rounded-full border-border/80 bg-background pl-14 pr-5 text-base shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                  style={
+                    {
+                      "--ring": "hsl(var(--foreground) / 0.3)",
+                    } as CSSProperties
+                  }
                 />
               </div>
             </div>
 
-            {/* Stat strip */}
-            <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
-              <div>
-                <div className="text-lg font-semibold tracking-tight text-foreground">
-                  {blogPosts.length}+
-                </div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Articles
-                </div>
-              </div>
-              <div>
-                <div className="text-lg font-semibold tracking-tight text-foreground">
-                  {categories.length - 1}
-                </div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  Categories
-                </div>
-              </div>
-              <div>
-                <div className="text-lg font-semibold tracking-tight text-foreground">
-                  Weekly
-                </div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  New drops
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right: featured preview card */}
@@ -168,16 +140,12 @@ export default function Blog() {
                     {featured.excerpt}
                   </p>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5" />
-                      {featured.author}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                    <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                       <Calendar className="h-3.5 w-3.5" />
                       {formatDate(featured.date)}
                     </span>
-                    <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
                       <Clock className="h-3.5 w-3.5" />
                       {featured.readTime}
                     </span>
@@ -328,16 +296,12 @@ export default function Blog() {
                       {post.excerpt}
                     </p>
 
-                    <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5">
-                        <User className="h-3.5 w-3.5" />
-                        {post.author}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
+                    <div className="mt-4 flex items-center gap-4 text-xs">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatDate(post.date)}
                       </span>
-                      <span className="ml-auto inline-flex items-center gap-1.5">
+                      <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
                         <Clock className="h-3.5 w-3.5" />
                         {post.readTime}
                       </span>

@@ -1,10 +1,11 @@
 import { Link } from "wouter";
-import { ShoppingCart, Heart, ShieldCheck } from "lucide-react";
+import { ShoppingCart, Heart, ShieldCheck, ArrowRight } from "lucide-react";
 import { Product } from "@/types";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 interface ProductCardProps {
   product: Product;
@@ -20,17 +21,38 @@ export default function ProductCard({ product }: ProductCardProps) {
     addToCart(product, 1);
     toast({
       title: "Added to Cart",
-      description: `${product.name} added to your cart.`,
+      description: `${product.name} has been added to your cart.`,
+      variant: "cart",
+      duration: 3000,
+      action: (
+        <ToastAction altText="View cart" asChild>
+          <Link href="/cart" className="inline-flex items-center gap-1">
+            View Cart
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </Link>
+        </ToastAction>
+      ),
     });
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isInWishlist(product.id)) return;
     addToWishlist(product);
     toast({
       title: "Saved to Wishlist",
-      description: `${product.name} saved to your wishlist.`,
+      description: `${product.name} has been added to your wishlist.`,
+      variant: "wishlist",
+      duration: 3000,
+      action: (
+        <ToastAction altText="View wishlist" asChild>
+          <Link href="/wishlist" className="inline-flex items-center gap-1">
+            View Wishlist
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </Link>
+        </ToastAction>
+      ),
     });
   };
 

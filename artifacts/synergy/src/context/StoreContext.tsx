@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useContext, useState, useMemo } from 'react';
+import { ReactNode, createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { Product, CartItem, WishlistItem } from '../types';
 
 interface StoreContextType {
@@ -8,16 +8,22 @@ interface StoreContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   cartTotal: number;
   cartCount: number;
-  
+
   wishlist: WishlistItem[];
   addToWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
-  
+
   compare: Product[];
   addToCompare: (product: Product) => void;
   removeFromCompare: (productId: string) => void;
   isInCompare: (productId: string) => boolean;
+
+  // Auth dialog — single global instance rendered in AppLayout, opened from anywhere.
+  authOpen: boolean;
+  authInitialMode: "signin" | "signup";
+  openAuth: (mode?: "signin" | "signup") => void;
+  closeAuth: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -26,6 +32,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [compare, setCompare] = useState<Product[]>([]);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
+
+  const openAuth = useCallback((mode: "signin" | "signup" = "signin") => {
+    setAuthInitialMode(mode);
+    setAuthOpen(true);
+  }, []);
+  const closeAuth = useCallback(() => setAuthOpen(false), []);
 
   // Cart actions
   const addToCart = (product: Product, quantity: number) => {
@@ -85,7 +99,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     <StoreContext.Provider value={{
       cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
       wishlist, addToWishlist, removeFromWishlist, isInWishlist,
-      compare, addToCompare, removeFromCompare, isInCompare
+      compare, addToCompare, removeFromCompare, isInCompare,
+      authOpen, authInitialMode, openAuth, closeAuth,
     }}>
       {children}
     </StoreContext.Provider>
