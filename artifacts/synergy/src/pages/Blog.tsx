@@ -1,69 +1,390 @@
+import { useMemo, useState } from "react";
 import { blogPosts } from "@/data/blog";
 import { Link } from "wouter";
-import { Calendar, User, Clock } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Bookmark,
+  Calendar,
+  Clock,
+  Search,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const PAGE_SIZE = 6;
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function Blog() {
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [query, setQuery] = useState<string>("");
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>(blogPosts.map((p) => p.category));
+    return ["All", ...Array.from(set)];
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return blogPosts.filter((post) => {
+      const matchesCategory =
+        activeCategory === "All" || post.category === activeCategory;
+      const matchesQuery =
+        !q ||
+        post.title.toLowerCase().includes(q) ||
+        post.excerpt.toLowerCase().includes(q) ||
+        post.author.toLowerCase().includes(q);
+      return matchesCategory && matchesQuery;
+    });
+  }, [activeCategory, query]);
+
   const featured = blogPosts[0];
-  const rest = blogPosts.slice(1);
+  const rest = filtered.filter((p) => p.id !== featured.id);
+  const visibleRest = rest.slice(0, visibleCount);
+  const hasMore = rest.length > visibleCount;
 
   return (
-    <div className="bg-white min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        <div className="mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Knowledge Center</h1>
-          <p className="text-gray-600">Insights, tutorials, and news on Embedded Systems, IoT, Robotics, and AI.</p>
-        </div>
+    <div className="bg-background min-h-screen">
+      {/* Hero — split landing layout, fills the viewport */}
+      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-muted/50 via-background to-muted/30">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              "radial-gradient(50% 50% at 0% 0%, hsl(var(--primary) / 0.10), transparent 60%), radial-gradient(50% 50% at 100% 100%, hsl(var(--primary) / 0.08), transparent 60%)",
+          }}
+        />
 
-        {/* Featured Post */}
-        {featured && (
-          <div className="mb-16">
-            <Link href={`/blog/${featured.slug}`} className="group flex flex-col lg:flex-row bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="lg:w-1/2 aspect-video lg:aspect-auto overflow-hidden">
-                <img src={featured.image} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <div className="container relative mx-auto grid min-h-[calc(100vh-6rem)] grid-cols-1 items-start gap-8 px-4 pt-4 pb-8 lg:grid-cols-12 lg:gap-10 lg:pt-6 lg:pb-10">
+          {/* Left: copy + search */}
+          <div className="lg:col-span-6">
+            <Badge
+              variant="secondary"
+              className="mb-3 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]"
+            >
+              The Knowledge Center
+            </Badge>
+            <h1 className="text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Sharper choices for
+              <br className="hidden sm:block" />
+              <span className="text-blue-600"> electrical professionals.</span>
+            </h1>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+              Buying guides, comparisons, and field notes from our engineers.
+            </p>
+
+            {/* Search */}
+            <div className="mt-5 max-w-md">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                  placeholder="Search articles, guides, authors…"
+                  className="h-12 rounded-full border-border/80 bg-background pl-11 pr-4 text-sm shadow-sm focus-visible:ring-2"
+                />
               </div>
-              <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-                <span className="inline-block py-1 px-3 bg-blue-100 text-blue-700 text-xs font-bold rounded-full mb-4 w-max">
-                  {featured.category}
-                </span>
-                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
-                  {featured.title}
-                </h2>
-                <p className="text-gray-600 mb-6 text-lg">
-                  {featured.excerpt}
-                </p>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mt-auto">
-                  <div className="flex items-center gap-1"><User className="h-4 w-4" /> {featured.author}</div>
-                  <div className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {featured.date}</div>
+            </div>
+
+            {/* Stat strip */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+              <div>
+                <div className="text-lg font-semibold tracking-tight text-foreground">
+                  {blogPosts.length}+
+                </div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Articles
                 </div>
               </div>
-            </Link>
+              <div>
+                <div className="text-lg font-semibold tracking-tight text-foreground">
+                  {categories.length - 1}
+                </div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Categories
+                </div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold tracking-tight text-foreground">
+                  Weekly
+                </div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  New drops
+                </div>
+              </div>
+            </div>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {rest.map(post => (
-            <Link key={post.id} href={`/blog/${post.slug}`} className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-              <div className="aspect-video overflow-hidden bg-gray-100">
-                <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <div className="p-6 flex flex-col flex-1">
-                <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">
-                  {post.category}
-                </span>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4 flex-1">
-                  {post.excerpt}
-                </p>
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100 mt-auto">
-                  <span>{post.date}</span>
-                  <div className="flex items-center gap-1"><Clock className="h-3 w-3" /> {post.readTime}</div>
+          {/* Right: featured preview card */}
+          {featured && (
+            <div className="lg:col-span-6">
+              <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+                <Link
+                  href={`/blog/${featured.slug}`}
+                  className="relative block aspect-[16/9] overflow-hidden"
+                  aria-label={featured.title}
+                >
+                  <img
+                    src={featured.image}
+                    alt={featured.title}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0" />
+                  <Badge
+                    variant="secondary"
+                    className="absolute left-4 top-4 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-foreground backdrop-blur"
+                  >
+                    {featured.category}
+                  </Badge>
+                </Link>
+
+                <div className="p-4 sm:p-5">
+                  <h2 className="text-balance text-lg font-semibold leading-snug tracking-tight text-foreground sm:text-xl">
+                    <Link
+                      href={`/blog/${featured.slug}`}
+                      className="transition-colors hover:text-blue-600"
+                    >
+                      {featured.title}
+                    </Link>
+                  </h2>
+                  <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                    {featured.excerpt}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5" />
+                      {featured.author}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(featured.date)}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      {featured.readTime}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-2">
+                    <Button
+                      asChild
+                      className="h-9 rounded-full px-4 bg-blue-600 text-white border-blue-700 hover:bg-blue-700"
+                    >
+                      <Link href={`/blog/${featured.slug}`}>
+                        Read article
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full"
+                      aria-label="Save for later"
+                    >
+                      <Bookmark className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            </div>
+          )}
         </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-10 md:py-12">
+        {/* Category filter pills */}
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat;
+            return (
+              <Button
+                key={cat}
+                type="button"
+                size="sm"
+                variant={isActive ? "default" : "outline"}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setVisibleCount(PAGE_SIZE);
+                }}
+                className={cn(
+                  "h-9 rounded-full px-4 text-sm font-medium transition-all",
+                  !isActive &&
+                    "border-border/70 text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {cat}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Article grid */}
+        <section>
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
+                {activeCategory === "All" ? "Latest articles" : activeCategory}
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {filtered.length === 0
+                  ? "No matching stories yet — try a different search or category."
+                  : `${filtered.length} ${filtered.length === 1 ? "story" : "stories"} curated for you`}
+              </p>
+            </div>
+            {(query || activeCategory !== "All") && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => {
+                  setQuery("");
+                  setActiveCategory("All");
+                  setVisibleCount(PAGE_SIZE);
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+
+          {visibleRest.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border/80 bg-muted/30 px-6 py-16 text-center">
+              <h3 className="text-lg font-semibold text-foreground">
+                Nothing here yet
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                Try a different category or clear your search to see all
+                articles.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-5 rounded-full"
+                onClick={() => {
+                  setQuery("");
+                  setActiveCategory("All");
+                  setVisibleCount(PAGE_SIZE);
+                }}
+              >
+                Reset filters
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleRest.map((post) => (
+                <div
+                  key={post.id}
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+                >
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="relative block aspect-[16/10] overflow-hidden"
+                    aria-label={post.title}
+                  >
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 to-transparent" />
+                    <Badge
+                      variant="secondary"
+                      className="absolute left-4 top-4 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-foreground backdrop-blur"
+                    >
+                      {post.category}
+                    </Badge>
+                  </Link>
+
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="text-balance text-base font-semibold leading-snug text-foreground sm:text-lg">
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="transition-colors hover:text-blue-600"
+                      >
+                        {post.title}
+                      </Link>
+                    </h3>
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                      {post.excerpt}
+                    </p>
+
+                    <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        <User className="h-3.5 w-3.5" />
+                        {post.author}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {formatDate(post.date)}
+                      </span>
+                      <span className="ml-auto inline-flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        {post.readTime}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-blue-600"
+                      >
+                        Read article
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </Link>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        aria-label="Save article"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {hasMore && (
+            <div className="mt-8 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full px-6"
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              >
+                Load more articles
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

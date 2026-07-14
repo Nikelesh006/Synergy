@@ -4,6 +4,7 @@ import { products } from "@/data/products";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
 import { Button } from "@/components/ui/button";
+import { Product } from "@/types";
 
 const developmentBoardFilters = [
   {
@@ -39,7 +40,6 @@ const developmentBoardFilters = [
 export default function Shop() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<string[]>([]);
 
@@ -50,18 +50,6 @@ export default function Shop() {
   const selectedSubcategoryFilters = developmentBoardFilters.flatMap((filter) =>
     filter.subcategories.filter((subcategory) => selectedSubcategories.includes(subcategory.value))
   );
-
-  // Derive available brands from products so counts are always accurate
-  const brandOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    products.forEach((p) => {
-      if (!p.brand) return;
-      counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([brand, count]) => ({ value: brand, label: brand, count }));
-  }, []);
 
   const toggle = (
     value: string,
@@ -81,12 +69,6 @@ export default function Shop() {
         label: f.name,
         count: f.productCount,
       })),
-    },
-    {
-      id: "brand",
-      title: "Brand",
-      defaultOpen: true,
-      options: brandOptions,
     },
     {
       id: "price",
@@ -116,14 +98,12 @@ export default function Shop() {
   const allSelected = [
     ...selectedCategories,
     ...selectedSubcategories,
-    ...selectedBrands,
     ...selectedAvailability,
     ...selectedPrice,
   ];
 
   const onToggleSelected = (groupId: string, value: string) => {
     if (groupId === "category") toggleCategory(value);
-    else if (groupId === "brand") toggle(value, selectedBrands, setSelectedBrands);
     else if (groupId === "price") toggle(value, selectedPrice, setSelectedPrice);
     else if (groupId === "availability")
       toggle(value, selectedAvailability, setSelectedAvailability);
@@ -132,7 +112,6 @@ export default function Shop() {
   const resetAll = () => {
     setSelectedCategories([]);
     setSelectedSubcategories([]);
-    setSelectedBrands([]);
     setSelectedAvailability([]);
     setSelectedPrice([]);
   };
@@ -146,12 +125,6 @@ export default function Shop() {
 
     if (selectedSubcategories.length > 0) {
       filteredProducts = filteredProducts.filter((product) => selectedSubcategories.includes(product.subcategory));
-    }
-
-    if (selectedBrands.length > 0) {
-      filteredProducts = filteredProducts.filter((product) =>
-        product.brand ? selectedBrands.includes(product.brand) : false
-      );
     }
 
     if (selectedPrice.length > 0) {
@@ -189,7 +162,7 @@ export default function Shop() {
     }
 
     return filteredProducts;
-  }, [selectedCategories, selectedSubcategories, selectedBrands, selectedPrice, selectedAvailability]);
+  }, [selectedCategories, selectedSubcategories, selectedPrice, selectedAvailability]);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((current) => {
@@ -321,7 +294,7 @@ export default function Shop() {
 
             {/* Product Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12 mb-8">
-              {visibleProducts.map((product) => (
+              {visibleProducts.map((product: Product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
