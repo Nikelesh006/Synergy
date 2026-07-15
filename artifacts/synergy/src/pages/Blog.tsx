@@ -258,7 +258,7 @@ export default function Blog() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               {visibleRest.map((post) => (
                 <div
                   key={post.id}
@@ -266,7 +266,7 @@ export default function Blog() {
                 >
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="relative block aspect-[16/10] overflow-hidden"
+                    className="relative block aspect-square sm:aspect-[16/10] overflow-hidden"
                     aria-label={post.title}
                   >
                     <img
@@ -283,20 +283,22 @@ export default function Blog() {
                     </Badge>
                   </Link>
 
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-balance text-base font-semibold leading-snug text-foreground sm:text-lg">
+                  <div className="flex flex-1 flex-col p-3 sm:p-5">
+                    <h3 className="text-balance text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-foreground sm:text-lg">
                       <Link
                         href={`/blog/${post.slug}`}
-                        className="transition-colors hover:text-blue-600"
+                        className="transition-colors hover:text-blue-600 line-clamp-2"
                       >
                         {post.title}
                       </Link>
                     </h3>
-                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                    {/* Excerpt — hidden on small mobile, shown on larger screens */}
+                    <p className="hidden sm:block mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                       {post.excerpt}
                     </p>
 
-                    <div className="mt-4 flex items-center gap-4 text-xs">
+                    {/* Date & read time — hidden on small mobile, shown on larger screens */}
+                    <div className="hidden sm:flex mt-4 items-center gap-4 text-xs">
                       <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatDate(post.date)}
@@ -307,7 +309,8 @@ export default function Blog() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                    {/* Footer action — hidden on small mobile, shown on larger screens */}
+                    <div className="hidden sm:flex mt-4 items-center justify-between border-t border-border/60 pt-3">
                       <Link
                         href={`/blog/${post.slug}`}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-blue-600"

@@ -204,7 +204,7 @@ export default function About() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value) => {
               const Icon = value.icon;
               return (
@@ -234,7 +234,7 @@ export default function About() {
       </section>
 
       {/* Contact */}
-      <section className="relative overflow-hidden border-y border-border/60 bg-gradient-to-br from-muted/40 via-background to-muted/20 py-16 md:py-24">
+      <section id="contact" className="relative overflow-hidden border-y border-border/60 bg-gradient-to-br from-muted/40 via-background to-muted/20 py-16 md:py-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-60"

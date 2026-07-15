@@ -125,7 +125,7 @@ export default function ProductDetail() {
             </p>
 
             {/* Quick Specs */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3 mb-8 text-sm">
+            <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6 md:gap-x-8 gap-y-3 mb-8 text-xs sm:text-sm">
               {Object.entries(product.specifications).slice(0, 4).map(([key, value]) => (
                 <div key={key} className="flex justify-between border-b border-dashed border-gray-200 pb-1">
                   <span className="text-gray-500">{key}</span>

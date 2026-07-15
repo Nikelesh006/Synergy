@@ -54,7 +54,7 @@ export default function BlogsSlider() {
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
-      if (w < 640) setPerView(1);
+      if (w < 640) setPerView(2);
       else if (w < 1024) setPerView(2);
       else if (w < 1280) setPerView(3);
       else setPerView(4);
@@ -119,7 +119,7 @@ export default function BlogsSlider() {
         {slidesRef.current.map((blog, i) => (
           <div
             key={`${blog.id}-${i}`}
-            className="shrink-0 px-3"
+            className="shrink-0 px-1.5 sm:px-3"
             style={{ width: `${100 / perView}%` }}
           >
             <Link
@@ -127,8 +127,8 @@ export default function BlogsSlider() {
               className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
               aria-label={`Read: ${blog.topic}`}
             >
-              {/* Cover — standalone, no card chrome */}
-              <div className="relative w-full aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
+              {/* Cover — compact square on mobile, normal on larger screens */}
+              <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                 <img
                   src={blog.image}
                   alt={blog.topic}
@@ -137,13 +137,14 @@ export default function BlogsSlider() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
 
-              {/* Topic — separated, modern editorial typography */}
-              <div className="mt-5 px-1">
-                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+              {/* Topic — only title on mobile, separated editorial typography on larger screens */}
+              <div className="mt-2 sm:mt-5 px-1">
+                {/* Hide read-time on mobile, show on larger screens */}
+                <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
                   <span className="h-px w-5 bg-slate-300" />
                   <span>{blog.readTime}</span>
                 </div>
-                <h3 className="mt-3 text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600">
+                <h3 className="mt-0 sm:mt-3 text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
                   {blog.topic}
                 </h3>
               </div>

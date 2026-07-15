@@ -7,8 +7,6 @@ import {
   EyeOff,
   User as UserIcon,
   Phone,
-  Building2,
-  Globe,
   ShieldCheck,
   Truck,
   Headphones,
@@ -38,7 +36,6 @@ type SignInFields = {
 type SignUpFields = SignInFields & {
   fullName: string;
   phone: string;
-  company: string;
   confirmPassword: string;
   agree: boolean;
 };
@@ -49,7 +46,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phoneRegex = /^[+()\-\s\d]{8,}$/;
 
 // Site brand: dark navy blue used on the left panel.
-const PANEL_BG = "#1c1c30";
+const PANEL_BG = "#0f172b";
 
 const highlights = [
   {
@@ -94,7 +91,6 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
     fullName: "",
     email: "",
     phone: "",
-    company: "",
     password: "",
     confirmPassword: "",
     agree: false,
@@ -146,7 +142,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
       errors.fullName = "Please enter your full name.";
     }
     if (!signUp.email.trim()) {
-      errors.email = "Work email is required.";
+      errors.email = "Email is required.";
     } else if (!emailRegex.test(signUp.email.trim())) {
       errors.email = "Enter a valid email address.";
     }
@@ -154,9 +150,6 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
       errors.phone = "Phone number is required.";
     } else if (!phoneRegex.test(signUp.phone.trim())) {
       errors.phone = "Enter a valid phone number.";
-    }
-    if (!signUp.company.trim()) {
-      errors.company = "Company / organisation is required.";
     }
     if (!signUp.password) {
       errors.password = "Password is required.";
@@ -209,7 +202,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
 
   const signInFieldClass = (key: keyof SignInFields) =>
     cn(
-      "h-9 rounded-lg border bg-white pl-9 pr-3 text-xs text-gray-900 shadow-sm transition",
+      "h-9 sm:h-10 rounded-full border bg-white pl-10 pr-3 text-sm text-gray-900 shadow-sm transition",
       "placeholder:text-gray-400 placeholder:font-normal",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30 focus-visible:border-blue-600",
       signInErrors[key]
@@ -219,7 +212,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
 
   const signUpFieldClass = (key: keyof SignUpFields) =>
     cn(
-      "h-9 rounded-lg border bg-white pl-9 pr-3 text-xs text-gray-900 shadow-sm transition",
+      "h-9 sm:h-10 rounded-full border bg-white pl-10 pr-3 text-sm text-gray-900 shadow-sm transition",
       "placeholder:text-gray-400 placeholder:font-normal",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30 focus-visible:border-blue-600",
       signUpErrors[key]
@@ -235,9 +228,10 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
         className={cn(
           // Reset default centering transforms — we want a card layout, not a tiny centered box.
           "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-          // Compact size with sensible caps.
-          "w-[calc(100vw-2rem)] max-w-3xl",
-          "h-auto max-h-[calc(100vh-2rem)]",
+          // Slightly larger size with sensible caps.
+          "w-[calc(100vw-1rem)] max-w-4xl",
+          "h-auto max-h-[calc(100dvh-1rem)]",
+          "sm:w-[calc(100vw-1.5rem)] sm:max-h-[calc(100dvh-1.5rem)]",
           "sm:rounded-2xl",
           "p-0 overflow-hidden",
           "bg-white",
@@ -262,34 +256,29 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
             className="relative hidden flex-col justify-between overflow-hidden p-6 text-white md:flex md:p-8"
             style={{ backgroundColor: PANEL_BG }}
           >
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-50"
-              style={{
-                backgroundImage:
-                  "radial-gradient(60% 60% at 0% 0%, rgba(255,255,255,0.10), transparent 60%), radial-gradient(50% 50% at 100% 100%, rgba(255,255,255,0.06), transparent 60%)",
-              }}
-            />
             <div className="relative">
-              <Link href="/" className="inline-flex items-center" onClick={() => onOpenChange(false)}>
+              <Link
+                href="/"
+                className="inline-flex items-center border-0 outline-none no-underline ring-0 focus:outline-none focus:ring-0"
+                onClick={() => onOpenChange(false)}
+              >
                 <img
-                  src="/synergy-logo.png"
+                  src="/synergy-logo-footer.png"
                   alt="Synergy"
                   draggable={false}
                   onDragStart={(e) => e.preventDefault()}
-                  className="h-10 w-auto select-none"
-                  style={{ filter: "brightness(0) invert(1)" }}
+                  className="h-20 w-auto select-none border-0 outline-none"
                 />
               </Link>
               <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/60">
                 Powering India's engineers
               </p>
               <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
-                One workspace for hardware teams, makers, and procurement.
+                One workspace for hardware teams, makers, and buyers.
               </h2>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
-                Sign in to manage bulk orders, track shipments, and access
-                exclusive B2B pricing on 5,000+ components.
+                Sign in to orders, track shipments, and access
+                exclusive B2B pricing on various components.
               </p>
             </div>
 
@@ -315,14 +304,11 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
               })}
             </ul>
 
-            <p className="relative mt-8 text-[11px] text-white/50">
-              © {new Date().getFullYear()} Synergy Tech Labs. All rights
-              reserved.
-            </p>
+            
           </aside>
 
           {/* RIGHT — white form panel */}
-          <section className="relative flex max-h-[calc(100vh-2rem)] flex-col overflow-y-auto bg-white p-5 sm:p-6 md:p-7">
+          <section className="relative flex flex-col overflow-y-auto bg-white p-5 sm:p-7 md:p-8 max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-1.5rem)]">
             {/* Explicit, prominent close button — visible on all viewports and high-contrast against white. */}
             <DialogClose
               asChild
@@ -331,14 +317,14 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition-all hover:border-blue-600 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30 md:right-4 md:top-4"
+                className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-0 bg-transparent text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600/30 md:right-4 md:top-4"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
               </button>
             </DialogClose>
 
             {/* Mobile logo */}
-            <div className="mb-4 flex items-center pr-12 md:hidden">
+            <div className="mb-3 sm:mb-4 flex items-center pr-12 md:hidden">
               <Link
                 href="/"
                 className="inline-flex items-center"
@@ -349,39 +335,39 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                   alt="Synergy"
                   draggable={false}
                   onDragStart={(e) => e.preventDefault()}
-                  className="h-8 w-auto select-none"
+                  className="h-7 w-auto select-none sm:h-8"
                 />
               </Link>
             </div>
 
-            <div className="mx-auto flex w-full max-w-xs flex-col">
-              <div className="mb-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600">
+            <div className="mx-auto flex w-full max-w-md flex-col gap-2">
+              <div className="mb-1">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-600">
                   {mode === "signin" ? "Welcome back" : "Create your account"}
                 </p>
-                <h1 className="mt-0.5 text-lg font-semibold tracking-tight text-gray-900">
+                <h1 className="mt-1 text-lg sm:text-xl font-semibold tracking-tight text-gray-900">
                   {mode === "signin" ? "Sign in to Synergy" : "Sign up to Synergy"}
                 </h1>
-                <p className="mt-0.5 text-xs text-gray-500">
-                  {mode === "signin"
-                    ? "Access your orders, saved items, and team workspace."
-                    : "Get started with a free business account in under a minute."}
-                </p>
               </div>
 
               {/* Tabs */}
-              <div className="mb-4 inline-flex w-full rounded-lg border border-gray-200 bg-gray-50 p-1 text-xs font-medium">
+              <div
+                role="tablist"
+                className="relative mb-3 inline-flex w-full rounded-full border border-gray-200 bg-gray-50 p-1 text-sm font-medium"
+              >
                 {(["signin", "signup"] as Mode[]).map((m) => {
                   const active = mode === m;
                   return (
                     <button
                       key={m}
                       type="button"
+                      role="tab"
+                      aria-selected={active}
                       onClick={() => handleModeSwitch(m)}
                       className={cn(
-                        "flex-1 rounded-md px-3 py-1.5 transition",
+                        "relative z-10 flex-1 rounded-full px-4 py-2 transition-colors duration-300 ease-out",
                         active
-                          ? "bg-white text-gray-900 shadow-sm"
+                          ? "text-gray-900"
                           : "text-gray-500 hover:text-gray-700"
                       )}
                     >
@@ -389,40 +375,35 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                     </button>
                   );
                 })}
-              </div>
-
-              {/* Google button */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogle}
-                className="h-9 w-full justify-center gap-2 rounded-lg border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50"
-              >
-                <GoogleMark />
-                Continue with Google
-              </Button>
-
-              {/* Divider with text */}
-              <div className="my-3 flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-400">
-                <span className="h-px flex-1 bg-gray-200" />
-                <span>or continue with email</span>
-                <span className="h-px flex-1 bg-gray-200" />
+                {/* Sliding pill indicator */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm",
+                    "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    mode === "signup" ? "translate-x-full" : "translate-x-0"
+                  )}
+                />
               </div>
 
               {/* Success message */}
               {successMessage && (
-                <div className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <div className="mb-3.5 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{successMessage}</span>
                 </div>
               )}
 
-              {/* Forms */}
+              {/* Forms — keyed by mode so the panel crossfades on toggle */}
+              <div
+                key={mode}
+                className="animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out"
+              >
               {mode === "signin" ? (
                 <form
                   noValidate
                   onSubmit={handleSignInSubmit}
-                  className="space-y-3"
+                  className="space-y-3 sm:space-y-3.5"
                   aria-label="Sign in form"
                 >
                   <Field
@@ -435,7 +416,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       id="signin-email"
                       type="email"
                       autoComplete="email"
-                      placeholder="you@company.com"
+                      placeholder="name@you.com"
                       value={signIn.email}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSignIn((s) => ({ ...s, email: e.target.value }))
@@ -469,7 +450,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       id="signin-password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
-                      placeholder="Enter your password"
+                      placeholder="Your secret"
                       value={signIn.password}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSignIn((s) => ({ ...s, password: e.target.value }))
@@ -496,14 +477,24 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                     </Link>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="h-9 w-full justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/30"
-                  >
-                    {submitting ? "Signing in…" : "Sign in"}
-                    {!submitting && <ArrowRight className="h-3.5 w-3.5" />}
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="group relative h-9 w-auto justify-center overflow-hidden rounded-full border-0 bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_10px_25px_-10px_rgba(37,99,235,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 focus-visible:ring-offset-2 active:translate-y-0 active:shadow-sm"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {submitting ? "Signing in…" : "Sign in"}
+                        {!submitting && (
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+                        )}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      />
+                    </Button>
+                  </div>
 
                   <p className="text-center text-sm text-gray-500">
                     New to Synergy?{" "}
@@ -515,12 +506,30 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       Create an account
                     </button>
                   </p>
+
+                  {/* Divider with text */}
+                  <div className="my-2.5 sm:my-3.5 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400 pt-3 sm:pt-4 pb-2">
+                    <span className="h-px flex-1 bg-gray-200" />
+                    <span>or</span>
+                    <span className="h-px flex-1 bg-gray-200" />
+                  </div>
+
+                  {/* Google button (moved to bottom) */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogle}
+                    className="h-9 sm:h-10 w-full justify-center gap-2 rounded-full border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <GoogleMark />
+                    Continue with Google
+                  </Button>
                 </form>
               ) : (
                 <form
                   noValidate
                   onSubmit={handleSignUpSubmit}
-                  className="space-y-2.5"
+                  className="space-y-2.5 sm:space-y-3"
                   aria-label="Sign up form"
                 >
                   <Field
@@ -533,7 +542,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       id="signup-name"
                       type="text"
                       autoComplete="name"
-                      placeholder="Jane Doe"
+                      placeholder="What should we call you?"
                       value={signUp.fullName}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSignUp((s) => ({ ...s, fullName: e.target.value }))
@@ -543,64 +552,43 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                     />
                   </Field>
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field
-                      id="signup-email"
-                      label="Work email"
-                      error={signUpErrors.email}
-                      icon={Mail}
-                    >
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder="you@company.com"
-                        value={signUp.email}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setSignUp((s) => ({ ...s, email: e.target.value }))
-                        }
-                        aria-invalid={Boolean(signUpErrors.email)}
-                        className={signUpFieldClass("email")}
-                      />
-                    </Field>
-                    <Field
-                      id="signup-phone"
-                      label="Phone number"
-                      error={signUpErrors.phone}
-                      icon={Phone}
-                    >
-                      <Input
-                        id="signup-phone"
-                        type="tel"
-                        autoComplete="tel"
-                        placeholder="+91 98765 43210"
-                        value={signUp.phone}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setSignUp((s) => ({ ...s, phone: e.target.value }))
-                        }
-                        aria-invalid={Boolean(signUpErrors.phone)}
-                        className={signUpFieldClass("phone")}
-                      />
-                    </Field>
-                  </div>
-
                   <Field
-                    id="signup-company"
-                    label="Company / organisation"
-                    error={signUpErrors.company}
-                    icon={Building2}
+                    id="signup-email"
+                    label="Email"
+                    error={signUpErrors.email}
+                    icon={Mail}
                   >
                     <Input
-                      id="signup-company"
-                      type="text"
-                      autoComplete="organization"
-                      placeholder="Acme Contractors Pvt. Ltd."
-                      value={signUp.company}
+                      id="signup-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="name@you.com"
+                      value={signUp.email}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setSignUp((s) => ({ ...s, company: e.target.value }))
+                        setSignUp((s) => ({ ...s, email: e.target.value }))
                       }
-                      aria-invalid={Boolean(signUpErrors.company)}
-                      className={signUpFieldClass("company")}
+                      aria-invalid={Boolean(signUpErrors.email)}
+                      className={signUpFieldClass("email")}
+                    />
+                  </Field>
+
+                  <Field
+                    id="signup-phone"
+                    label="Phone number"
+                    error={signUpErrors.phone}
+                    icon={Phone}
+                  >
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="Where can we reach you?"
+                      value={signUp.phone}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setSignUp((s) => ({ ...s, phone: e.target.value }))
+                      }
+                      aria-invalid={Boolean(signUpErrors.phone)}
+                      className={signUpFieldClass("phone")}
                     />
                   </Field>
 
@@ -628,7 +616,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
-                      placeholder="At least 8 characters"
+                      placeholder="Make it count"
                       value={signUp.password}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSignUp((s) => ({ ...s, password: e.target.value }))
@@ -662,7 +650,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       id="signup-confirm"
                       type={showConfirm ? "text" : "password"}
                       autoComplete="new-password"
-                      placeholder="Re-enter your password"
+                      placeholder="One more time"
                       value={signUp.confirmPassword}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSignUp((s) => ({ ...s, confirmPassword: e.target.value }))
@@ -715,14 +703,24 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                     )}
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="h-9 w-full justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/30"
-                  >
-                    {submitting ? "Creating account…" : "Create account"}
-                    {!submitting && <ArrowRight className="h-3.5 w-3.5" />}
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="group relative h-9 w-auto justify-center overflow-hidden rounded-full border-0 bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_10px_25px_-10px_rgba(37,99,235,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 focus-visible:ring-offset-2 active:translate-y-0 active:shadow-sm"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {submitting ? "Creating account…" : "Create account"}
+                        {!submitting && (
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+                        )}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      />
+                    </Button>
+                  </div>
 
                   <p className="text-center text-sm text-gray-500">
                     Already have an account?{" "}
@@ -734,13 +732,27 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                       Sign in
                     </button>
                   </p>
+
+                  {/* Divider with text */}
+                  <div className="my-2.5 sm:my-3.5 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400">
+                    <span className="h-px flex-1 bg-gray-200" />
+                    <span>or</span>
+                    <span className="h-px flex-1 bg-gray-200" />
+                  </div>
+
+                  {/* Google button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogle}
+                    className="h-9 sm:h-10 w-full justify-center gap-2 rounded-full border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <GoogleMark />
+                    Sign up with Google
+                  </Button>
                 </form>
               )}
-
-              <p className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
-                <Globe className="h-3.5 w-3.5" />
-                Available in English · हिन्दी · தமிழ்
-              </p>
+              </div>
             </div>
           </section>
         </div>
@@ -769,7 +781,7 @@ function Field({
       <label
         htmlFor={id}
         className={cn(
-          "mb-1 block text-[10px] font-semibold uppercase tracking-wider",
+          "mb-1 sm:mb-1.5 block text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider",
           error ? "text-red-600" : "text-gray-600"
         )}
       >
@@ -778,20 +790,20 @@ function Field({
       <div className="relative">
         <Icon
           className={cn(
-            "pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2",
+            "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2",
             error ? "text-red-400" : "text-gray-400"
           )}
         />
         {children}
         {rightAdornment && (
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
             {rightAdornment}
           </div>
         )}
       </div>
       {error && (
-        <p className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-red-600">
-          <AlertCircle className="h-3 w-3" />
+        <p className="mt-1 inline-flex items-center gap-1 text-xs text-red-600">
+          <AlertCircle className="h-3.5 w-3.5" />
           {error}
         </p>
       )}

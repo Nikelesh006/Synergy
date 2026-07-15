@@ -1,5 +1,6 @@
-import { useState, ReactNode } from "react";
-import { Check, ChevronDown, Filter, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { useState, ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { Check, ChevronDown, Filter, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,77 +39,229 @@ export default function FilterSidebar({
   className,
   footer,
 }: FilterSidebarProps) {
-  return (
-    <aside className={cn("w-full lg:w-72 flex-shrink-0", className)}>
-      <div
-        className={cn(
-          // Outer glassy card with generous rounded corners
-          "sticky top-24 overflow-hidden rounded-2xl",
-          "border border-slate-200/80 bg-white/80 backdrop-blur-md",
-          "shadow-[0_1px_0_0_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)]"
-        )}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-4">
-          <div className="flex items-center gap-2.5">
-            <span
-              className={cn(
-                "inline-flex h-9 w-9 items-center justify-center rounded-xl",
-                "bg-gradient-to-br from-blue-600 to-indigo-600 text-white",
-                "shadow-sm shadow-blue-600/25"
-              )}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </span>
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 leading-none">Filters</h2>
-              <p className="mt-1 text-[11px] font-medium text-slate-500">
-                {selected.length > 0
-                  ? `${selected.length} selected`
-                  : "Refine your results"}
-              </p>
-            </div>
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll while the mobile drawer is open
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  const filterCard = (
+    <div
+      className={cn(
+        // Outer glassy card with generous rounded corners
+        "overflow-hidden rounded-2xl",
+        "border border-slate-200/80 bg-white/80 backdrop-blur-md",
+        "shadow-[0_1px_0_0_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)]"
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-4">
+        <div className="flex items-center gap-2.5">
+          <span
+            className={cn(
+              "inline-flex h-9 w-9 items-center justify-center rounded-xl",
+              "bg-gradient-to-br from-blue-600 to-indigo-600 text-white",
+              "shadow-sm shadow-blue-600/25"
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </span>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 leading-none">Filters</h2>
+            <p className="mt-1 text-[11px] font-medium text-slate-500">
+              {selected.length > 0
+                ? `${selected.length} selected`
+                : "Refine your results"}
+            </p>
           </div>
-          {onReset && (
-            <button
-              type="button"
-              onClick={onReset}
-              disabled={selected.length === 0}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                "ring-1 ring-slate-200 transition-colors",
-                selected.length === 0
-                  ? "cursor-not-allowed text-slate-300"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              )}
-              aria-label="Reset filters"
-            >
-              <RotateCcw className="h-3 w-3" />
-              Reset
-            </button>
-          )}
         </div>
-
-        {/* Soft divider */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
-        {/* Groups */}
-        <div className="px-2 py-2">
-          {groups.map((group) => (
-            <FilterGroupSection
-              key={group.id}
-              group={group}
-              selected={selected}
-              onToggle={onToggle}
-            />
-          ))}
-        </div>
-
-        {footer && (
-          <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4">{footer}</div>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={selected.length === 0}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+              "ring-1 ring-slate-200 transition-colors",
+              selected.length === 0
+                ? "cursor-not-allowed text-slate-300"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            )}
+            aria-label="Reset filters"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reset
+          </button>
         )}
       </div>
-    </aside>
+
+      {/* Soft divider */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+      {/* Groups */}
+      <div className="px-2 py-2">
+        {groups.map((group) => (
+          <FilterGroupSection
+            key={group.id}
+            group={group}
+            selected={selected}
+            onToggle={onToggle}
+          />
+        ))}
+      </div>
+
+      {footer && (
+        <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4">{footer}</div>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop: side rail (unchanged). Hidden on <lg. */}
+      <aside
+        className={cn("hidden lg:block w-full lg:w-72 flex-shrink-0", className)}
+        aria-label="Filters"
+      >
+        <div className="sticky top-24">{filterCard}</div>
+      </aside>
+
+      {/* Mobile: trigger bar with selected count, opens a bottom-sheet drawer. Hidden on lg+. */}
+      <div className="lg:hidden mb-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className={cn(
+            "inline-flex flex-1 items-center justify-center gap-2 rounded-xl",
+            "border border-slate-200 bg-white px-4 py-2.5",
+            "text-sm font-semibold text-slate-700 shadow-sm",
+            "hover:bg-slate-50 active:scale-[0.99] transition"
+          )}
+          aria-label="Open filters"
+        >
+          <Filter className="h-4 w-4" />
+          Filters
+          {selected.length > 0 && (
+            <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold text-white">
+              {selected.length}
+            </span>
+          )}
+        </button>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={selected.length === 0}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5",
+              "text-sm font-semibold shadow-sm transition",
+              selected.length === 0
+                ? "cursor-not-allowed text-slate-300"
+                : "text-slate-700 hover:bg-slate-50"
+            )}
+            aria-label="Reset filters"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </button>
+        )}
+      </div>
+
+      {/* Mobile drawer (portalled so it overlays the whole viewport) */}
+      {mounted && mobileOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] bg-black/50 lg:hidden"
+            onClick={() => setMobileOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
+          >
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-0 max-h-[90vh] overflow-hidden rounded-t-2xl bg-white shadow-2xl",
+                "flex flex-col"
+              )}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </span>
+                  <h2 className="text-sm font-bold text-slate-900">Filters</h2>
+                  {selected.length > 0 && (
+                    <span className="ml-1 text-[11px] font-semibold text-slate-500">
+                      ({selected.length} selected)
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100"
+                  aria-label="Close filters"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-2">
+                {groups.map((group) => (
+                  <FilterGroupSection
+                    key={group.id}
+                    group={group}
+                    selected={selected}
+                    onToggle={onToggle}
+                  />
+                ))}
+                {footer && (
+                  <div className="mt-2 border-t border-slate-100 bg-slate-50/60 px-3 py-3">
+                    {footer}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex gap-2">
+                {onReset && (
+                  <button
+                    type="button"
+                    onClick={onReset}
+                    disabled={selected.length === 0}
+                    className={cn(
+                      "flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold transition",
+                      selected.length === 0
+                        ? "cursor-not-allowed text-slate-300"
+                        : "text-slate-700 hover:bg-slate-50"
+                    )}
+                  >
+                    Reset
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-[2] rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:from-blue-700 hover:to-indigo-700"
+                >
+                  Show results
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 

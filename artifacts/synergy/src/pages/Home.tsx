@@ -31,7 +31,7 @@ export default function Home() {
   const topCategories = categories.slice(0, 8);
 
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-10 sm:gap-16 md:gap-20 pb-10 sm:pb-16 md:pb-20">
       {/* Hero Section */}
       <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden pb-6">
         {banners.map((bg, index) => (
@@ -77,7 +77,7 @@ export default function Home() {
           }
           className="mb-5"
         />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
           {[
             { id: 1, name: <>IOT Development<br/>Boards</>, slug: "iot" },
             { id: 2, name: <>AI Development<br/>Boards</>, slug: "ai" },
@@ -109,7 +109,7 @@ export default function Home() {
           }
           className="mb-5"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12">
           {featuredProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -279,7 +279,7 @@ export default function Home() {
           }
           className="mb-10"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {tutorialPosts.map((tutorial) => (
             <Link
               key={tutorial.id}
@@ -287,8 +287,8 @@ export default function Home() {
               className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
               aria-label={`Watch: ${tutorial.title}`}
             >
-              {/* Cover — same aspect ratio as blogs, no card chrome */}
-              <div className="relative w-full aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
+              {/* Cover — compact square on mobile, normal on larger screens */}
+              <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                 <img
                   src={tutorial.image}
                   alt={tutorial.title}
@@ -296,23 +296,22 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
 
-                {/* Centered play button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-14 h-14 bg-white/95 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-white transition-all duration-300 ring-4 ring-white/30">
-                    <Play className="h-6 w-6 text-slate-900 fill-slate-900 ml-0.5" />
+                {/* Centered play button — smaller on mobile, full size on larger screens */}
+                <div className="flex absolute inset-0 items-center justify-center">
+                  <div className="w-9 h-9 sm:w-14 sm:h-14 bg-white/95 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-white transition-all duration-300 ring-2 sm:ring-4 ring-white/30">
+                    <Play className="h-4 w-4 sm:h-6 sm:w-6 text-slate-900 fill-slate-900 ml-0.5" />
                   </div>
                 </div>
-
-
               </div>
 
-              {/* Title — same editorial typography as blogs */}
-              <div className="mt-5 px-1">
-                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+              {/* Title — only title on mobile, full editorial layout on larger screens */}
+              <div className="mt-2 sm:mt-5 px-1">
+                {/* Hide the "Video Tutorial" label on small mobile */}
+                <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
                   <span className="h-px w-5 bg-slate-300" />
                   <span>Video Tutorial</span>
                 </div>
-                <h3 className="mt-3 text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
+                <h3 className="mt-0 sm:mt-3 text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
                   {tutorial.title}
                 </h3>
               </div>
@@ -329,25 +328,25 @@ export default function Home() {
         >
           <div className="relative flex flex-col md:flex-row items-stretch">
             {/* Left content */}
-            <div className="p-8 md:p-12 lg:p-14 md:w-3/5 flex flex-col justify-center">
-              <div className="inline-flex items-center bg-white/15 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider w-fit mb-5">
+            <div className="p-5 sm:p-8 md:p-12 lg:p-14 md:w-3/5 flex flex-col justify-center">
+              <div className="inline-flex items-center bg-white/15 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider w-fit mb-3 sm:mb-5">
                 <span>INDUSTRY & ACADEMIA</span>
               </div>
 
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-                <span className="whitespace-nowrap">Custom Solutions <span className="text-blue-300">&amp; Hands-on</span></span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-3 sm:mb-4">
+                <span>Custom Solutions <span className="text-blue-300">&amp; Hands-on</span></span>
                 <span className="block text-blue-300">Training Programs</span>
               </h2>
 
-              <p className="text-blue-50/90 text-base md:text-lg mb-8 max-w-xl leading-relaxed">
+              <p className="text-blue-50/90 text-sm sm:text-base md:text-lg mb-5 sm:mb-8 max-w-xl leading-relaxed">
                 Specialized programs in <span className="font-semibold text-white">IoT</span>, <span className="font-semibold text-white">Robotics</span>, and <span className="font-semibold text-white">Edge AI</span> — plus custom industrial implementations that bridge emerging tech with real-world applications.
               </p>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <Link href="/contact">
                   <Button
                     size="lg"
-                    className="bg-white text-blue-700 hover:bg-blue-50 rounded-full font-bold shadow-lg shadow-blue-900/30"
+                    className="bg-white text-blue-700 hover:bg-blue-50 rounded-full font-bold shadow-lg shadow-blue-900/30 text-xs sm:text-sm h-9 sm:h-11 px-4 sm:px-6"
                   >
                     Request a Consultation
                   </Button>
@@ -356,7 +355,7 @@ export default function Home() {
                   <Button
                     size="lg"
                     variant="ghost"
-                    className="text-white hover:bg-white/10 rounded-full font-semibold"
+                    className="text-white hover:bg-white/10 rounded-full font-semibold text-xs sm:text-sm h-9 sm:h-11 px-4 sm:px-6"
                   >
                     Explore Services
                   </Button>
@@ -364,29 +363,29 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right visual — bulb with hover glow */}
-            <div className="md:w-2/5 relative min-h-[280px] md:min-h-[420px] flex items-center justify-center group">
+            {/* Right visual — bulb with hover glow (hidden on small mobile to save space) */}
+            <div className="hidden sm:flex md:w-2/5 relative min-h-[220px] md:min-h-[420px] items-center justify-center group">
               <div className="relative flex flex-col items-center">
                 {/* Bulb — proper unlit shape, glows softly on hover */}
-                <div className="relative w-32 h-40 flex flex-col items-center transition-all duration-700 group-hover:drop-shadow-[0_0_20px_rgba(253,224,71,0.35)]">
+                <div className="relative w-24 sm:w-32 h-32 sm:h-40 flex flex-col items-center transition-all duration-700 group-hover:drop-shadow-[0_0_20px_rgba(253,224,71,0.35)] scale-90 sm:scale-100">
                   {/* Glass dome — contains the centered glow effects */}
-                  <div className="relative w-28 h-28">
+                  <div className="relative w-20 h-20 sm:w-28 sm:h-28">
                     {/* Outer glow rings — centered on the dome, soft on hover */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-yellow-300/0 blur-3xl transition-all duration-700 group-hover:bg-yellow-300/[0.05]" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full bg-yellow-400/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-400/[0.08]" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-yellow-300/0 blur-xl transition-all duration-700 group-hover:bg-yellow-300/[0.12]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 sm:w-72 h-56 sm:h-72 rounded-full bg-yellow-300/0 blur-3xl transition-all duration-700 group-hover:bg-yellow-300/[0.05]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 sm:w-56 h-44 sm:h-56 rounded-full bg-yellow-400/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-400/[0.08]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-40 h-32 sm:h-40 rounded-full bg-yellow-300/0 blur-xl transition-all duration-700 group-hover:bg-yellow-300/[0.12]" />
 
                     {/* Concentric pulse rings — centered on the dome */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.12] group-hover:scale-100" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.18] group-hover:scale-100" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 sm:w-48 h-36 sm:h-48 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.12] group-hover:scale-100" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 sm:w-36 h-28 sm:h-36 rounded-full border border-yellow-300/0 scale-75 transition-all duration-700 group-hover:border-yellow-300/[0.18] group-hover:scale-100" />
 
                     {/* Glowing aura behind bulb — centered on the dome */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-yellow-300/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-300/[0.22]" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 sm:w-32 h-24 sm:h-32 rounded-full bg-yellow-300/0 blur-2xl transition-all duration-700 group-hover:bg-yellow-300/[0.22]" />
 
                     {/* Glass dome face */}
-                    <div className="relative w-28 h-28 rounded-full bg-white border-2 border-gray-300 group-hover:border-yellow-300 group-hover:bg-gradient-to-br group-hover:from-yellow-50 group-hover:to-yellow-200 flex items-center justify-center transition-all duration-700">
+                    <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-white border-2 border-gray-300 group-hover:border-yellow-300 group-hover:bg-gradient-to-br group-hover:from-yellow-50 group-hover:to-yellow-200 flex items-center justify-center transition-all duration-700">
                       <Lightbulb
-                        className="h-14 w-14 text-gray-500 group-hover:text-yellow-600 transition-colors duration-700"
+                        className="h-10 w-10 sm:h-14 sm:w-14 text-gray-500 group-hover:text-yellow-600 transition-colors duration-700"
                         strokeWidth={1.8}
                       />
                     </div>
@@ -394,10 +393,10 @@ export default function Home() {
 
                   {/* Screw base (ribbed lines) */}
                   <div className="-mt-1 flex flex-col items-center">
-                    <div className="w-14 h-1.5 bg-gray-300 group-hover:bg-yellow-400 rounded-sm transition-colors duration-700" />
-                    <div className="w-14 h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
-                    <div className="w-14 h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
-                    <div className="w-12 h-2 bg-gray-500 group-hover:bg-yellow-600 rounded-b-md mt-0.5 transition-colors duration-700" />
+                    <div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-gray-300 group-hover:bg-yellow-400 rounded-sm transition-colors duration-700" />
+                    <div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
+                    <div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-gray-400 group-hover:bg-yellow-500 rounded-sm mt-0.5 transition-colors duration-700" />
+                    <div className="w-9 sm:w-12 h-1.5 sm:h-2 bg-gray-500 group-hover:bg-yellow-600 rounded-b-md mt-0.5 transition-colors duration-700" />
                   </div>
                 </div>
 
@@ -413,11 +412,11 @@ export default function Home() {
       </section>
 
       {/* Brands Strip */}
-      <section className="container mx-auto px-4 py-8 border-y border-gray-200 mt-4 pb-6">
-        <h3 className="text-center text-sm font-bold text-gray-400 uppercase tracking-wider mb-8">Trusted by industry leaders</h3>
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+      <section className="container mx-auto px-4 py-6 sm:py-8 border-y border-gray-200 mt-4">
+        <h3 className="text-center text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-5 sm:mb-8">Trusted by industry leaders</h3>
+        <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
           {brands.slice(0, 6).map(brand => (
-            <Link href={`/shop?brand=${brand.slug}`} key={brand.id} className="text-xl font-black tracking-tighter text-gray-800 hover:text-blue-600 cursor-pointer">
+            <Link href={`/shop?brand=${brand.slug}`} key={brand.id} className="text-base sm:text-xl font-black tracking-tighter text-gray-800 hover:text-blue-600 cursor-pointer">
               {brand.name.toUpperCase()}
             </Link>
           ))}

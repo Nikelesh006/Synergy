@@ -20,12 +20,12 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={`relative text-center ${className}`}>
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-2 sm:gap-4">
         <span
           aria-hidden="true"
           className="h-px flex-1 bg-gray-200"
         />
-        <h2 className="text-3xl font-bold text-gray-900 whitespace-nowrap">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 whitespace-nowrap">
           {title}
         </h2>
         <span
@@ -34,7 +34,7 @@ export default function SectionHeader({
         />
       </div>
       {subtitle && (
-        <p className="text-base text-gray-500 mt-2">{subtitle}</p>
+        <p className="text-sm sm:text-base text-gray-500 mt-2 px-2">{subtitle}</p>
       )}
       {action && (
         <div className="flex justify-end mt-3">{action}</div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
@@ -61,7 +62,7 @@ function useTypewriter(phrases: string[]) {
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { cartCount, wishlist, openAuth } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -73,6 +74,11 @@ export default function Header() {
     if (typeof window === 'undefined') return;
 
     const controlNavbar = () => {
+      if (isMobileMenuOpen) {
+        // Keep header visible while the mobile menu is open
+        setIsVisible(true);
+        return;
+      }
       if (window.scrollY > lastScrollY && window.scrollY > 100) {
         setIsVisible(false);
       } else {
@@ -85,30 +91,49 @@ export default function Header() {
     return () => {
       window.removeEventListener('scroll', controlNavbar);
     };
-  }, [lastScrollY]);
+  }, [lastScrollY, isMobileMenuOpen]);
+
+  // Lock body scroll while the mobile menu is open
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setLocation("/shop");
   };
 
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
-    <header className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="container mx-auto px-4">
+    <header className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm transition-transform duration-300 ${isMobileMenuOpen || isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className="container mx-auto px-3 sm:px-4">
         {/* Main Header Row */}
-        <div className="flex items-center justify-between py-4 gap-4 md:gap-8">
-          
+        <div className="flex items-center justify-between py-3 sm:py-4 gap-2 sm:gap-4 md:gap-8">
+
           {/* Mobile Menu Toggle */}
-          <button 
-            className="md:hidden p-2 -ml-2 text-gray-700"
+          <button
+            className="md:hidden p-1.5 -ml-1 text-gray-700 shrink-0"
             onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
           </button>
 
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
-            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 md:h-12 w-auto select-none scale-125 md:scale-130" />
+            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-9 sm:h-10 md:h-12 w-auto select-none scale-125 md:scale-130" />
           </Link>
 
           {/* Search Bar (Desktop) */}
@@ -126,8 +151,8 @@ export default function Header() {
           </form>
 
           {/* Icons */}
-          <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink-0">
-            <div className="group relative">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-6 flex-shrink-0">
+            <div className="group relative hidden sm:block">
               <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
                 <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
               </Link>
@@ -160,43 +185,43 @@ export default function Header() {
             <button
               type="button"
               onClick={() => openAuth("signin")}
-              className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
               aria-label="Sign in"
             >
               <User className="h-5 w-5 md:h-6 md:w-6" />
             </button>
 
-            <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors">
+            <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors p-1">
               <Heart className="h-5 w-5 md:h-6 md:w-6" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-1 sm:-top-1 sm:-right-2 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center">
                   {wishlist.length}
                 </span>
               )}
             </Link>
 
-            <Link href="/cart" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+            <Link href="/cart" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1">
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-1 sm:-top-1 sm:-right-2 bg-red-600 text-white text-[9px] sm:text-[10px] font-bold h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
             </Link>
           </div>
         </div>
-        
+
         {/* Search Bar (Mobile) */}
-        <div className="md:hidden pb-4">
+        <div className="md:hidden pb-3 sm:pb-4">
           <form onSubmit={handleSearch} className="flex border border-gray-300 rounded-full overflow-hidden shadow-md">
             <Input
               type="search"
               placeholder={searchFocused ? "" : `Search for ${mobilePlaceholder}`}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              className="border-0 rounded-none shadow-none focus-visible:ring-0"
+              className="border-0 rounded-none shadow-none focus-visible:ring-0 h-10 text-sm"
             />
-            <Button type="submit" variant="secondary" className="rounded-none px-4 shadow-md">
+            <Button type="submit" variant="secondary" className="rounded-none px-3 sm:px-4 h-10 shadow-md">
               <Search className="h-4 w-4" />
             </Button>
           </form>
@@ -208,61 +233,206 @@ export default function Header() {
         <MegaMenu />
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-          <div 
-            className="w-4/5 max-w-sm h-full bg-white shadow-xl flex flex-col"
-            onClick={e => e.stopPropagation()}
+      {/* Mobile Menu (rendered via portal at document.body) */}
+      <MobileMenu
+        open={isMobileMenuOpen}
+        onClose={closeMobileMenu}
+        onSignIn={() => openAuth("signin")}
+      />
+    </header>
+  );
+}
+
+/**
+ * Mobile menu rendered via a React portal so it lives at the document body,
+ * outside the sticky/transformed header. This guarantees the `fixed inset-0`
+ * overlay is positioned relative to the viewport, not the (possibly
+ * translated) header.
+ */
+function MobileMenu({
+  open,
+  onClose,
+  onSignIn,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSignIn: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+  // Track which parent sections are expanded (mirrors the desktop hover dropdowns)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    development: false,
+    lab: false,
+    blogs: false,
+    admin: false,
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Reset all dropdowns whenever the menu is opened fresh
+  useEffect(() => {
+    if (open) {
+      setOpenSections({ development: false, lab: false, blogs: false, admin: false });
+    }
+  }, [open]);
+
+  if (!mounted || !open) return null;
+  if (typeof document === 'undefined') return null;
+
+  const toggleSection = (key: string) =>
+    setOpenSections((s) => ({ ...s, [key]: !s[key] }));
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] bg-black/50 md:hidden"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile navigation"
+    >
+      <div
+        className="w-[85%] max-w-sm h-full bg-white shadow-xl flex flex-col mobile-scroll"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-white text-gray-900 shrink-0">
+          <div className="flex items-center gap-2">
+            <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-9 sm:h-10 w-auto select-none scale-125" />
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2 -mr-1" aria-label="Close menu">
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-3 sm:py-4 overscroll-contain">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSignIn();
+            }}
+            className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left"
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white text-gray-900">
-              <div className="flex items-center gap-2">
-                <img src="/synergy-logo.png" alt="Synergy" draggable={false} onDragStart={(e) => e.preventDefault()} className="h-10 w-auto select-none scale-125" />
-              </div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto py-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  openAuth("signin");
-                }}
-                className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left"
-              >
-                Sign in / Create account
-              </button>
-              <Link href="/" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-              
-              <div className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Development Boards</div>
-              <Link href="/category/iot" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>IOT</Link>
-              <Link href="/category/ai" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>AI</Link>
-              <Link href="/category/robotics" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Robotics</Link>
-              <Link href="/category/embedded-systems-boards" className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Embedded Systems Boards</Link>
-              
-              <Link href="/category/lab-equipments" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Lab Equipments</Link>
-              <div className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Admin</div>
-              {adminLinks.map((item) => (
+            Sign in / Create account
+          </button>
+          <Link href="/" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>Home</Link>
+
+          {/* Development boards — same sub-sections as desktop MegaMenu */}
+          <MobileSection
+            label="Development boards"
+            isOpen={openSections.development}
+            onToggle={() => toggleSection('development')}
+            onClose={onClose}
+            items={[
+              { href: "/category/iot", label: "IoT" },
+              { href: "/category/ai", label: "AI" },
+              { href: "/category/embedded-systems-boards", label: "Embedded Systems" },
+              { href: "/category/robotics", label: "Robotics" },
+            ]}
+          />
+
+          {/* Lab equipments — same sub-sections as desktop MegaMenu */}
+          <MobileSection
+            label="Lab equipments"
+            isOpen={openSections.lab}
+            onToggle={() => toggleSection('lab')}
+            onClose={onClose}
+            items={[
+              { href: "/category/sensors-instrumentation-mr3461", label: "Sensors and Instrumentation (MR3461)" },
+            ]}
+            divider
+          />
+
+          {/* Blogs — same sub-sections as desktop MegaMenu */}
+          <MobileSection
+            label="Blogs"
+            isOpen={openSections.blogs}
+            onToggle={() => toggleSection('blogs')}
+            onClose={onClose}
+            items={[
+              { href: "/blogs", label: "Blogs" },
+              { href: "/tutorials", label: "Tutorials" },
+            ]}
+            divider
+          />
+
+          {/* Admin — collapsible like the other dropdowns */}
+          <MobileSection
+            label="Admin"
+            isOpen={openSections.admin}
+            onToggle={() => toggleSection('admin')}
+            onClose={onClose}
+            items={adminLinks.map((item) => ({
+              href: item.href,
+              label: item.label,
+            }))}
+          />
+
+          <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>About us</Link>
+          <Link href="/faq" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>FAQ</Link>
+          <Link href="/shop" className="block px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 border-b border-gray-100" onClick={onClose}>All products</Link>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/**
+ * Collapsible section inside the mobile menu — mirrors the dropdowns that
+ * appear on hover in the desktop MegaMenu so the IA stays consistent across
+ * viewports.
+ */
+function MobileSection({
+  label,
+  items,
+  isOpen,
+  onToggle,
+  onClose,
+  divider = false,
+}: {
+  label: string;
+  items: { href: string; label: string }[];
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  divider?: boolean;
+}) {
+  return (
+    <div className={divider ? "border-b border-gray-100" : ""}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 text-left"
+      >
+        <span className="capitalize">{label}</span>
+        <ChevronDown
+          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      <div
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out ${
+          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0">
+          <ul className="pb-1.5">
+            {items.map((item) => (
+              <li key={item.href}>
                 <Link
-                  key={item.href}
                   href={item.href}
-                  className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={onClose}
+                  className="block pl-8 pr-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-blue-600"
                 >
                   {item.label}
                 </Link>
-              ))}
-              <Link href="/blogs" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>Blogs</Link>
-              <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-              <Link href="/faq" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>FAQ</Link>
-              <Link href="/shop" className="block px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>All Products</Link>
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
-    </header>
+      </div>
+    </div>
   );
 }

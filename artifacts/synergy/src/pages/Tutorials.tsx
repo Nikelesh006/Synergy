@@ -264,7 +264,7 @@ export default function Tutorials() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               {visibleRest.map((post) => (
                 <div
                   key={post.id}
@@ -274,7 +274,7 @@ export default function Tutorials() {
                     href={post.youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative block aspect-[16/10] overflow-hidden"
+                    className="relative block aspect-[4/3] sm:aspect-[16/10] overflow-hidden"
                     aria-label={post.title}
                   >
                     <img
@@ -283,21 +283,22 @@ export default function Tutorials() {
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
-                      <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
-                        <Play className="h-5 w-5 fill-white" />
+                    {/* Play button — smaller on mobile, full size on larger screens */}
+                    <div className="flex absolute inset-0 items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                      <div className="w-8 h-8 sm:w-12 sm:h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform">
+                        <Play className="h-4 w-4 sm:h-5 sm:w-5 fill-white" />
                       </div>
                     </div>
                     <Badge
                       variant="secondary"
-                      className="absolute left-4 top-4 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-foreground backdrop-blur"
+                      className="hidden sm:inline-flex absolute left-4 top-4 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-foreground backdrop-blur"
                     >
                       {post.category}
                     </Badge>
                   </a>
 
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-balance text-base font-semibold leading-snug text-foreground sm:text-lg">
+                  <div className="flex flex-1 flex-col p-3 sm:p-5">
+                    <h3 className="text-balance text-xs font-semibold leading-snug text-foreground sm:text-base sm:text-lg line-clamp-2">
                       <a
                         href={post.youtubeUrl}
                         target="_blank"
@@ -307,18 +308,19 @@ export default function Tutorials() {
                         {post.title}
                       </a>
                     </h3>
-                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                    {/* Hide excerpt, date, footer actions on small mobile */}
+                    <p className="hidden sm:block mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                       {post.excerpt}
                     </p>
 
-                    <div className="mt-4 flex items-center gap-4 text-xs">
+                    <div className="hidden sm:flex mt-4 items-center gap-4 text-xs">
                       <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatDate(post.date)}
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                    <div className="hidden sm:flex mt-4 items-center justify-between border-t border-border/60 pt-3">
                       <a
                         href={post.youtubeUrl}
                         target="_blank"
