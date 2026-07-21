@@ -1,6 +1,6 @@
 import { Link, useParams, useLocation } from "wouter";
 import { Star, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag, ArrowRight } from "lucide-react";
-import { products } from "@/data/products";
+import { useProduct } from "@/hooks/useProducts";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -12,14 +12,22 @@ import NotFound from "./not-found";
 export default function ProductDetail() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
-  const product = products.find(p => p.slug === slug);
+  const { data: product, isLoading, isError } = useProduct(slug || "");
   const { addToCart, addToWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
 
-  if (!product) return <NotFound />;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (isError || !product) return <NotFound />;
 
   const roundToEnding9 = (n: number) => Math.floor(n / 10) * 10 - 1;
   const sellingPrice = roundToEnding9(product.price);

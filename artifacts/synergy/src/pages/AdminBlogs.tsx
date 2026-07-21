@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { fetchApi } from "@/lib/api";
 
 type AdminBlog = {
   id: string;
@@ -98,31 +99,60 @@ export default function AdminBlogs() {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const blogToSave = {
-      ...form,
-      id: form.id || `blog-${Date.now()}`,
+      title: form.title,
+      slug: form.slug,
+      author: form.author,
+      category: form.category,
+      status: form.status,
+      publishDate: form.publishDate,
+      readTime: form.readTime,
+      coverImage: form.coverImage,
+      excerpt: form.excerpt,
+      content: form.content,
+      tags: tagList,
+      metaTitle: form.metaTitle,
+      metaDescription: form.metaDescription,
+      isFeatured: form.isFeatured,
     };
 
-    setBlogs((current) => [blogToSave, ...current.filter((blog) => blog.id !== blogToSave.id)]);
-    setForm({
-      ...defaultBlog,
-      id: `blog-draft-${String(blogs.length + 1).padStart(3, "0")}`,
-      title: "",
-      slug: "",
-      coverImage: "",
-      excerpt: "",
-      content: "",
-      metaTitle: "",
-      metaDescription: "",
-    });
+    try {
+      const response = await fetchApi('/blogs', {
+        method: 'POST',
+        body: JSON.stringify(blogToSave),
+      }) as Response;
 
-    toast({
-      title: "Blog draft saved",
-      description: "The blog draft is stored locally in this admin view.",
-    });
+      if (response.ok) {
+        toast({
+          title: "Blog saved successfully",
+          description: "The blog has been added to the database.",
+        });
+        
+        // Reset form
+        setForm({
+          ...defaultBlog,
+          id: `blog-draft-${String(blogs.length + 1).padStart(3, "0")}`,
+          title: "",
+          slug: "",
+          coverImage: "",
+          excerpt: "",
+          content: "",
+          metaTitle: "",
+          metaDescription: "",
+        });
+      } else {
+        throw new Error('Failed to save blog');
+      }
+    } catch (error) {
+      toast({
+        title: "Error saving blog",
+        description: "Failed to save blog to database. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

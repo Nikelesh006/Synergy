@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from "react";
-import { tutorialPosts } from "@/data/tutorials";
+import { useTutorials } from "@/hooks/useTutorials";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -26,31 +26,42 @@ function formatDate(iso: string) {
 }
 
 export default function Tutorials() {
+  const { data: tutorials, isLoading } = useTutorials();
+  const tutorialPosts = tutorials || [];
+
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [query, setQuery] = useState<string>("");
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
   const categories = useMemo(() => {
-    const set = new Set<string>(tutorialPosts.map((p) => p.category));
+    const set = new Set<string>(tutorialPosts.map((p: any) => p.category));
     return ["All", ...Array.from(set)];
-  }, []);
+  }, [tutorialPosts]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return tutorialPosts.filter((post) => {
+    return tutorialPosts.filter((post: any) => {
       const matchesCategory =
         activeCategory === "All" || post.category === activeCategory;
       const matchesQuery =
         !q ||
         post.title.toLowerCase().includes(q) ||
-        post.excerpt.toLowerCase().includes(q) ||
-        post.author.toLowerCase().includes(q);
+        post.shortDescription.toLowerCase().includes(q) ||
+        post.instructor.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, query, tutorialPosts]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const featured = tutorialPosts[0];
-  const rest = filtered.filter((p) => p.id !== featured.id);
+  const rest = filtered.filter((p: any) => p._id !== featured?._id);
   const visibleRest = rest.slice(0, visibleCount);
   const hasMore = rest.length > visibleCount;
 
@@ -113,7 +124,7 @@ export default function Tutorials() {
                   aria-label={featured.title}
                 >
                   <img
-                    src={featured.image}
+                    src={featured.thumbnailUrl || featured.youtubeUrl}
                     alt={featured.title}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
@@ -143,13 +154,13 @@ export default function Tutorials() {
                     </a>
                   </h2>
                   <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                    {featured.excerpt}
+                    {featured.shortDescription}
                   </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                     <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                       <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(featured.date)}
+                      {formatDate(featured.publishDate)}
                     </span>
                   </div>
 
@@ -267,7 +278,7 @@ export default function Tutorials() {
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               {visibleRest.map((post) => (
                 <div
-                  key={post.id}
+                  key={post._id}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
                 >
                   <a
@@ -278,7 +289,7 @@ export default function Tutorials() {
                     aria-label={post.title}
                   >
                     <img
-                      src={post.image}
+                      src={post.thumbnailUrl || post.youtubeUrl}
                       alt={post.title}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />
@@ -310,13 +321,13 @@ export default function Tutorials() {
                     </h3>
                     {/* Hide excerpt, date, footer actions on small mobile */}
                     <p className="hidden sm:block mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                      {post.excerpt}
+                      {post.shortDescription}
                     </p>
 
                     <div className="hidden sm:flex mt-4 items-center gap-4 text-xs">
                       <span className="inline-flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-400">
                         <Calendar className="h-3.5 w-3.5" />
-                        {formatDate(post.date)}
+                        {formatDate(post.publishDate)}
                       </span>
                     </div>
 

@@ -1,13 +1,21 @@
 import { Link, useParams } from "wouter";
-import { blogPosts } from "@/data/blog";
+import { useBlogPost } from "@/hooks/useBlog";
 import NotFound from "./not-found";
 import { Calendar, User, Clock, ArrowLeft } from "lucide-react";
 
 export default function BlogArticle() {
   const { slug } = useParams();
-  const post = blogPosts.find(p => p.slug === slug);
+  const { data: post, isLoading, isError } = useBlogPost(slug || "");
 
-  if (!post) return <NotFound />;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (isError || !post) return <NotFound />;
 
   return (
     <div className="bg-white min-h-screen py-12">

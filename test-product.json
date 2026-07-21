@@ -1,0 +1,31 @@
+{
+  "name": "ESP32 (Rex32)",
+  "slug": "esp32-rex32",
+  "sku": "DEV-ESP32-REX",
+  "brand": "Espressif",
+  "category": "IoT",
+  "subcategory": "ESP32 (Rex32)",
+  "shortDescription": "Versatile ESP32 development board (Rex32) with WiFi and Bluetooth.",
+  "description": "The ESP32 Rex32 is a low-cost, low-power system on a chip microcontroller with integrated Wi-Fi and dual-mode Bluetooth. Ideal for modern IoT applications.",
+  "specifications": {
+    "Processor": "Dual-core Xtensa 32-bit LX6",
+    "Connectivity": "Wi-Fi, Bluetooth BLE",
+    "Operating Voltage": "3.3V"
+  },
+  "features": ["Low Power", "High Performance", "Versatile"],
+  "applications": ["Smart Home", "IoT", "Robotics"],
+  "images": ["https://placehold.co/600x600/eeeeee/333333?text=ESP32+(Rex32)"],
+  "price": 450,
+  "compareAtPrice": 550,
+  "currency": "INR",
+  "stock": 145,
+  "inStock": true,
+  "minOrderQty": 1,
+  "rating": 4.8,
+  "reviewCount": 124,
+  "isFeatured": true,
+  "isNewArrival": true,
+  "isBestSeller": true,
+  "warrantyInfo": "1 Year Manufacturer Warranty",
+  "shippingInfo": "Ships within 24 hours. Eligible for prime delivery."
+}

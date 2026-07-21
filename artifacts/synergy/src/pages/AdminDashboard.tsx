@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import AdminNav from "@/components/admin/AdminNav";
 import { toast } from "@/hooks/use-toast";
+import { fetchApi } from "@/lib/api";
 
 type AdminProduct = {
   id: string;
@@ -139,7 +140,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const normalizeToEndsIn9 = (value: string) => {
@@ -149,29 +150,66 @@ export default function AdminDashboard() {
     };
 
     const productToSave = {
-      ...form,
-      price: normalizeToEndsIn9(form.price),
-      offerPrice: normalizeToEndsIn9(form.offerPrice),
-      id: form.id || `product-${Date.now()}`,
-      images: imageList.join("\n"),
+      name: form.name,
+      slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+      sku: form.sku,
+      brand: form.brand,
+      category: form.category,
+      subcategory: form.subcategory,
+      shortDescription: form.description.substring(0, 150),
+      description: form.description,
+      specifications: form.specifications,
+      features: form.keyFeatures.split(',').map(f => f.trim()),
+      applications: form.tags.split(',').map(t => t.trim()),
+      images: imageList,
+      price: parseFloat(normalizeToEndsIn9(form.price)),
+      compareAtPrice: form.offerPrice ? parseFloat(normalizeToEndsIn9(form.offerPrice)) : undefined,
+      currency: "INR",
+      stock: parseInt(form.stock) || 0,
+      inStock: form.inStock,
+      minOrderQty: 1,
+      rating: 4.5,
+      reviewCount: 0,
+      isFeatured: form.isFeatured,
+      isNewArrival: true,
+      isBestSeller: false,
+      warrantyInfo: "1 Year",
+      shippingInfo: "Ships within 24 hours",
     };
 
-    setProducts((current) => [productToSave, ...current.filter((product) => product.id !== productToSave.id)]);
-    setForm({
-      ...defaultProduct,
-      id: `iot-smart-board-${String(products.length + 1).padStart(3, "0")}`,
-      name: "",
-      sku: "",
-      description: "",
-      keyFeatures: "",
-      specifications: "",
-      images: "",
-    });
+    try {
+      const response = await fetchApi('/products', {
+        method: 'POST',
+        body: JSON.stringify(productToSave),
+      }) as Response;
 
-    toast({
-      title: "Product draft saved",
-      description: "The dummy product is stored locally in this admin view.",
-    });
+      if (response.ok) {
+        toast({
+          title: "Product saved successfully",
+          description: "The product has been added to the database.",
+        });
+        
+        // Reset form
+        setForm({
+          ...defaultProduct,
+          id: `iot-smart-board-${String(products.length + 1).padStart(3, "0")}`,
+          name: "",
+          sku: "",
+          description: "",
+          keyFeatures: "",
+          specifications: "",
+          images: "",
+        });
+      } else {
+        throw new Error('Failed to save product');
+      }
+    } catch (error) {
+      toast({
+        title: "Error saving product",
+        description: "Failed to save product to database. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

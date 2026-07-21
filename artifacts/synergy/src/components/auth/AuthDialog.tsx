@@ -195,9 +195,8 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
   };
 
   const handleGoogle = () => {
-    setSuccessMessage(
-      "Redirecting to Google for secure sign-in… (this is a demo placeholder)"
-    );
+    // Redirect to backend Google OAuth endpoint
+    window.location.href = "http://localhost:5000/api/auth/google";
   };
 
   const signInFieldClass = (key: keyof SignInFields) =>

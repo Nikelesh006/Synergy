@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { fetchApi } from "@/lib/api";
 
 type AdminTutorial = {
   id: string;
@@ -115,37 +116,67 @@ export default function AdminTutorials() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const tutorialToSave = {
-      ...form,
-      id: form.id || `tutorial-${Date.now()}`,
+      title: form.title,
+      slug: form.slug,
+      youtubeUrl: form.youtubeUrl,
+      thumbnailUrl: form.thumbnailUrl,
+      channelName: form.channelName,
+      instructor: form.instructor,
+      category: form.category,
+      level: form.level,
+      status: form.status,
+      duration: form.duration,
+      publishDate: form.publishDate,
+      shortDescription: form.shortDescription,
+      description: form.description,
+      tags: tagList,
+      resourcesUrl: form.resourcesUrl,
+      metaTitle: form.metaTitle,
+      metaDescription: form.metaDescription,
+      isFeatured: form.isFeatured,
     };
 
-    setTutorials((current) => [
-      tutorialToSave,
-      ...current.filter((tutorial) => tutorial.id !== tutorialToSave.id),
-    ]);
-    setForm({
-      ...defaultTutorial,
-      id: `tutorial-draft-${String(tutorials.length + 1).padStart(3, "0")}`,
-      title: "",
-      slug: "",
-      youtubeUrl: "",
-      thumbnailUrl: "",
-      shortDescription: "",
-      description: "",
-      tags: "",
-      resourcesUrl: "",
-      metaTitle: "",
-      metaDescription: "",
-    });
+    try {
+      const response = await fetchApi('/tutorials', {
+        method: 'POST',
+        body: JSON.stringify(tutorialToSave),
+      }) as Response;
 
-    toast({
-      title: "Tutorial draft saved",
-      description: "The YouTube tutorial draft is stored locally in this admin view.",
-    });
+      if (response.ok) {
+        toast({
+          title: "Tutorial saved successfully",
+          description: "The tutorial has been added to the database.",
+        });
+        
+        // Reset form
+        setForm({
+          ...defaultTutorial,
+          id: `tutorial-draft-${String(tutorials.length + 1).padStart(3, "0")}`,
+          title: "",
+          slug: "",
+          youtubeUrl: "",
+          thumbnailUrl: "",
+          shortDescription: "",
+          description: "",
+          tags: "",
+          resourcesUrl: "",
+          metaTitle: "",
+          metaDescription: "",
+        });
+      } else {
+        throw new Error('Failed to save tutorial');
+      }
+    } catch (error) {
+      toast({
+        title: "Error saving tutorial",
+        description: "Failed to save tutorial to database. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

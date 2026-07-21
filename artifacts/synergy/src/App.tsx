@@ -2,8 +2,9 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { StoreProvider } from "@/context/StoreContext";
+import { StoreProvider, useStore } from "@/context/StoreContext";
 import NotFound from "@/pages/not-found";
+import { useEffect } from "react";
 
 // Components
 import AppLayout from "@/components/layout/AppLayout";
@@ -88,12 +89,41 @@ function App() {
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
+            <OAuthCallbackHandler />
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
       </StoreProvider>
     </QueryClientProvider>
   );
+}
+
+function OAuthCallbackHandler() {
+  const { setUser, closeAuth } = useStore();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authSuccess = params.get("auth");
+    const userParam = params.get("user");
+
+    if (authSuccess === "success" && userParam) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        // Store user data in localStorage
+        localStorage.setItem("user", JSON.stringify(userData));
+        // Update store context
+        setUser(userData);
+        // Close auth modal
+        closeAuth();
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error("Failed to parse user data from OAuth callback:", error);
+      }
+    }
+  }, [setUser, closeAuth]);
+
+  return null;
 }
 
 export default App;

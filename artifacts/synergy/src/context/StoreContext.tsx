@@ -1,6 +1,17 @@
 import { ReactNode, createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { Product, CartItem, WishlistItem } from '../types';
 
+interface User {
+  userId: string;
+  email: string;
+  name: string;
+  givenName?: string;
+  familyName?: string;
+  avatar?: string;
+  provider?: string;
+  emailVerified?: boolean;
+}
+
 interface StoreContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity: number) => void;
@@ -24,6 +35,11 @@ interface StoreContextType {
   authInitialMode: "signin" | "signup";
   openAuth: (mode?: "signin" | "signup") => void;
   closeAuth: () => void;
+
+  // User authentication
+  user: User | null;
+  setUser: (user: User | null) => void;
+  logout: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -34,12 +50,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [compare, setCompare] = useState<Product[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
+  const [user, setUser] = useState<User | null>(() => {
+    // Load user from localStorage on mount
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    }
+    return null;
+  });
 
   const openAuth = useCallback((mode: "signin" | "signup" = "signin") => {
     setAuthInitialMode(mode);
     setAuthOpen(true);
   }, []);
   const closeAuth = useCallback(() => setAuthOpen(false), []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+  }, []);
 
   // Cart actions
   const addToCart = (product: Product, quantity: number) => {
@@ -101,6 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       wishlist, addToWishlist, removeFromWishlist, isInWishlist,
       compare, addToCompare, removeFromCompare, isInCompare,
       authOpen, authInitialMode, openAuth, closeAuth,
+      user, setUser, logout,
     }}>
       {children}
     </StoreContext.Provider>

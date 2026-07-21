@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,9 @@ const developmentBoardFilters = [
 ];
 
 export default function Shop() {
+  const { data, isLoading } = useProducts();
+  const products = data?.products || [];
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
@@ -162,7 +165,7 @@ export default function Shop() {
     }
 
     return filteredProducts;
-  }, [selectedCategories, selectedSubcategories, selectedPrice, selectedAvailability]);
+  }, [selectedCategories, selectedSubcategories, selectedPrice, selectedAvailability, products]);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((current) => {
@@ -293,11 +296,17 @@ export default function Shop() {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
-              {visibleProducts.map((product: Product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
+                {visibleProducts.map((product: Product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
 
             {/* Pagination Placeholder */}
             <div className="flex justify-center">

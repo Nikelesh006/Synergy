@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight, Cpu, Wifi, CircuitBoard, Layers, Microchip } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { products } from "@/data/products";
-import { categories } from "@/data/categories";
-import { brands } from "@/data/brands";
+import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
+import { useBrands } from "@/hooks/useBrands";
 import { tutorialPosts } from "@/data/tutorials";
 import ProductCard from "@/components/product/ProductCard";
 import SectionHeader from "@/components/layout/SectionHeader";
@@ -19,6 +19,14 @@ const banners = [
 
 export default function Home() {
   const [currentBanner, setCurrentBanner] = useState(0);
+
+  const { data: productsData } = useProducts();
+  const { data: categoriesData } = useCategories();
+  const { data: brandsData } = useBrands();
+
+  const products = productsData?.products || [];
+  const categories = categoriesData || [];
+  const brands = brandsData || [];
 
   useEffect(() => {
     const timer = setInterval(() => {

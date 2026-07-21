@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { Link, useParams } from "wouter";
 import { Package, Cpu, Wifi, CircuitBoard, Layers, Brain, Bot, Cog, Cpu as CpuIcon, Microscope, Activity } from "lucide-react";
-import { products } from "@/data/products";
-import { categories } from "@/data/categories";
+import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
 import NotFound from "./not-found";
@@ -49,7 +49,7 @@ const categoryTheme: Record<
     points: ["Edge inference", "NPU-equipped SoCs", "Vision & audio ready"],
     stat: { label: "AI dev boards", value: "10+" },
   },
-  "embedded-systems-boards": {
+  "development-boards": {
     accent: "text-emerald-600",
     ring: "ring-emerald-500/20",
     gradient: "from-slate-950 via-emerald-950 to-slate-900",
@@ -120,11 +120,26 @@ const defaultTheme = {
 
 export default function Category() {
   const { slug } = useParams();
+  
+  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
+  const { data: productsData, isLoading: productsLoading } = useProducts();
+  
+  const categories = categoriesData || [];
+  const products = productsData?.products || [];
+
   const category = categories.find(c => c.slug === slug);
 
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
+
+  if (categoriesLoading || productsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   if (!category) return <NotFound />;
 
@@ -375,7 +390,7 @@ function CategoryVisual({
       stat: "text-violet-300",
       ChipIcon: Brain,
     },
-    "embedded-systems-boards": {
+    "development-boards": {
       ring: "ring-emerald-400/30",
       iconBg: "bg-emerald-500/15 text-emerald-300",
       border: "border-emerald-400/20",

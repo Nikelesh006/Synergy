@@ -1,7 +1,17 @@
-import { brands } from "@/data/brands";
+import { useBrands } from "@/hooks/useBrands";
 import { Link } from "wouter";
 
 export default function Brands() {
+  const { data: brands = [], isLoading } = useBrands();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
