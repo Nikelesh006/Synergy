@@ -144,9 +144,9 @@ export default function AdminTutorials() {
       const response = await fetchApi('/tutorials', {
         method: 'POST',
         body: JSON.stringify(tutorialToSave),
-      }) as Response;
+      });
 
-      if (response.ok) {
+      if (response) {
         toast({
           title: "Tutorial saved successfully",
           description: "The tutorial has been added to the database.",
@@ -167,8 +167,6 @@ export default function AdminTutorials() {
           metaTitle: "",
           metaDescription: "",
         });
-      } else {
-        throw new Error('Failed to save tutorial');
       }
     } catch (error) {
       toast({

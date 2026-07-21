@@ -123,9 +123,9 @@ export default function AdminBlogs() {
       const response = await fetchApi('/blogs', {
         method: 'POST',
         body: JSON.stringify(blogToSave),
-      }) as Response;
+      });
 
-      if (response.ok) {
+      if (response) {
         toast({
           title: "Blog saved successfully",
           description: "The blog has been added to the database.",
@@ -143,8 +143,6 @@ export default function AdminBlogs() {
           metaTitle: "",
           metaDescription: "",
         });
-      } else {
-        throw new Error('Failed to save blog');
       }
     } catch (error) {
       toast({

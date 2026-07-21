@@ -34,13 +34,13 @@ export default function BlogArticle() {
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 py-4 border-y border-gray-100">
             <div className="flex items-center gap-2"><User className="h-4 w-4" /> {post.author}</div>
-            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {post.date}</div>
+            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {post.publishDate}</div>
             <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {post.readTime}</div>
           </div>
         </div>
 
         <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-gray-100">
-          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
         </div>
 
         <div className="prose prose-lg max-w-none text-gray-700">

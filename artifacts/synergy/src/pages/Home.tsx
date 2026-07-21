@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight, Cpu, Wifi, CircuitBoard, Layers, Microchip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useBrands } from "@/hooks/useBrands";
-import { tutorialPosts } from "@/data/tutorials";
+import { useTutorials } from "@/hooks/useTutorials";
 import ProductCard from "@/components/product/ProductCard";
 import SectionHeader from "@/components/layout/SectionHeader";
 import BlogsSlider from "@/components/blog/BlogsSlider";
@@ -23,10 +23,30 @@ export default function Home() {
   const { data: productsData } = useProducts();
   const { data: categoriesData } = useCategories();
   const { data: brandsData } = useBrands();
+  const { data: tutorialsData } = useTutorials();
 
   const products = productsData?.products || [];
   const categories = categoriesData || [];
   const brands = brandsData || [];
+  
+  const getYoutubeVideoId = (url: string) => {
+    const match = url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    return match?.[1] || "";
+  };
+
+  const tutorialPosts = useMemo(() => {
+    return (tutorialsData || []).slice(0, 3).map(tutorial => {
+      const videoId = getYoutubeVideoId(tutorial.youtubeUrl);
+      const fallbackThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "";
+      return {
+        id: tutorial._id,
+        title: tutorial.title,
+        slug: tutorial.slug,
+        youtubeUrl: tutorial.youtubeUrl,
+        image: tutorial.thumbnailUrl || fallbackThumbnail
+      };
+    });
+  }, [tutorialsData]);
 
   useEffect(() => {
     const timer = setInterval(() => {

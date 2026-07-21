@@ -181,9 +181,9 @@ export default function AdminDashboard() {
       const response = await fetchApi('/products', {
         method: 'POST',
         body: JSON.stringify(productToSave),
-      }) as Response;
+      });
 
-      if (response.ok) {
+      if (response) {
         toast({
           title: "Product saved successfully",
           description: "The product has been added to the database.",
@@ -200,8 +200,6 @@ export default function AdminDashboard() {
           specifications: "",
           images: "",
         });
-      } else {
-        throw new Error('Failed to save product');
       }
     } catch (error) {
       toast({

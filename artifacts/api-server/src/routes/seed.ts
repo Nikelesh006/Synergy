@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { Product } from "../models/Product.js";
 import { Category } from "../models/Category.js";
 import { Brand } from "../models/Brand.js";
-import { BlogPost } from "../models/BlogPost.js";
+import { Blog, Tutorial } from "../models/index.js";
 import { seedData } from "../data/seed.js";
 
 const router = Router();
@@ -51,12 +51,38 @@ router.post("/", async (req: Request, res: Response) => {
 
     // Blog posts
     if (seedData.blogPosts.length > 0) {
-      await BlogPost.deleteMany({});
-      const inserted = await BlogPost.insertMany(
-        seedData.blogPosts,
+      await Blog.deleteMany({});
+      const mappedBlogs = seedData.blogPosts.map(bp => ({
+        title: bp.title,
+        slug: bp.slug,
+        excerpt: bp.excerpt,
+        content: bp.content || "Detailed content...",
+        author: bp.author,
+        category: bp.category,
+        readTime: bp.readTime,
+        coverImage: bp.image,
+        publishDate: bp.date,
+        status: "Published",
+        metaTitle: bp.title,
+        metaDescription: bp.excerpt,
+        isFeatured: true,
+        tags: []
+      }));
+      const inserted = await Blog.insertMany(
+        mappedBlogs,
         { ordered: false }
       );
       results["blogPosts"] = { inserted: inserted.length };
+    }
+
+    // Tutorials
+    if ((seedData as any).tutorials && (seedData as any).tutorials.length > 0) {
+      await Tutorial.deleteMany({});
+      const inserted = await Tutorial.insertMany(
+        (seedData as any).tutorials,
+        { ordered: false }
+      );
+      results["tutorials"] = { inserted: inserted.length };
     }
 
     res.json({ message: "Seed complete", results });

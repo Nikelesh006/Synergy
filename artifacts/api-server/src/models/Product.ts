@@ -26,6 +26,7 @@ export interface IProduct extends Document {
   isBestSeller: boolean;
   warrantyInfo: string;
   shippingInfo: string;
+  mpn?: string;
 }
 
 const productSchema = new Schema<IProduct>(
@@ -55,6 +56,7 @@ const productSchema = new Schema<IProduct>(
     isBestSeller: { type: Boolean, default: false },
     warrantyInfo: { type: String, default: "" },
     shippingInfo: { type: String, default: "" },
+    mpn: { type: String, default: "" },
   },
   { timestamps: true },
 );

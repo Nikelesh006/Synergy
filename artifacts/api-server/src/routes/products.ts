@@ -103,9 +103,24 @@ router.get("/:slug", async (req: Request, res: Response) => {
 // POST /api/products
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const product = await Product.create(req.body);
+    // Handle specifications conversion from string to object
+    const productData = { ...req.body };
+    if (typeof productData.specifications === 'string') {
+      // Convert string format "key1:value1, key2:value2" to object
+      const specs: Record<string, string> = {};
+      productData.specifications.split(',').forEach((spec: string) => {
+        const [key, value] = spec.split(':').map(s => s.trim());
+        if (key && value) {
+          specs[key] = value;
+        }
+      });
+      productData.specifications = specs;
+    }
+
+    const product = await Product.create(productData);
     res.status(201).json({ ...product.toObject(), id: String(product._id) });
   } catch (err) {
+    console.error("Error creating product:", err);
     res.status(400).json({ error: "Failed to create product", details: String(err) });
   }
 });
