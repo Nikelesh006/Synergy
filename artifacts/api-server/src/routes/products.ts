@@ -3,6 +3,46 @@ import { Product } from "../models/Product.js";
 
 const router = Router();
 
+const allowedCategories = new Set([
+  "IoT",
+  "AI",
+  "Embedded Systems Boards",
+  "Robotics",
+  "Sensors and Instrumentation (MR3461)",
+]);
+
+const slugify = (value: string) => value
+  .toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/(^-|-$)/g, "");
+
+const stringList = (value: unknown) => Array.isArray(value)
+  ? value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean)
+  : [];
+
+const parseSpecifications = (value: unknown): Record<string, string> => {
+  if (typeof value !== "string") return {};
+  return value.split(",").reduce<Record<string, string>>((specifications, specification) => {
+    const separator = specification.indexOf(":");
+    if (separator === -1) return specifications;
+    const key = specification.slice(0, separator).trim();
+    const specValue = specification.slice(separator + 1).trim();
+    if (key && specValue) specifications[key] = specValue;
+    return specifications;
+  }, {});
+};
+
+const nextAvailableSlug = async (baseSlug: string) => {
+  let slug = baseSlug;
+  let suffix = 2;
+  while (await Product.exists({ slug })) {
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+  return slug;
+};
+
 // GET /api/products
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -103,24 +143,66 @@ router.get("/:slug", async (req: Request, res: Response) => {
 // POST /api/products
 router.post("/", async (req: Request, res: Response) => {
   try {
-    // Handle specifications conversion from string to object
-    const productData = { ...req.body };
-    if (typeof productData.specifications === 'string') {
-      // Convert string format "key1:value1, key2:value2" to object
-      const specs: Record<string, string> = {};
-      productData.specifications.split(',').forEach((spec: string) => {
-        const [key, value] = spec.split(':').map(s => s.trim());
-        if (key && value) {
-          specs[key] = value;
-        }
-      });
-      productData.specifications = specs;
+    const body = req.body as Record<string, unknown>;
+    const requiredFields = ["name", "sku", "brand", "category", "subcategory"] as const;
+    const values = Object.fromEntries(
+      requiredFields.map((field) => [field, typeof body[field] === "string" ? body[field].trim() : ""]),
+    ) as Record<(typeof requiredFields)[number], string>;
+    const missingFields = requiredFields.filter((field) => !values[field]);
+
+    if (missingFields.length > 0) {
+      res.status(400).json({ error: `Missing required fields: ${missingFields.join(", ")}` });
+      return;
+    }
+    if (!allowedCategories.has(values.category)) {
+      res.status(400).json({ error: "Select a category from the existing category list." });
+      return;
     }
 
+    const price = Number(body["price"]);
+    const stock = Number(body["stock"] ?? 0);
+    const compareAtPrice = body["compareAtPrice"] === undefined ? undefined : Number(body["compareAtPrice"]);
+    const images = stringList(body["images"]);
+    if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
+      res.status(400).json({ error: "Price must be greater than zero and stock must be a whole number of zero or more." });
+      return;
+    }
+    if (compareAtPrice !== undefined && (!Number.isFinite(compareAtPrice) || compareAtPrice <= price)) {
+      res.status(400).json({ error: "Offer price must be lower than the price." });
+      return;
+    }
+    if (images.length === 0) {
+      res.status(400).json({ error: "At least one product image is required." });
+      return;
+    }
+
+    const baseSlug = slugify(values.name);
+    if (!baseSlug) {
+      res.status(400).json({ error: "Product name must contain letters or numbers." });
+      return;
+    }
+
+    const productData = {
+      ...body,
+      ...values,
+      slug: await nextAvailableSlug(baseSlug),
+      price,
+      stock,
+      compareAtPrice,
+      specifications: parseSpecifications(body["specifications"]),
+      features: stringList(body["features"]),
+      applications: stringList(body["applications"]),
+      images,
+      inStock: body["inStock"] === true && stock > 0,
+    };
     const product = await Product.create(productData);
     res.status(201).json({ ...product.toObject(), id: String(product._id) });
   } catch (err) {
     console.error("Error creating product:", err);
+    if (typeof err === "object" && err && "code" in err && err.code === 11000) {
+      res.status(409).json({ error: "A product with this SKU already exists." });
+      return;
+    }
     res.status(400).json({ error: "Failed to create product", details: String(err) });
   }
 });

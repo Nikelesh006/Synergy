@@ -124,26 +124,16 @@ export default function Category() {
   const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
   const { data: productsData, isLoading: productsLoading } = useProducts();
   
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
+
   const categories = categoriesData || [];
   const products = productsData?.products || [];
 
   const category = categories.find(c => c.slug === slug);
 
-  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
-
-  if (categoriesLoading || productsLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!category) return <NotFound />;
-
-  const categoryProducts = products.filter(p => p.category === category.name);
+  const categoryProducts = category ? products.filter(p => p.category === category.name) : [];
   const subcategories = Array.from(new Set(categoryProducts.map(p => p.subcategory).filter(Boolean))) as string[];
   const brands = Array.from(new Set(categoryProducts.map(p => p.brand).filter(Boolean))) as string[];
   const theme = categoryTheme[slug || ""] ?? defaultTheme;
@@ -164,6 +154,16 @@ export default function Category() {
     });
     return counts;
   }, [categoryProducts]);
+
+  if (categoriesLoading || productsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!category) return <NotFound />;
 
   const toggle = (
     value: string,

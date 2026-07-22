@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
   ImagePlus,
@@ -100,6 +101,16 @@ const subcategoriesByCategory: Record<string, string[]> = {
   "Lab Equipments": ["Sensors and Instruments (MR34461)"],
 };
 
+// The admin labels above are kept unchanged. These are the matching catalog
+// values used by the customer-facing category pages.
+const catalogCategoryByAdminCategory: Record<string, string> = {
+  IOT: "IoT",
+  AI: "AI",
+  "Embedded Systems": "Embedded Systems Boards",
+  Robotics: "Robotics",
+  "Lab Equipments": "Sensors and Instrumentation (MR3461)",
+};
+
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";
 const textareaClass =
@@ -110,9 +121,11 @@ const sectionTitleClass = "text-base font-bold text-black";
 export default function AdminDashboard() {
   const [form, setForm] = useState<AdminProduct>(defaultProduct);
   const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const queryClient = useQueryClient();
 
   const imageList = useMemo(
-    () => form.images.split(/\n|,/).map((image) => image.trim()).filter(Boolean),
+    () => form.images.split(/\r?\n/).map((image) => image.trim()).filter(Boolean),
     [form.images]
   );
 
@@ -128,45 +141,84 @@ export default function AdminDashboard() {
     }));
   };
 
-  const handleSingleImageUpload = (index: number, event: ChangeEvent<HTMLInputElement>) => {
+  const handleSingleImageUpload = async (index: number, event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const newUrls = Array.from(files).map((file) => URL.createObjectURL(file));
-      const newList = [...imageList];
-      for (let i = 0; i < newUrls.length && index + i < 5; i++) {
-        newList[index + i] = newUrls[i];
+      const selectedFiles = Array.from(files).slice(0, 5 - index);
+      if (selectedFiles.some((file) => !file.type.startsWith("image/") || file.size > 1024 * 1024)) {
+        toast({ title: "Image not added", description: "Use image files up to 1 MB each.", variant: "destructive" });
+        event.target.value = "";
+        return;
       }
-      updateField("images", newList.filter(Boolean).join("\n"));
+
+      try {
+        const newUrls = await Promise.all(selectedFiles.map((file) => new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Unable to read image"));
+          reader.readAsDataURL(file);
+        })));
+        const newList = [...imageList];
+        newUrls.forEach((url, offset) => { newList[index + offset] = url; });
+        updateField("images", newList.filter(Boolean).join("\n"));
+      } catch {
+        toast({ title: "Image not added", description: "The selected image could not be read.", variant: "destructive" });
+      }
+      event.target.value = "";
     }
+  };
+
+  const handleSaveDraft = () => {
+    setProducts((current) => [{ ...form, id: form.id || `draft-${Date.now()}` }, ...current.filter((product) => product.id !== form.id)]);
+    toast({ title: "Draft saved", description: "The draft is saved locally. Use Add Product to publish it to the database." });
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const normalizeToEndsIn9 = (value: string) => {
-      const num = parseFloat(value);
-      if (!Number.isFinite(num) || num <= 0) return value;
-      return String(Math.floor(num / 10) * 10 - 1);
-    };
+    const name = form.name.trim();
+    const sku = form.sku.trim();
+    const brand = form.brand.trim();
+    const category = form.category.trim();
+    const subcategory = form.subcategory.trim();
+    const listPrice = Number(form.price);
+    const offerPrice = form.offerPrice === "" ? undefined : Number(form.offerPrice);
+    const stock = Number(form.stock);
+
+    if (!name || !sku || !brand || !category || !subcategory) {
+      toast({ title: "Complete required fields", description: "Name, SKU, brand, category, and subcategory are required.", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(listPrice) || listPrice <= 0 || !Number.isInteger(stock) || stock < 0) {
+      toast({ title: "Check price and stock", description: "Enter a price greater than zero and a whole-number stock quantity.", variant: "destructive" });
+      return;
+    }
+    if (offerPrice !== undefined && (!Number.isFinite(offerPrice) || offerPrice <= 0 || offerPrice >= listPrice)) {
+      toast({ title: "Check offer price", description: "Offer price must be greater than zero and lower than the price.", variant: "destructive" });
+      return;
+    }
+    if (imageList.length === 0) {
+      toast({ title: "Add a product image", description: "Upload at least one image before adding the product.", variant: "destructive" });
+      return;
+    }
 
     const productToSave = {
-      name: form.name,
-      slug: form.name.toLowerCase().replace(/\s+/g, '-'),
-      sku: form.sku,
-      brand: form.brand,
-      category: form.category,
-      subcategory: form.subcategory,
-      shortDescription: form.description.substring(0, 150),
-      description: form.description,
-      specifications: form.specifications,
-      features: form.keyFeatures.split(',').map(f => f.trim()),
-      applications: form.tags.split(',').map(t => t.trim()),
+      name,
+      sku,
+      brand,
+      category: catalogCategoryByAdminCategory[category],
+      subcategory,
+      shortDescription: form.description.trim().slice(0, 150),
+      description: form.description.trim(),
+      specifications: form.specifications.trim(),
+      features: form.keyFeatures.split(",").map((feature) => feature.trim()).filter(Boolean),
+      applications: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
       images: imageList,
-      price: parseFloat(normalizeToEndsIn9(form.price)),
-      compareAtPrice: form.offerPrice ? parseFloat(normalizeToEndsIn9(form.offerPrice)) : undefined,
+      price: offerPrice ?? listPrice,
+      compareAtPrice: offerPrice ? listPrice : undefined,
       currency: "INR",
-      stock: parseInt(form.stock) || 0,
-      inStock: form.inStock,
+      stock,
+      inStock: form.inStock && stock > 0,
       minOrderQty: 1,
       rating: 4.5,
       reviewCount: 0,
@@ -175,38 +227,26 @@ export default function AdminDashboard() {
       isBestSeller: false,
       warrantyInfo: "1 Year",
       shippingInfo: "Ships within 24 hours",
+      mpn: form.mpn.trim(),
     };
 
     try {
-      const response = await fetchApi('/products', {
+      setIsAddingProduct(true);
+      await fetchApi('/products', {
         method: 'POST',
         body: JSON.stringify(productToSave),
       });
-
-      if (response) {
-        toast({
-          title: "Product saved successfully",
-          description: "The product has been added to the database.",
-        });
-        
-        // Reset form
-        setForm({
-          ...defaultProduct,
-          id: `iot-smart-board-${String(products.length + 1).padStart(3, "0")}`,
-          name: "",
-          sku: "",
-          description: "",
-          keyFeatures: "",
-          specifications: "",
-          images: "",
-        });
-      }
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Product added", description: "The product is stored in the database and will appear in its selected category." });
+      setForm({ ...defaultProduct, id: "", name: "", sku: "", brand: "", description: "", keyFeatures: "", specifications: "", images: "", price: "", offerPrice: "", stock: "0", mpn: "", tags: "", isFeatured: false });
     } catch (error) {
       toast({
         title: "Error saving product",
-        description: "Failed to save product to database. Please try again.",
+        description: error instanceof Error ? error.message.replace(/^API Error \(\d+\):\s*/, "") : "Failed to save product to database. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingProduct(false);
     }
   };
 
@@ -269,6 +309,10 @@ export default function AdminDashboard() {
                 <Input id="sku" value={form.sku} onChange={(event) => updateField("sku", event.target.value)} className={fieldClass} required />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="brand" className="text-sm font-semibold text-black">Brand <span className="text-red-600">*</span></Label>
+                <Input id="brand" value={form.brand} onChange={(event) => updateField("brand", event.target.value)} className={fieldClass} required />
+              </div>
+              <div className="space-y-2">
                 <Label className="text-sm font-semibold text-black">Category <span className="text-red-600">*</span></Label>
                 <Select value={form.category} onValueChange={handleCategoryChange}>
                   <SelectTrigger className={fieldClass}>
@@ -282,7 +326,7 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-black">Subcategory</Label>
+                <Label className="text-sm font-semibold text-black">Subcategory <span className="text-red-600">*</span></Label>
                 <Select value={form.subcategory} onValueChange={(value) => updateField("subcategory", value)}>
                   <SelectTrigger className={fieldClass}>
                     <SelectValue placeholder="Select subcategory" />
@@ -299,17 +343,17 @@ export default function AdminDashboard() {
                 <Input id="stock" type="number" min="0" value={form.stock} onChange={(event) => updateField("stock", event.target.value)} className={fieldClass} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-semibold text-black">Price</Label>
+                <Label htmlFor="price" className="text-sm font-semibold text-black">Price <span className="text-red-600">*</span></Label>
                 <div className="relative">
                   <IndianRupee className="absolute left-3.5 top-4 h-4 w-4 text-blue-700" />
-                  <Input id="price" type="number" min="0" value={form.price} onChange={(event) => updateField("price", event.target.value)} className={`${fieldClass} pl-10`} />
+                  <Input id="price" type="number" min="0.01" step="0.01" value={form.price} onChange={(event) => updateField("price", event.target.value)} className={`${fieldClass} pl-10`} required />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="offerPrice" className="text-sm font-semibold text-black">Offer Price</Label>
                 <div className="relative">
                   <IndianRupee className="absolute left-3.5 top-4 h-4 w-4 text-blue-700" />
-                  <Input id="offerPrice" type="number" min="0" value={form.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={`${fieldClass} pl-10`} />
+                  <Input id="offerPrice" type="number" min="0.01" step="0.01" value={form.offerPrice} onChange={(event) => updateField("offerPrice", event.target.value)} className={`${fieldClass} pl-10`} />
                 </div>
               </div>
               <div className="space-y-2">
@@ -398,10 +442,16 @@ export default function AdminDashboard() {
                   Featured
                 </label>
               </div>
-              <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
-                <Save className="h-4 w-4" />
-                Save Draft
-              </Button>
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" onClick={handleSaveDraft} className="h-11 border border-slate-300 bg-white px-5 font-semibold text-black shadow-sm hover:bg-slate-50">
+                  <Save className="h-4 w-4" />
+                  Save Draft
+                </Button>
+                <Button type="submit" disabled={isAddingProduct} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                  <PackagePlus className="h-4 w-4" />
+                  {isAddingProduct ? "Adding Product..." : "Add Product"}
+                </Button>
+              </div>
             </div>
           </form>
 
