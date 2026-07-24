@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { Product } from "../models/Product.js";
+import mongoose from "mongoose";
 
 const router = Router();
 
@@ -122,7 +123,18 @@ router.get("/", async (req: Request, res: Response) => {
 // GET /api/products/:slug
 router.get("/:slug", async (req: Request, res: Response) => {
   try {
-    const raw = await Product.findOne({ slug: req.params["slug"] }).lean();
+    const slugParam = req.params["slug"];
+    if (typeof slugParam !== "string") {
+      res.status(400).json({ error: "Invalid product parameter" });
+      return;
+    }
+    let raw = null;
+    if (mongoose.Types.ObjectId.isValid(slugParam)) {
+      raw = await Product.findById(slugParam).lean();
+    }
+    if (!raw) {
+      raw = await Product.findOne({ slug: slugParam }).lean();
+    }
     if (!raw) {
       res.status(404).json({ error: "Product not found" });
       return;

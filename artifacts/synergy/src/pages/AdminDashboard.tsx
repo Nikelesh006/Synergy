@@ -1,4 +1,5 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
@@ -24,7 +25,6 @@ import {
 import AdminNav from "@/components/admin/AdminNav";
 import { toast } from "@/hooks/use-toast";
 import { fetchApi } from "@/lib/api";
-
 type AdminProduct = {
   id: string;
   name: string;
@@ -111,6 +111,54 @@ const catalogCategoryByAdminCategory: Record<string, string> = {
   "Lab Equipments": "Sensors and Instrumentation (MR3461)",
 };
 
+const reverseCategoryMapping: Record<string, string> = {
+  "IoT": "IOT",
+  "AI": "AI",
+  "Embedded Systems Boards": "Embedded Systems",
+  "Robotics": "Robotics",
+  "Sensors and Instrumentation (MR3461)": "Lab Equipments",
+};
+
+const mapProductToForm = (product: any): AdminProduct => {
+  const formCategory = reverseCategoryMapping[product.category] || "IOT";
+
+  let specStr = "";
+  if (product.specifications && typeof product.specifications === "object") {
+    specStr = Object.entries(product.specifications)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", ");
+  }
+
+  let priceVal = "";
+  let offerPriceVal = "";
+  if (product.compareAtPrice) {
+    priceVal = String(product.compareAtPrice);
+    offerPriceVal = String(product.price);
+  } else {
+    priceVal = String(product.price || "");
+  }
+
+  return {
+    id: product.id || product._id || "",
+    name: product.name || "",
+    sku: product.sku || "",
+    brand: product.brand || "",
+    category: formCategory,
+    subcategory: product.subcategory || "",
+    description: product.description || "",
+    keyFeatures: Array.isArray(product.features) ? product.features.join(", ") : "",
+    specifications: specStr,
+    images: Array.isArray(product.images) ? product.images.join("\n") : "",
+    price: priceVal,
+    offerPrice: offerPriceVal,
+    stock: String(product.stock ?? 0),
+    mpn: product.mpn || "N/A",
+    tags: Array.isArray(product.applications) ? product.applications.join(", ") : "",
+    isFeatured: !!product.isFeatured,
+    inStock: !!product.inStock,
+  };
+};
+
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";
 const textareaClass =
@@ -118,11 +166,36 @@ const textareaClass =
 const panelClass = "rounded-md border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/70";
 const sectionTitleClass = "text-base font-bold text-black";
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ params }: { params?: { id?: string } }) {
   const [form, setForm] = useState<AdminProduct>(defaultProduct);
   const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+
+  const isEditMode = !!params?.id;
+
+  useEffect(() => {
+    if (params?.id) {
+      const loadProduct = async () => {
+        try {
+          const product = await fetchApi<any>(`/products/${params.id}`);
+          if (product) {
+            setForm(mapProductToForm(product));
+          }
+        } catch (err) {
+          toast({
+            title: "Error loading product",
+            description: "Could not fetch product details for editing.",
+            variant: "destructive",
+          });
+        }
+      };
+      loadProduct();
+    } else {
+      setForm(defaultProduct);
+    }
+  }, [params?.id]);
 
   const imageList = useMemo(
     () => form.images.split(/\r?\n/).map((image) => image.trim()).filter(Boolean),
@@ -232,13 +305,22 @@ export default function AdminDashboard() {
 
     try {
       setIsAddingProduct(true);
-      await fetchApi('/products', {
-        method: 'POST',
-        body: JSON.stringify(productToSave),
-      });
-      await queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast({ title: "Product added", description: "The product is stored in the database and will appear in its selected category." });
-      setForm({ ...defaultProduct, id: "", name: "", sku: "", brand: "", description: "", keyFeatures: "", specifications: "", images: "", price: "", offerPrice: "", stock: "0", mpn: "", tags: "", isFeatured: false });
+      if (isEditMode) {
+        await fetchApi(`/products/${params.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(productToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+        toast({ title: "Product updated", description: "The product was successfully updated." });
+      } else {
+        await fetchApi('/products', {
+          method: 'POST',
+          body: JSON.stringify(productToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+        toast({ title: "Product added", description: "The product is stored in the database and will appear in its selected category." });
+      }
+      setLocation("/admin/products");
     } catch (error) {
       toast({
         title: "Error saving product",
@@ -264,7 +346,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-black">Product Admin</div>
-                  <h1 className="text-3xl font-bold tracking-normal text-black">Add Product</h1>
+                  <h1 className="text-3xl font-bold tracking-normal text-black">
+                    {isEditMode ? "Edit Product" : "Add Product"}
+                  </h1>
                 </div>
               </div>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-black">
@@ -449,7 +533,7 @@ export default function AdminDashboard() {
                 </Button>
                 <Button type="submit" disabled={isAddingProduct} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
                   <PackagePlus className="h-4 w-4" />
-                  {isAddingProduct ? "Adding Product..." : "Add Product"}
+                  {isAddingProduct ? (isEditMode ? "Saving..." : "Adding...") : (isEditMode ? "Save Product" : "Add Product")}
                 </Button>
               </div>
             </div>

@@ -91,11 +91,120 @@ export default function AdminBlogs() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const handleTitleChange = (value: string) => {
+    updateField("title", value);
+    // Auto-generate slug from title if slug is empty or matches the old title
+    if (!form.slug || form.slug === generateSlug(form.title)) {
+      updateField("slug", generateSlug(value));
+    }
+  };
+
   const handleCoverUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     if (file) {
       updateField("coverImage", URL.createObjectURL(file));
+    }
+  };
+
+  const handleAddBlog = async () => {
+    // Validation
+    if (!form.title || !form.slug || !form.author || !form.category || !form.coverImage || !form.excerpt || !form.content) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields: Title, Slug, Author, Category, Cover Image, Excerpt, and Content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let finalSlug = form.slug;
+    let slugCounter = 1;
+    let slugExists = true;
+
+    // Try to find a unique slug
+    while (slugExists) {
+      try {
+        const testSlug = slugCounter === 1 ? finalSlug : `${finalSlug}-${slugCounter}`;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/blogs?slug=${testSlug}`, {
+          method: 'GET',
+        });
+        if (response.ok) {
+          const blogs = await response.json();
+          const existingBlog = blogs.find((b: any) => b.slug === testSlug);
+          if (!existingBlog) {
+            finalSlug = testSlug;
+            slugExists = false;
+          } else {
+            slugCounter++;
+          }
+        } else {
+          // If API fails, proceed with current slug and let backend handle it
+          slugExists = false;
+        }
+      } catch (error) {
+        // If check fails, proceed with current slug
+        slugExists = false;
+      }
+    }
+
+    const blogToSave = {
+      title: form.title,
+      slug: finalSlug,
+      author: form.author,
+      category: form.category,
+      status: "Published",
+      publishDate: form.publishDate || new Date().toISOString().split('T')[0],
+      readTime: form.readTime || '5 min read',
+      coverImage: form.coverImage,
+      excerpt: form.excerpt,
+      content: form.content,
+      tags: tagList,
+      metaTitle: form.metaTitle || form.title,
+      metaDescription: form.metaDescription || form.excerpt,
+      isFeatured: form.isFeatured,
+    };
+
+    try {
+      console.log("Sending blog data:", blogToSave);
+      const response = await fetchApi('/blogs', {
+        method: 'POST',
+        body: JSON.stringify(blogToSave),
+      });
+
+      if (response) {
+        toast({
+          title: "Blog added successfully",
+          description: "The blog has been published to the website.",
+        });
+        
+        // Reset form
+        setForm({
+          ...defaultBlog,
+          id: `blog-draft-${String(blogs.length + 1).padStart(3, "0")}`,
+          title: "",
+          slug: "",
+          coverImage: "",
+          excerpt: "",
+          content: "",
+          metaTitle: "",
+          metaDescription: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding blog:", error);
+      toast({
+        title: "Error adding blog",
+        description: error instanceof Error ? error.message : "Failed to add blog to database. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -208,7 +317,7 @@ export default function AdminBlogs() {
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="title" className="text-sm font-semibold text-black">Blog Title</Label>
-                  <Input id="title" value={form.title} onChange={(event) => updateField("title", event.target.value)} className={fieldClass} required />
+                  <Input id="title" value={form.title} onChange={(event) => handleTitleChange(event.target.value)} className={fieldClass} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="slug" className="text-sm font-semibold text-black">Slug</Label>
@@ -333,10 +442,16 @@ export default function AdminBlogs() {
                 <Switch checked={form.isFeatured} onCheckedChange={(checked) => updateField("isFeatured", checked)} />
                 Featured Blog
               </label>
-              <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
-                <Save className="h-4 w-4" />
-                Save Blog Draft
-              </Button>
+              <div className="flex gap-3">
+                <Button type="button" onClick={handleAddBlog} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                  <Save className="h-4 w-4" />
+                  Add Blog
+                </Button>
+                <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
+                  <Save className="h-4 w-4" />
+                  Save Blog Draft
+                </Button>
+              </div>
             </div>
           </form>
 

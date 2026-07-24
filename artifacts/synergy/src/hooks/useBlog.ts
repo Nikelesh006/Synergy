@@ -28,7 +28,7 @@ export function useBlogPosts(params?: Record<string, string>) {
       const searchParams = new URLSearchParams(params || {});
       const queryString = searchParams.toString();
       const res = await fetchApi<BlogPost[]>(
-        queryString ? `/blog?${queryString}` : "/blog"
+        queryString ? `/blogs?${queryString}` : "/blogs"
       );
       return res;
     },
@@ -39,7 +39,7 @@ export function useBlogPost(slug: string) {
   return useQuery({
     queryKey: ["blog", slug],
     queryFn: async () => {
-      const res = await fetchApi<BlogPost>(`/blog/${slug}`);
+      const res = await fetchApi<BlogPost>(`/blogs/${slug}`);
       return res;
     },
     enabled: !!slug,

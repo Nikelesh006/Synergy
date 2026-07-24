@@ -21,6 +21,7 @@ import Account from "@/pages/Account";
 import Login from "@/pages/Login";
 import AdminBlogs from "@/pages/AdminBlogs";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminProducts from "@/pages/AdminProducts";
 import AdminSection from "@/pages/AdminSection";
 import AdminTutorials from "@/pages/AdminTutorials";
 import TrackOrder from "@/pages/TrackOrder";
@@ -36,10 +37,6 @@ import FAQ from "@/pages/FAQ";
 import Policies from "@/pages/Policies";
 
 const queryClient = new QueryClient();
-
-function AdminProducts() {
-  return <AdminSection title="Products" />;
-}
 
 function AdminOrders() {
   return <AdminSection title="Orders" />;
@@ -59,6 +56,7 @@ function Router() {
         <Route path="/account" component={Account} />
         <Route path="/login" component={Login} />
         <Route path="/admin/add-product" component={AdminDashboard} />
+        <Route path="/admin/edit-product/:id" component={AdminDashboard} />
         <Route path="/admin/blogs" component={AdminBlogs} />
         <Route path="/admin/tutorials" component={AdminTutorials} />
         <Route path="/admin/products" component={AdminProducts} />

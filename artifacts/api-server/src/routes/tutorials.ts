@@ -6,6 +6,8 @@ const router: IRouter = Router();
 // Create a new tutorial
 router.post("/", async (req, res): Promise<void> => {
   try {
+    console.log("Tutorial creation request body:", JSON.stringify(req.body, null, 2));
+    
     const { 
       title, 
       slug, 
@@ -28,6 +30,7 @@ router.post("/", async (req, res): Promise<void> => {
     } = req.body;
     
     if (!title || !slug || !youtubeUrl || !channelName || !category || !duration || !shortDescription || !description) {
+      console.log("Missing required fields:", { title, slug, youtubeUrl, channelName, category, duration, shortDescription, description });
       res.status(400).json({ error: "Title, slug, youtubeUrl, channelName, category, duration, shortDescription, and description are required" });
       return;
     }
@@ -52,32 +55,38 @@ router.post("/", async (req, res): Promise<void> => {
       metaDescription: metaDescription || shortDescription,
       isFeatured: isFeatured || false
     });
+    
+    console.log("Tutorial object to save:", JSON.stringify(tutorial.toObject(), null, 2));
     await tutorial.save();
+    console.log("Tutorial saved successfully:", tutorial._id);
     
     res.status(201).json(tutorial);
   } catch (error: any) {
+    console.error("Error creating tutorial:", error);
     if (error.code === 11000) {
+      console.log("Duplicate slug error:", error.keyPattern);
       res.status(400).json({ error: "Slug already exists" });
       return;
     }
-    res.status(500).json({ error: "Failed to create tutorial" });
+    console.log("Validation error:", error.errors);
+    res.status(500).json({ error: "Failed to create tutorial", details: error.message });
   }
 });
 
 // Get all tutorials
 router.get("/", async (_req, res): Promise<void> => {
   try {
-    const tutorials = await Tutorial.find();
+    const tutorials = await Tutorial.find({ status: 'Published' });
     res.json(tutorials);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch tutorials" });
   }
 });
 
-// Get a single tutorial by ID
-router.get("/:id", async (req, res): Promise<void> => {
+// Get a single tutorial by slug
+router.get("/:slug", async (req, res): Promise<void> => {
   try {
-    const tutorial = await Tutorial.findById(req.params.id);
+    const tutorial = await Tutorial.findOne({ slug: req.params.slug });
     
     if (!tutorial) {
       res.status(404).json({ error: "Tutorial not found" });

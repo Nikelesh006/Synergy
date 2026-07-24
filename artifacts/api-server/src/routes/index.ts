@@ -15,7 +15,7 @@ router.use(healthRouter);
 router.use("/products", productsRouter);
 router.use("/categories", categoriesRouter);
 router.use("/brands", brandsRouter);
-router.use("/blog", blogsRouter);
+router.use("/blogs", blogsRouter);
 router.use("/tutorials", tutorialsRouter);
 router.use("/orders", ordersRouter);
 router.use("/seed", seedRouter);

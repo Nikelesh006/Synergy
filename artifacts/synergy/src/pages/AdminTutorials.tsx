@@ -116,6 +116,122 @@ export default function AdminTutorials() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const handleTitleChange = (value: string) => {
+    updateField("title", value);
+    // Auto-generate slug from title if slug is empty or matches the old title
+    if (!form.slug || form.slug === generateSlug(form.title)) {
+      updateField("slug", generateSlug(value));
+    }
+  };
+
+  const handleAddTutorial = async () => {
+    // Validation
+    if (!form.title || !form.slug || !form.youtubeUrl || !form.channelName || !form.category || !form.duration || !form.shortDescription || !form.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields: Title, Slug, YouTube URL, Channel, Category, Duration, Short Description, and Description.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let finalSlug = form.slug;
+    let slugCounter = 1;
+    let slugExists = true;
+
+    // Try to find a unique slug
+    while (slugExists) {
+      try {
+        const testSlug = slugCounter === 1 ? finalSlug : `${finalSlug}-${slugCounter}`;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/tutorials?slug=${testSlug}`, {
+          method: 'GET',
+        });
+        if (response.ok) {
+          const tutorials = await response.json();
+          const existingTutorial = tutorials.find((t: any) => t.slug === testSlug);
+          if (!existingTutorial) {
+            finalSlug = testSlug;
+            slugExists = false;
+          } else {
+            slugCounter++;
+          }
+        } else {
+          // If API fails, proceed with current slug and let backend handle it
+          slugExists = false;
+        }
+      } catch (error) {
+        // If check fails, proceed with current slug
+        slugExists = false;
+      }
+    }
+
+    const tutorialToSave = {
+      title: form.title,
+      slug: finalSlug,
+      youtubeUrl: form.youtubeUrl,
+      thumbnailUrl: form.thumbnailUrl,
+      channelName: form.channelName,
+      instructor: form.instructor,
+      category: form.category,
+      level: form.level,
+      status: "Published",
+      duration: form.duration,
+      publishDate: form.publishDate || new Date().toISOString().split('T')[0],
+      shortDescription: form.shortDescription,
+      description: form.description,
+      tags: tagList,
+      resourcesUrl: form.resourcesUrl,
+      metaTitle: form.metaTitle || form.title,
+      metaDescription: form.metaDescription || form.shortDescription,
+      isFeatured: form.isFeatured,
+    };
+
+    try {
+      console.log("Sending tutorial data:", tutorialToSave);
+      const response = await fetchApi('/tutorials', {
+        method: 'POST',
+        body: JSON.stringify(tutorialToSave),
+      });
+
+      if (response) {
+        toast({
+          title: "Tutorial added successfully",
+          description: "The tutorial has been published to the website.",
+        });
+        
+        // Reset form
+        setForm({
+          ...defaultTutorial,
+          id: `tutorial-draft-${String(tutorials.length + 1).padStart(3, "0")}`,
+          title: "",
+          slug: "",
+          youtubeUrl: "",
+          thumbnailUrl: "",
+          shortDescription: "",
+          description: "",
+          tags: "",
+          resourcesUrl: "",
+          metaTitle: "",
+          metaDescription: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding tutorial:", error);
+      toast({
+        title: "Error adding tutorial",
+        description: error instanceof Error ? error.message : "Failed to add tutorial to database. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -236,7 +352,7 @@ export default function AdminTutorials() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="title" className="text-sm font-semibold text-black">Tutorial Title</Label>
-                  <Input id="title" value={form.title} onChange={(event) => updateField("title", event.target.value)} className={fieldClass} required />
+                  <Input id="title" value={form.title} onChange={(event) => handleTitleChange(event.target.value)} className={fieldClass} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="slug" className="text-sm font-semibold text-black">Slug</Label>
@@ -369,10 +485,16 @@ export default function AdminTutorials() {
                 <Switch checked={form.isFeatured} onCheckedChange={(checked) => updateField("isFeatured", checked)} />
                 Featured Tutorial
               </label>
-              <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
-                <Save className="h-4 w-4" />
-                Save Tutorial Draft
-              </Button>
+              <div className="flex gap-3">
+                <Button type="button" onClick={handleAddTutorial} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                  <Save className="h-4 w-4" />
+                  Add Tutorial
+                </Button>
+                <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
+                  <Save className="h-4 w-4" />
+                  Save Tutorial Draft
+                </Button>
+              </div>
             </div>
           </form>
 
