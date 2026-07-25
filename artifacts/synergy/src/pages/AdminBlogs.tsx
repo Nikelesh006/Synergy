@@ -69,7 +69,7 @@ const initialBlogs: AdminBlog[] = [
 ];
 
 const blogCategories = ["Buying Guide", "Technical", "Industry News", "Project Ideas", "Product Updates"];
-const blogStatuses = ["Draft", "Review", "Published", "Archived"];
+const blogStatuses = ["Review", "Published", "Archived"];
 
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";

@@ -8,6 +8,8 @@ import tutorialsRouter from "./tutorials.js";
 import ordersRouter from "./orders.js";
 import seedRouter from "./seed.js";
 import authRouter from "./auth.js";
+import cartRouter from "./cart.js";
+import wishlistRouter from "./wishlist.js";
 
 const router: IRouter = Router();
 
@@ -20,5 +22,7 @@ router.use("/tutorials", tutorialsRouter);
 router.use("/orders", ordersRouter);
 router.use("/seed", seedRouter);
 router.use("/auth", authRouter);
+router.use("/cart", cartRouter);
+router.use("/wishlist", wishlistRouter);
 
 export default router;

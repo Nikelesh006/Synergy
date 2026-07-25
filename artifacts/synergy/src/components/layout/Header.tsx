@@ -63,7 +63,7 @@ function useTypewriter(phrases: string[]) {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const { cartCount, wishlist, openAuth } = useStore();
+  const { cartCount, wishlist, openAuth, user } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -182,14 +182,34 @@ export default function Header() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => openAuth("signin")}
-              className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
-              aria-label="Sign in"
-            >
-              <User className="h-5 w-5 md:h-6 md:w-6" />
-            </button>
+            {user ? (
+              <Link
+                href="/account"
+                className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
+                aria-label="Go to profile"
+              >
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-xs font-semibold">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuth("signin")}
+                className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
+                aria-label="Sign in"
+              >
+                <User className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+            )}
 
             <Link href="/wishlist" className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-colors p-1">
               <Heart className="h-5 w-5 md:h-6 md:w-6" />
@@ -259,6 +279,7 @@ function MobileMenu({
   onSignIn: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
+  const { user } = useStore();
   // Track which parent sections are expanded (mirrors the desktop hover dropdowns)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     development: false,
@@ -306,16 +327,37 @@ function MobileMenu({
         </div>
 
         <div className="flex-1 overflow-y-auto py-3 sm:py-4 overscroll-contain">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onSignIn();
-            }}
-            className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left"
-          >
-            Sign in / Create account
-          </button>
+          {user ? (
+            <Link
+              href="/account"
+              className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left flex items-center gap-3"
+              onClick={onClose}
+            >
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
+              <span>{user.name}</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onSignIn();
+              }}
+              className="block w-full px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 border-b border-gray-100 text-left"
+            >
+              Sign in / Create account
+            </button>
+          )}
           <Link href="/" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>Home</Link>
 
           {/* Development boards — same sub-sections as desktop MegaMenu */}

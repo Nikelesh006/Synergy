@@ -12,6 +12,19 @@ export interface IUser {
   provider?: "local" | "google";
   phone?: string;
   password?: string;
+  cart?: Array<{
+    productId: string;
+    quantity: number;
+    name: string;
+    price: number;
+    image: string;
+  }>;
+  wishlist?: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    image: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +69,19 @@ const userSchema = new mongoose.Schema<IUser>(
     password: {
       type: String,
     },
+    cart: [{
+      productId: String,
+      quantity: Number,
+      name: String,
+      price: Number,
+      image: String,
+    }],
+    wishlist: [{
+      productId: String,
+      name: String,
+      price: Number,
+      image: String,
+    }],
   },
   {
     timestamps: true,

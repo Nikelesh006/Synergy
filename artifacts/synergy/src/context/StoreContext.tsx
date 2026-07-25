@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useContext, useState, useMemo, useCallback } from 'react';
+import { ReactNode, createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { Product, CartItem, WishlistItem } from '../types';
+import { fetchApi } from '../lib/api';
 
 interface User {
   userId: string;
@@ -59,6 +60,101 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
+  // Load cart from localStorage on mount (for guest users)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
+      }
+    }
+  }, []);
+
+  // Load wishlist from localStorage on mount (for guest users)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedWishlist = localStorage.getItem('wishlist');
+      if (savedWishlist) {
+        setWishlist(JSON.parse(savedWishlist));
+      }
+    }
+  }, []);
+
+  // Sync cart with database when user logs in
+  useEffect(() => {
+    const syncCart = async () => {
+      if (user) {
+        try {
+          // Fetch cart from database
+          const response = await fetchApi('/cart', {
+            headers: {
+              'x-user-id': user.userId,
+            },
+          });
+          if (response && typeof response === 'object' && 'cart' in response) {
+            const dbCart = (response as any).cart.map((item: any) => ({
+              product: {
+                id: item.productId,
+                name: item.name,
+                price: item.price,
+                images: item.image ? [item.image] : [],
+              },
+              quantity: item.quantity,
+            }));
+            setCart(dbCart);
+          }
+        } catch (error) {
+          console.error('Failed to sync cart from database:', error);
+        }
+      }
+    };
+    syncCart();
+  }, [user]);
+
+  // Sync wishlist with database when user logs in
+  useEffect(() => {
+    const syncWishlist = async () => {
+      if (user) {
+        try {
+          // Fetch wishlist from database
+          const response = await fetchApi('/wishlist', {
+            headers: {
+              'x-user-id': user.userId,
+            },
+          });
+          if (response && typeof response === 'object' && 'wishlist' in response) {
+            const dbWishlist = (response as any).wishlist.map((item: any) => ({
+              product: {
+                id: item.productId,
+                name: item.name,
+                price: item.price,
+                images: item.image ? [item.image] : [],
+              },
+            }));
+            setWishlist(dbWishlist);
+          }
+        } catch (error) {
+          console.error('Failed to sync wishlist from database:', error);
+        }
+      }
+    };
+    syncWishlist();
+  }, [user]);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+  }, [cart]);
+
+  // Save wishlist to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    }
+  }, [wishlist]);
+
   const openAuth = useCallback((mode: "signin" | "signup" = "signin") => {
     setAuthInitialMode(mode);
     setAuthOpen(true);
@@ -68,10 +164,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('user');
+    // Clear cart and wishlist when logging out
+    setCart([]);
+    setWishlist([]);
+    localStorage.removeItem('cart');
+    localStorage.removeItem('wishlist');
   }, []);
 
   // Cart actions
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = useCallback(async (product: Product, quantity: number) => {
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -83,46 +184,130 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { product, quantity }];
     });
-  };
 
-  const removeFromCart = (productId: string) => {
+    // Sync with database if user is logged in
+    if (user) {
+      try {
+        await fetchApi('/cart', {
+          method: 'POST',
+          headers: {
+            'x-user-id': user.userId,
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            quantity,
+            name: product.name,
+            price: product.price,
+            image: product.images[0] || '',
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to add to cart in database:', error);
+      }
+    }
+  }, [user]);
+
+  const removeFromCart = useCallback(async (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
-  };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+    // Sync with database if user is logged in
+    if (user) {
+      try {
+        await fetchApi(`/cart/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'x-user-id': user.userId,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to remove from cart in database:', error);
+      }
+    }
+  }, [user]);
+
+  const updateQuantity = useCallback(async (productId: string, quantity: number) => {
     setCart(prev => prev.map(item => 
       item.product.id === productId ? { ...item, quantity } : item
     ));
-  };
+
+    // Sync with database if user is logged in
+    if (user) {
+      try {
+        await fetchApi(`/cart/${productId}`, {
+          method: 'PUT',
+          headers: {
+            'x-user-id': user.userId,
+          },
+          body: JSON.stringify({ quantity }),
+        });
+      } catch (error) {
+        console.error('Failed to update cart quantity in database:', error);
+      }
+    }
+  }, [user]);
 
   const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.product.price * item.quantity), 0), [cart]);
   const cartCount = useMemo(() => cart.reduce((count, item) => count + item.quantity, 0), [cart]);
 
   // Wishlist actions
-  const addToWishlist = (product: Product) => {
+  const addToWishlist = useCallback(async (product: Product) => {
     if (!wishlist.find(item => item.product.id === product.id)) {
       setWishlist(prev => [...prev, { product }]);
+
+      // Sync with database if user is logged in
+      if (user) {
+        try {
+          await fetchApi('/wishlist', {
+            method: 'POST',
+            headers: {
+              'x-user-id': user.userId,
+            },
+            body: JSON.stringify({
+              productId: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.images[0] || '',
+            }),
+          });
+        } catch (error) {
+          console.error('Failed to add to wishlist in database:', error);
+        }
+      }
     }
-  };
+  }, [wishlist, user]);
 
-  const removeFromWishlist = (productId: string) => {
+  const removeFromWishlist = useCallback(async (productId: string) => {
     setWishlist(prev => prev.filter(item => item.product.id !== productId));
-  };
 
-  const isInWishlist = (productId: string) => !!wishlist.find(item => item.product.id === productId);
+    // Sync with database if user is logged in
+    if (user) {
+      try {
+        await fetchApi(`/wishlist/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'x-user-id': user.userId,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to remove from wishlist in database:', error);
+      }
+    }
+  }, [user]);
+
+  const isInWishlist = useCallback((productId: string) => !!wishlist.find(item => item.product.id === productId), [wishlist]);
 
   // Compare actions
-  const addToCompare = (product: Product) => {
+  const addToCompare = useCallback((product: Product) => {
     if (compare.length < 4 && !compare.find(p => p.id === product.id)) {
       setCompare(prev => [...prev, product]);
     }
-  };
+  }, [compare]);
 
-  const removeFromCompare = (productId: string) => {
+  const removeFromCompare = useCallback((productId: string) => {
     setCompare(prev => prev.filter(p => p.id !== productId));
-  };
+  }, []);
 
-  const isInCompare = (productId: string) => !!compare.find(p => p.id === productId);
+  const isInCompare = useCallback((productId: string) => !!compare.find(p => p.id === productId), [compare]);
 
   return (
     <StoreContext.Provider value={{

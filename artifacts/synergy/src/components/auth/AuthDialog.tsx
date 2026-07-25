@@ -25,6 +25,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { fetchApi } from "@/lib/api";
+import { useStore } from "@/context/StoreContext";
 
 type Mode = "signin" | "signup";
 
@@ -78,6 +80,8 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { setUser } = useStore();
 
   const [signIn, setSignIn] = useState<SignInFields>({
     email: "",
@@ -170,28 +174,83 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
     return Object.keys(errors).length === 0;
   };
 
-  const handleSignInSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSignInSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSuccessMessage(null);
+    setErrorMessage(null);
     if (!validateSignIn()) return;
     setSubmitting(true);
-    window.setTimeout(() => {
+
+    try {
+      const response = await fetchApi('/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: signIn.email,
+          password: signIn.password,
+        }),
+      });
+
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
+        const userData = {
+          userId: (response as any).user.userId,
+          email: (response as any).user.email,
+          name: (response as any).user.name,
+          avatar: (response as any).user.avatar,
+          provider: (response as any).user.provider,
+          emailVerified: (response as any).user.emailVerified,
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setSuccessMessage(`Welcome back. Signing you in as ${signIn.email}…`);
+        setTimeout(() => onOpenChange(false), 1000);
+      } else {
+        setErrorMessage((response as any)?.error || 'Failed to sign in');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to sign in. Please try again.');
+    } finally {
       setSubmitting(false);
-      setSuccessMessage(`Welcome back. Signing you in as ${signIn.email}…`);
-    }, 700);
+    }
   };
 
-  const handleSignUpSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSignUpSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSuccessMessage(null);
+    setErrorMessage(null);
     if (!validateSignUp()) return;
     setSubmitting(true);
-    window.setTimeout(() => {
+
+    try {
+      const response = await fetchApi('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: signUp.fullName,
+          email: signUp.email,
+          phone: signUp.phone,
+          password: signUp.password,
+        }),
+      });
+
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
+        const userData = {
+          userId: (response as any).user.userId,
+          email: (response as any).user.email,
+          name: (response as any).user.name,
+          provider: (response as any).user.provider,
+          emailVerified: (response as any).user.emailVerified,
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setSuccessMessage(`Account created for ${signUp.fullName}. You are now signed in.`);
+        setTimeout(() => onOpenChange(false), 1500);
+      } else {
+        setErrorMessage((response as any)?.error || 'Failed to create account');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to create account. Please try again.');
+    } finally {
       setSubmitting(false);
-      setSuccessMessage(
-        `Account created for ${signUp.fullName}. Check ${signUp.email} to verify.`
-      );
-    }, 700);
+    }
   };
 
   const handleGoogle = () => {
@@ -390,6 +449,14 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
                 <div className="mb-3.5 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{successMessage}</span>
+                </div>
+              )}
+
+              {/* Error message */}
+              {errorMessage && (
+                <div className="mb-3.5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{errorMessage}</span>
                 </div>
               )}
 
