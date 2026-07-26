@@ -93,7 +93,6 @@ const orderSchema = new Schema<IOrder>(
   { timestamps: true },
 );
 
-orderSchema.index({ trackingId: 1 });
 orderSchema.index({ "customer.email": 1 });
 
 export const Order = mongoose.models["Order"] ?? mongoose.model<IOrder>("Order", orderSchema);

@@ -219,64 +219,16 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-
 // PUT /api/products/:id
 router.put("/:id", async (req: Request, res: Response) => {
   try {
-    const body = req.body as Record<string, unknown>;
-    const requiredFields = ["name", "sku", "brand", "category", "subcategory"] as const;
-    const values = Object.fromEntries(
-      requiredFields.map((field) => [field, typeof body[field] === "string" ? body[field].trim() : ""]),
-    ) as Record<(typeof requiredFields)[number], string>;
-    const missingFields = requiredFields.filter((field) => !values[field]);
-
-    if (missingFields.length > 0) {
-      res.status(400).json({ error: `Missing required fields: ${missingFields.join(", ")}` });
-      return;
-    }
-    if (!allowedCategories.has(values.category)) {
-      res.status(400).json({ error: "Select a category from the existing category list." });
-      return;
-    }
-
-    const price = Number(body["price"]);
-    const stock = Number(body["stock"] ?? 0);
-    const compareAtPrice = body["compareAtPrice"] === undefined ? undefined : Number(body["compareAtPrice"]);
-    const images = stringList(body["images"]);
-    if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
-      res.status(400).json({ error: "Price must be greater than zero and stock must be a whole number of zero or more." });
-      return;
-    }
-    if (compareAtPrice !== undefined && (!Number.isFinite(compareAtPrice) || compareAtPrice <= price)) {
-      res.status(400).json({ error: "Offer price must be lower than the price." });
-      return;
-    }
-    if (images.length === 0) {
-      res.status(400).json({ error: "At least one product image is required." });
-      return;
-    }
-
-    const productData = {
-      ...body,
-      ...values,
-      price,
-      stock,
-      compareAtPrice,
-      specifications: parseSpecifications(body["specifications"]),
-      features: stringList(body["features"]),
-      applications: stringList(body["applications"]),
-      images,
-      inStock: body["inStock"] === true && stock > 0,
-    };
-
-    const product = await Product.findByIdAndUpdate(req.params["id"], productData, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params["id"], req.body, { new: true });
     if (!product) {
       res.status(404).json({ error: "Product not found" });
       return;
     }
     res.json({ ...product.toObject(), id: String(product._id) });
   } catch (err) {
-    console.error("Error updating product:", err);
     res.status(400).json({ error: "Failed to update product", details: String(err) });
   }
 });
@@ -306,3 +258,7 @@ router.delete("/", async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+
+

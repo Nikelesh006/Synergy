@@ -207,10 +207,19 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
   };
 
   const handleCategoryChange = (category: string) => {
+    const newSubcategories = subcategoriesByCategory[category] ?? [];
+    const currentSubcategory = form.subcategory;
+    
+    // If current subcategory exists in new category's subcategories, keep it
+    // Otherwise, default to first subcategory
+    const newSubcategory = newSubcategories.includes(currentSubcategory) 
+      ? currentSubcategory 
+      : (newSubcategories[0] ?? "");
+    
     setForm((current) => ({
       ...current,
       category,
-      subcategory: subcategoriesByCategory[category]?.[0] ?? "",
+      subcategory: newSubcategory,
     }));
   };
 
