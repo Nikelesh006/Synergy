@@ -73,7 +73,12 @@ export default function ProductDetail() {
           <div className="w-full lg:w-7/12">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-semibold text-blue-600 tracking-wider uppercase">{product.brand}</span>
-              <span className="text-sm text-gray-500 font-mono">SKU: {product.sku}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 font-mono">SKU: {product.sku}</span>
+                {product.hsnCode && (
+                  <span className="text-sm text-gray-500 font-mono">HSN: {product.hsnCode}</span>
+                )}
+              </div>
             </div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>

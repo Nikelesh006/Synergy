@@ -27,6 +27,7 @@ export interface IProduct extends Document {
   warrantyInfo: string;
   shippingInfo: string;
   mpn?: string;
+  hsnCode?: string;
 }
 
 const productSchema = new Schema<IProduct>(
@@ -57,6 +58,7 @@ const productSchema = new Schema<IProduct>(
     warrantyInfo: { type: String, default: "" },
     shippingInfo: { type: String, default: "" },
     mpn: { type: String, default: "" },
+    hsnCode: { type: String, default: "" },
   },
   { timestamps: true },
 );

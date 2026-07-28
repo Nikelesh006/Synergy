@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   User,
   Package,
@@ -32,6 +32,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/context/StoreContext";
+import { fetchApi } from "@/lib/api";
 
 type SectionId =
   | "profile"
@@ -51,6 +53,27 @@ interface NavItem {
   hint?: string;
 }
 
+interface ProfileData {
+  name: string;
+  email: string;
+  givenName?: string;
+  familyName?: string;
+  avatar?: string;
+  phone?: string;
+  role?: string;
+  company?: string;
+  gstin?: string;
+  accountType?: string;
+  totalOrdersValue: number;
+  savedItemsCount: number;
+  buyerRating: number;
+  totalOrdersCount: number;
+  memberSince: Date;
+  emailVerified?: boolean;
+  language?: string;
+  timezone?: string;
+}
+
 const navItems: NavItem[] = [
   { id: "profile", label: "Profile Details", icon: User, hint: "Personal info" },
   { id: "orders", label: "My Orders", icon: Package, badge: "12", hint: "Track & invoices" },
@@ -62,25 +85,6 @@ const navItems: NavItem[] = [
   { id: "settings", label: "Settings", icon: Settings, hint: "Security & prefs" },
 ];
 
-const personalInfo = {
-  name: "John Doe",
-  initials: "JD",
-  role: "Procurement Manager",
-  company: "Acme Contractors Pvt. Ltd.",
-  email: "john.doe@acmecontractors.com",
-  phone: "+91 98765 43210",
-  gstin: "33ABCDE1234F1Z5",
-  memberSince: "January 2022",
-  accountType: "B2B Business",
-  verified: true,
-};
-
-const stats = [
-  { value: "12", label: "Total Orders", icon: Package, accent: "text-blue-600" },
-  { value: "₹2.4L", label: "Lifetime Value", icon: Receipt, accent: "text-emerald-600" },
-  { value: "8", label: "Saved Items", icon: Heart, accent: "text-rose-600" },
-  { value: "4.8★", label: "Buyer Rating", icon: Sparkles, accent: "text-amber-600" },
-];
 
 const orders = [
   {
@@ -112,45 +116,15 @@ const orders = [
   },
 ];
 
-const addresses = [
-  {
-    type: "Default · Office",
-    name: "John Doe",
-    line1: "No 24, S.V.L. Nagar, Sulur",
-    line2: "Coimbatore, Tamil Nadu - 641402",
-    phone: "+91 98765 43210",
-    isDefault: true,
-  },
-  {
-    type: "Warehouse",
-    name: "Acme Contractors — Site B",
-    line1: "Plot 17, SIDCO Industrial Estate",
-    line2: "Coimbatore, Tamil Nadu - 641021",
-    phone: "+91 98765 43211",
-    isDefault: false,
-  },
-];
-
-const wishlist = [
-  {
-    name: "Edge AI Vision Module",
-    sku: "SKU-AI-V2",
-    price: "₹4,299",
-    note: "Notify on stock",
-  },
-  {
-    name: "LoRaWAN Gateway Pro",
-    sku: "SKU-LRW-PRO",
-    price: "₹12,800",
-    note: "Notify on stock",
-  },
-  {
-    name: "Robotics Workshop Kit",
-    sku: "SKU-RWK-12",
-    price: "₹6,450",
-    note: "Notify on stock",
-  },
-];
+interface Address {
+  _id?: string;
+  type: string;
+  name: string;
+  line1: string;
+  line2: string;
+  phone: string;
+  isDefault: boolean;
+}
 
 function statusToneClass(tone: string) {
   switch (tone) {
@@ -202,7 +176,34 @@ function SectionShell({
   );
 }
 
-function ProfileSection() {
+function ProfileSection({ profile, onEdit }: { profile: ProfileData; onEdit: () => void }) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value >= 100000) {
+      return `₹${(value / 100000).toFixed(1)}L`;
+    }
+    return `₹${value.toLocaleString()}`;
+  };
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const stats = [
+    { value: profile.totalOrdersCount.toString(), label: "Total Orders", icon: Package, accent: "text-blue-600" },
+    { value: formatCurrency(profile.totalOrdersValue), label: "Lifetime Value", icon: Receipt, accent: "text-emerald-600" },
+    { value: profile.savedItemsCount.toString(), label: "Saved Items", icon: Heart, accent: "text-rose-600" },
+    { value: `${profile.buyerRating.toFixed(1)}★`, label: "Buyer Rating", icon: Sparkles, accent: "text-amber-600" },
+  ];
+
   return (
     <>
       {/* Profile header card */}
@@ -214,6 +215,7 @@ function ProfileSection() {
           <Button
             variant="outline"
             className="h-9 rounded-full px-4 text-sm border-border/80"
+            onClick={onEdit}
           >
             <Pencil className="h-3.5 w-3.5" />
             Edit Profile
@@ -223,7 +225,11 @@ function ProfileSection() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
           <div className="relative shrink-0">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-2xl font-semibold text-white shadow-sm">
-              {personalInfo.initials}
+              {profile.avatar ? (
+                <img src={profile.avatar} alt="Avatar" className="h-full w-full rounded-2xl object-cover" />
+              ) : (
+                getInitials(profile.name)
+              )}
             </div>
             <button
               type="button"
@@ -236,9 +242,9 @@ function ProfileSection() {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                {personalInfo.name}
+                {profile.name}
               </h3>
-              {personalInfo.verified && (
+              {profile.emailVerified && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 ring-1 ring-blue-200/60">
                   <CheckCircle2 className="h-3 w-3" />
                   Verified
@@ -246,25 +252,29 @@ function ProfileSection() {
               )}
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200/60">
                 <Crown className="h-3 w-3" />
-                {personalInfo.accountType}
+                {profile.accountType || "B2B Business"}
               </span>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {personalInfo.role} · Member since {personalInfo.memberSince}
+              {profile.role || "Customer"} · Member since {formatDate(profile.memberSince)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
-                {personalInfo.email}
+                {profile.email}
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5" />
-                {personalInfo.phone}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5" />
-                {personalInfo.company}
-              </span>
+              {profile.phone && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" />
+                  {profile.phone}
+                </span>
+              )}
+              {profile.company && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5" />
+                  {profile.company}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -275,7 +285,7 @@ function ProfileSection() {
               Full Name
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              {personalInfo.name}
+              {profile.name}
             </p>
           </div>
           <div className="rounded-xl border border-border/60 bg-background px-4 py-3.5">
@@ -283,28 +293,34 @@ function ProfileSection() {
               Email Address
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              {personalInfo.email}
+              {profile.email}
             </p>
           </div>
-          <div className="rounded-xl border border-border/60 bg-background px-4 py-3.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Phone Number
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {personalInfo.phone}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-background px-4 py-3.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Company / GSTIN
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {personalInfo.company}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              GSTIN: {personalInfo.gstin}
-            </p>
-          </div>
+          {profile.phone && (
+            <div className="rounded-xl border border-border/60 bg-background px-4 py-3.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Phone Number
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {profile.phone}
+              </p>
+            </div>
+          )}
+          {profile.company && (
+            <div className="rounded-xl border border-border/60 bg-background px-4 py-3.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Company / GSTIN
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {profile.company}
+              </p>
+              {profile.gstin && (
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  GSTIN: {profile.gstin}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </SectionShell>
 
@@ -355,14 +371,14 @@ function ProfileSection() {
             {
               icon: Mail,
               title: "Email Verified",
-              desc: "Verified",
-              tone: "text-emerald-600",
+              desc: profile.emailVerified ? "Verified" : "Not Verified",
+              tone: profile.emailVerified ? "text-emerald-600" : "text-amber-600",
             },
             {
               icon: Phone,
               title: "Phone Verified",
-              desc: "Verified",
-              tone: "text-emerald-600",
+              desc: profile.phone ? "Verified" : "Not Added",
+              tone: profile.phone ? "text-emerald-600" : "text-amber-600",
             },
           ].map((item) => {
             const Icon = item.icon;
@@ -476,14 +492,29 @@ function OrdersSection() {
   );
 }
 
-function AddressesSection() {
+function AddressesSection({ 
+  addresses, 
+  onAdd, 
+  onEdit, 
+  onSetDefault, 
+  onDelete 
+}: { 
+  addresses: Address[]; 
+  onAdd: () => void; 
+  onEdit: (address: Address) => void; 
+  onSetDefault: (addressId: string) => void; 
+  onDelete: (addressId: string) => void; 
+}) {
   return (
     <SectionShell
       eyebrow="Locations"
       title="Saved Addresses"
       description="Manage shipping addresses for office and project sites."
       action={
-        <Button className="h-9 rounded-full bg-blue-600 px-4 text-sm text-white border-blue-700 hover:bg-blue-700">
+        <Button 
+          className="h-9 rounded-full bg-blue-600 px-4 text-sm text-white border-blue-700 hover:bg-blue-700"
+          onClick={onAdd}
+        >
           <Plus className="h-3.5 w-3.5" />
           Add Address
         </Button>
@@ -492,12 +523,12 @@ function AddressesSection() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {addresses.map((addr) => (
           <div
-            key={addr.line1}
+            key={addr._id || addr.line1}
             className="rounded-xl border border-border/60 bg-background p-4"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {addr.type}
+                {addr.isDefault ? `Default · ${addr.type}` : addr.type}
               </span>
               {addr.isDefault && (
                 <Badge
@@ -522,16 +553,28 @@ function AddressesSection() {
                 variant="ghost"
                 size="sm"
                 className="h-8 rounded-full px-3 text-xs"
+                onClick={() => onEdit(addr)}
               >
                 <Pencil className="h-3 w-3" />
                 Edit
               </Button>
+              {!addr.isDefault && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 rounded-full px-3 text-xs text-muted-foreground"
+                  onClick={() => onSetDefault(addr._id!)}
+                >
+                  Set as default
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 rounded-full px-3 text-xs text-muted-foreground"
+                className="h-8 rounded-full px-3 text-xs text-rose-600 hover:bg-rose-50"
+                onClick={() => onDelete(addr._id!)}
               >
-                Set as default
+                Delete
               </Button>
             </div>
           </div>
@@ -541,7 +584,135 @@ function AddressesSection() {
   );
 }
 
-function BillingSection() {
+interface AddressModalProps {
+  address?: Address;
+  onClose: () => void;
+  onSave: (data: Omit<Address, '_id'>) => void;
+}
+
+function AddressModal({ address, onClose, onSave }: AddressModalProps) {
+  const [formData, setFormData] = useState({
+    type: address?.type || 'Office',
+    name: address?.name || '',
+    line1: address?.line1 || '',
+    line2: address?.line2 || '',
+    phone: address?.phone || '',
+    isDefault: address?.isDefault || false,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">{address ? 'Edit Address' : 'Add Address'}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 hover:bg-muted"
+          >
+            <ChevronRight className="h-5 w-5 rotate-180" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Address Type
+            </label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            >
+              <option value="Office">Office</option>
+              <option value="Warehouse">Warehouse</option>
+              <option value="Home">Home</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Contact Name
+            </label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Address Line 1
+            </label>
+            <Input
+              value={formData.line1}
+              onChange={(e) => setFormData({ ...formData, line1: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Address Line 2 (City, State, PIN)
+            </label>
+            <Input
+              value={formData.line2}
+              onChange={(e) => setFormData({ ...formData, line2: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Phone Number
+            </label>
+            <Input
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+              required
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isDefault"
+              checked={formData.isDefault}
+              onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+              className="h-4 w-4 rounded border-border/80"
+            />
+            <label htmlFor="isDefault" className="text-sm text-foreground">
+              Set as default address
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="h-10 rounded-full px-5"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="h-10 rounded-full bg-blue-600 px-5 text-white border-blue-700 hover:bg-blue-700"
+            >
+              {address ? 'Update' : 'Add'} Address
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function BillingSection({ profile }: { profile: ProfileData }) {
   return (
     <SectionShell
       eyebrow="Tax & Billing"
@@ -549,26 +720,30 @@ function BillingSection() {
       description="Tax identities, payment methods, and billing preferences."
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border/60 bg-background p-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-200/60">
-              <FileText className="h-4 w-4" />
-            </span>
-            <p className="text-sm font-semibold text-foreground">
-              GST Certificate
+        {profile.gstin && (
+          <div className="rounded-xl border border-border/60 bg-background p-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-200/60">
+                <FileText className="h-4 w-4" />
+              </span>
+              <p className="text-sm font-semibold text-foreground">
+                GST Certificate
+              </p>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              GSTIN: <span className="font-medium text-foreground">{profile.gstin}</span>
             </p>
+            {profile.company && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Registered under {profile.company}
+              </p>
+            )}
+            <Button variant="outline" className="mt-3 h-8 rounded-full px-3 text-xs">
+              <Download className="h-3 w-3" />
+              Download
+            </Button>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            GSTIN: <span className="font-medium text-foreground">{personalInfo.gstin}</span>
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Registered under {personalInfo.company}
-          </p>
-          <Button variant="outline" className="mt-3 h-8 rounded-full px-3 text-xs">
-            <Download className="h-3 w-3" />
-            Download
-          </Button>
-        </div>
+        )}
         <div className="rounded-xl border border-border/60 bg-background p-4">
           <div className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/60">
@@ -594,7 +769,17 @@ function BillingSection() {
   );
 }
 
-function WishlistSection() {
+function WishlistSection({ 
+  wishlist, 
+  onAddToCart, 
+  onRemove 
+}: { 
+  wishlist: Array<{ product: { id: string; name: string; price: number; images: string[] } }>; 
+  onAddToCart: (productId: string) => void; 
+  onRemove: (productId: string) => void; 
+}) {
+  const roundToEnding9 = (n: number) => Math.floor(n / 10) * 10 - 1;
+
   return (
     <SectionShell
       eyebrow="Saved"
@@ -607,28 +792,52 @@ function WishlistSection() {
         </Button>
       }
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {wishlist.map((w) => (
-          <div
-            key={w.sku}
-            className="rounded-xl border border-border/60 bg-background p-4"
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {w.sku}
-            </p>
-            <p className="mt-1 text-sm font-semibold text-foreground">
-              {w.name}
-            </p>
-            <p className="mt-2 text-base font-semibold text-foreground">
-              {w.price}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{w.note}</p>
-            <Button className="mt-3 h-8 w-full rounded-full bg-blue-600 px-3 text-xs text-white border-blue-700 hover:bg-blue-700">
-              Add to cart
-            </Button>
-          </div>
-        ))}
-      </div>
+      {wishlist.length === 0 ? (
+        <div className="text-center py-12">
+          <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Your wishlist is empty</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {wishlist.map((item) => (
+            <div
+              key={item.product.id}
+              className="rounded-xl border border-border/60 bg-background p-4"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  SKU: {item.product.id}
+                </p>
+                <button
+                  onClick={() => onRemove(item.product.id)}
+                  className="text-muted-foreground hover:text-rose-600 transition-colors"
+                >
+                  <Heart className="h-4 w-4 fill-current" />
+                </button>
+              </div>
+              {item.product.images[0] && (
+                <img
+                  src={item.product.images[0]}
+                  alt={item.product.name}
+                  className="w-full h-32 object-contain mb-2 rounded-lg bg-white"
+                />
+              )}
+              <p className="text-sm font-semibold text-foreground line-clamp-2">
+                {item.product.name}
+              </p>
+              <p className="mt-2 text-base font-semibold text-foreground">
+                ₹{roundToEnding9(item.product.price).toLocaleString('en-IN')}
+              </p>
+              <Button 
+                onClick={() => onAddToCart(item.product.id)}
+                className="mt-3 h-8 w-full rounded-full bg-blue-600 px-3 text-xs text-white border-blue-700 hover:bg-blue-700"
+              >
+                Add to cart
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </SectionShell>
   );
 }
@@ -723,7 +932,14 @@ function NotificationsSection() {
   );
 }
 
-function SettingsSection() {
+function SettingsSection({ profile, onSaveSettings }: { profile: ProfileData; onSaveSettings: (settings: { language: string; timezone: string }) => void }) {
+  const [language, setLanguage] = useState(profile.language || "en-IN");
+  const [timezone, setTimezone] = useState(profile.timezone || "Asia/Kolkata");
+
+  const handleSave = () => {
+    onSaveSettings({ language, timezone });
+  };
+
   return (
     <SectionShell
       eyebrow="Preferences"
@@ -736,8 +952,9 @@ function SettingsSection() {
             Display Name
           </label>
           <Input
-            defaultValue={personalInfo.name}
+            defaultValue={profile.name}
             className="h-11 rounded-xl border-border/80 bg-background"
+            disabled
           />
         </div>
         <div>
@@ -745,28 +962,37 @@ function SettingsSection() {
             Email
           </label>
           <Input
-            defaultValue={personalInfo.email}
+            defaultValue={profile.email}
             className="h-11 rounded-xl border-border/80 bg-background"
+            disabled
           />
         </div>
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Language
           </label>
-          <select className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20">
-            <option>English (India)</option>
-            <option>हिन्दी</option>
-            <option>தமிழ்</option>
+          <select 
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          >
+            <option value="en-IN">English (India)</option>
+            <option value="hi">हिन्दी</option>
+            <option value="ta">தமிழ்</option>
           </select>
         </div>
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Timezone
           </label>
-          <select className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20">
-            <option>IST — Asia/Kolkata</option>
-            <option>UTC</option>
-            <option>Asia/Singapore</option>
+          <select 
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          >
+            <option value="Asia/Kolkata">IST — Asia/Kolkata</option>
+            <option value="UTC">UTC</option>
+            <option value="Asia/Singapore">Asia/Singapore</option>
           </select>
         </div>
       </div>
@@ -774,7 +1000,10 @@ function SettingsSection() {
         <Button variant="outline" className="h-10 rounded-full px-5">
           Cancel
         </Button>
-        <Button className="h-10 rounded-full bg-blue-600 px-5 text-white border-blue-700 hover:bg-blue-700">
+        <Button 
+          onClick={handleSave}
+          className="h-10 rounded-full bg-blue-600 px-5 text-white border-blue-700 hover:bg-blue-700"
+        >
           Save changes
         </Button>
       </div>
@@ -782,10 +1011,297 @@ function SettingsSection() {
   );
 }
 
+interface EditProfileModalProps {
+  profile: ProfileData;
+  onClose: () => void;
+  onSave: (data: Partial<ProfileData>) => void;
+}
+
+function EditProfileModal({ profile, onClose, onSave }: EditProfileModalProps) {
+  const [formData, setFormData] = useState({
+    name: profile.name,
+    phone: profile.phone || '',
+    role: profile.role || '',
+    company: profile.company || '',
+    gstin: profile.gstin || '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Edit Profile</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 hover:bg-muted"
+          >
+            <ChevronRight className="h-5 w-5 rotate-180" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Full Name
+            </label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Phone Number
+            </label>
+            <Input
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Role
+            </label>
+            <Input
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Company
+            </label>
+            <Input
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              GSTIN
+            </label>
+            <Input
+              value={formData.gstin}
+              onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+              className="h-11 rounded-xl border-border/80 bg-background"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="h-10 rounded-full px-5"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="h-10 rounded-full bg-blue-600 px-5 text-white border-blue-700 hover:bg-blue-700"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Account() {
   const [active, setActive] = useState<SectionId>("profile");
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | undefined>();
+  const { user, logout, wishlist, addToCart, removeFromWishlist } = useStore();
 
   const activeItem = navItems.find((n) => n.id === active) ?? navItems[0];
+
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.userId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetchApi<{ success: boolean; profile: ProfileData }>(`/users/profile/${user.userId}`);
+        if (response.success && response.profile) {
+          setProfile(response.profile);
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  // Fetch addresses
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user?.userId) return;
+
+      try {
+        const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
+        if (response.success && response.addresses) {
+          setAddresses(response.addresses);
+        }
+      } catch (error) {
+        console.error('Failed to fetch addresses:', error);
+      }
+    };
+
+    fetchAddresses();
+  }, [user]);
+
+  const handleAddAddress = () => {
+    setEditingAddress(undefined);
+    setAddressModalOpen(true);
+  };
+
+  const handleEditAddress = (address: Address) => {
+    setEditingAddress(address);
+    setAddressModalOpen(true);
+  };
+
+  const handleSaveAddress = async (data: Omit<Address, '_id'>) => {
+    if (!user?.userId) return;
+
+    try {
+      if (editingAddress?._id) {
+        // Update existing address
+        await fetchApi(`/addresses/${user.userId}/${editingAddress._id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        });
+      } else {
+        // Create new address
+        await fetchApi(`/addresses/${user.userId}`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      }
+
+      // Refetch addresses
+      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
+      if (response.success && response.addresses) {
+        setAddresses(response.addresses);
+      }
+
+      setAddressModalOpen(false);
+      setEditingAddress(undefined);
+    } catch (error) {
+      console.error('Failed to save address:', error);
+    }
+  };
+
+  const handleSetDefault = async (addressId: string) => {
+    if (!user?.userId) return;
+
+    try {
+      await fetchApi(`/addresses/${user.userId}/${addressId}/default`, {
+        method: 'PATCH',
+      });
+
+      // Refetch addresses
+      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
+      if (response.success && response.addresses) {
+        setAddresses(response.addresses);
+      }
+    } catch (error) {
+      console.error('Failed to set default address:', error);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user?.userId) return;
+
+    try {
+      await fetchApi(`/addresses/${user.userId}/${addressId}`, {
+        method: 'DELETE',
+      });
+
+      // Refetch addresses
+      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
+      if (response.success && response.addresses) {
+        setAddresses(response.addresses);
+      }
+    } catch (error) {
+      console.error('Failed to delete address:', error);
+    }
+  };
+
+  const handleSaveSettings = async (settings: { language: string; timezone: string }) => {
+    if (!user?.userId) return;
+
+    try {
+      await fetchApi(`/users/settings/${user.userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(settings),
+      });
+
+      // Refetch profile to get updated settings
+      const response = await fetchApi<{ success: boolean; profile: ProfileData }>(`/users/profile/${user.userId}`);
+      if (response.success && response.profile) {
+        setProfile(response.profile);
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
+  };
+
+  const handleWishlistAddToCart = (productId: string) => {
+    const wishlistItem = wishlist.find(item => item.product.id === productId);
+    if (wishlistItem) {
+      addToCart(wishlistItem.product, 1);
+    }
+  };
+
+  const handleRemoveFromWishlist = (productId: string) => {
+    removeFromWishlist(productId);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Please log in to view your account.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background min-h-screen">
@@ -808,7 +1324,7 @@ export default function Account() {
           </div>
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Welcome back,{" "}
-            <span className="text-blue-600">{personalInfo.name.split(" ")[0]}</span>
+            <span className="text-blue-600">{profile.givenName || profile.name.split(" ")[0]}</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Manage your profile, orders, addresses, and billing — all in one
@@ -830,22 +1346,26 @@ export default function Account() {
                 />
                 <div className="relative px-5 pb-5 pt-12">
                   <div className="absolute -top-9 left-5 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-card bg-gradient-to-br from-blue-600 to-blue-700 text-xl font-semibold text-white shadow-sm">
-                    {personalInfo.initials}
+                    {profile.avatar ? (
+                      <img src={profile.avatar} alt="Avatar" className="h-full w-full rounded-2xl object-cover" />
+                    ) : (
+                      getInitials(profile.name)
+                    )}
                   </div>
                   <div className="ml-[76px] sm:ml-[80px]">
                     <p className="text-sm font-semibold text-foreground">
-                      {personalInfo.name}
+                      {profile.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {personalInfo.role}
+                      {profile.role || "Customer"}
                     </p>
                   </div>
                   <div className="mt-4 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200/60">
                       <Crown className="h-3 w-3" />
-                      {personalInfo.accountType}
+                      {profile.accountType || "B2B Business"}
                     </span>
-                    {personalInfo.verified && (
+                    {profile.emailVerified && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200/60">
                         <CheckCircle2 className="h-3 w-3" />
                         Verified
@@ -926,6 +1446,7 @@ export default function Account() {
                   <li className="mt-1 border-t border-border/60 px-2 pt-1.5">
                     <button
                       type="button"
+                      onClick={logout}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50/60"
                     >
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200/60">
@@ -949,17 +1470,67 @@ export default function Account() {
               </span>
             </div>
 
-            {active === "profile" && <ProfileSection />}
+            {active === "profile" && <ProfileSection profile={profile} onEdit={() => setIsEditing(true)} />}
             {active === "orders" && <OrdersSection />}
-            {active === "addresses" && <AddressesSection />}
-            {active === "billing" && <BillingSection />}
-            {active === "wishlist" && <WishlistSection />}
+            {active === "addresses" && (
+              <AddressesSection 
+                addresses={addresses}
+                onAdd={handleAddAddress}
+                onEdit={handleEditAddress}
+                onSetDefault={handleSetDefault}
+                onDelete={handleDeleteAddress}
+              />
+            )}
+            {active === "billing" && <BillingSection profile={profile} />}
+            {active === "wishlist" && (
+              <WishlistSection 
+                wishlist={wishlist}
+                onAddToCart={handleWishlistAddToCart}
+                onRemove={handleRemoveFromWishlist}
+              />
+            )}
             {active === "support" && <SupportSection />}
             {active === "notifications" && <NotificationsSection />}
-            {active === "settings" && <SettingsSection />}
+            {active === "settings" && <SettingsSection profile={profile} onSaveSettings={handleSaveSettings} />}
           </main>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditing && user && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setIsEditing(false)}
+          onSave={async (updatedProfile) => {
+            try {
+              await fetchApi(`/users/profile/${user.userId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updatedProfile),
+              });
+              // Refetch profile
+              const response = await fetchApi<{ success: boolean; profile: ProfileData }>(`/users/profile/${user.userId}`);
+              if (response.success && response.profile) {
+                setProfile(response.profile);
+              }
+              setIsEditing(false);
+            } catch (error) {
+              console.error('Failed to update profile:', error);
+            }
+          }}
+        />
+      )}
+
+      {/* Address Modal */}
+      {addressModalOpen && (
+        <AddressModal
+          address={editingAddress}
+          onClose={() => {
+            setAddressModalOpen(false);
+            setEditingAddress(undefined);
+          }}
+          onSave={handleSaveAddress}
+        />
+      )}
     </div>
   );
 }

@@ -40,6 +40,7 @@ type AdminProduct = {
   offerPrice: string;
   stock: string;
   mpn: string;
+  hsnCode: string;
   tags: string;
   isFeatured: boolean;
   inStock: boolean;
@@ -62,6 +63,7 @@ const defaultProduct: AdminProduct = {
   offerPrice: "2999",
   stock: "24",
   mpn: "N/A",
+  hsnCode: "",
   tags: "Power Supply,DC Power Supply,Voltage Regulator",
   isFeatured: true,
   inStock: true,
@@ -153,6 +155,7 @@ const mapProductToForm = (product: any): AdminProduct => {
     offerPrice: offerPriceVal,
     stock: String(product.stock ?? 0),
     mpn: product.mpn || "N/A",
+    hsnCode: product.hsnCode || "",
     tags: Array.isArray(product.applications) ? product.applications.join(", ") : "",
     isFeatured: !!product.isFeatured,
     inStock: !!product.inStock,
@@ -310,6 +313,7 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
       warrantyInfo: "1 Year",
       shippingInfo: "Ships within 24 hours",
       mpn: form.mpn.trim(),
+      hsnCode: form.hsnCode.trim(),
     };
 
     try {
@@ -452,6 +456,10 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
               <div className="space-y-2">
                 <Label htmlFor="mpn" className="text-sm font-semibold text-black">MPN</Label>
                 <Input id="mpn" value={form.mpn} onChange={(event) => updateField("mpn", event.target.value)} className={fieldClass} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hsnCode" className="text-sm font-semibold text-black">HSN Code</Label>
+                <Input id="hsnCode" value={form.hsnCode} onChange={(event) => updateField("hsnCode", event.target.value)} className={fieldClass} placeholder="e.g., 8471" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tags" className="text-sm font-semibold text-black">Tags</Label>

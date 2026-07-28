@@ -10,6 +10,8 @@ import seedRouter from "./seed.js";
 import authRouter from "./auth.js";
 import cartRouter from "./cart.js";
 import wishlistRouter from "./wishlist.js";
+import usersRouter from "./users.js";
+import addressesRouter from "./addresses.js";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use("/seed", seedRouter);
 router.use("/auth", authRouter);
 router.use("/cart", cartRouter);
 router.use("/wishlist", wishlistRouter);
+router.use("/users", usersRouter);
+router.use("/addresses", addressesRouter);
 
 export default router;

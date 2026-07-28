@@ -25,6 +25,7 @@ export interface Product {
   isBestSeller: boolean;
   warrantyInfo: string;
   shippingInfo: string;
+  hsnCode?: string;
 }
 
 export interface Category {

@@ -25,6 +25,19 @@ export interface IUser {
     price: number;
     image: string;
   }>;
+  // Profile stats
+  totalOrdersValue?: number;
+  savedItemsCount?: number;
+  buyerRating?: number;
+  totalOrdersCount?: number;
+  // Additional profile fields
+  role?: string;
+  company?: string;
+  gstin?: string;
+  accountType?: string;
+  // Account settings
+  language?: string;
+  timezone?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,6 +95,46 @@ const userSchema = new mongoose.Schema<IUser>(
       price: Number,
       image: String,
     }],
+    // Profile stats
+    totalOrdersValue: {
+      type: Number,
+      default: 0,
+    },
+    savedItemsCount: {
+      type: Number,
+      default: 0,
+    },
+    buyerRating: {
+      type: Number,
+      default: 0,
+    },
+    totalOrdersCount: {
+      type: Number,
+      default: 0,
+    },
+    // Additional profile fields
+    role: {
+      type: String,
+    },
+    company: {
+      type: String,
+    },
+    gstin: {
+      type: String,
+    },
+    accountType: {
+      type: String,
+      default: "B2B Business",
+    },
+    // Account settings
+    language: {
+      type: String,
+      default: "en-IN",
+    },
+    timezone: {
+      type: String,
+      default: "Asia/Kolkata",
+    },
   },
   {
     timestamps: true,
