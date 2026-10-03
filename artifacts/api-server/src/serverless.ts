@@ -1,6 +1,5 @@
-import type { Request, Response } from "express";
-import app from "../artifacts/api-server/src/app.js";
-import { connectDB } from "../artifacts/api-server/src/lib/db.js";
+import app from "./app.js";
+import { connectDB } from "./lib/db.js";
 
 let dbPromise: Promise<void> | null = null;
 
@@ -14,7 +13,7 @@ async function ensureDb() {
   return dbPromise;
 }
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: any, res: any) {
   try {
     await ensureDb();
     return app(req, res);

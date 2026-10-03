@@ -118,6 +118,42 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  // Also bundle serverless handler for Vercel
+  const rootDir = path.resolve(artifactDir, "../..");
+  await esbuild({
+    entryPoints: {
+      index: path.resolve(artifactDir, "src/serverless.ts"),
+    },
+    platform: "node",
+    bundle: true,
+    format: "esm",
+    outdir: path.resolve(rootDir, "api"),
+    outExtension: { ".js": ".js" },
+    logLevel: "info",
+    external: [
+      "*.node",
+      "sharp",
+      "better-sqlite3",
+      "sqlite3",
+      "canvas",
+      "bcrypt",
+      "argon2",
+    ],
+    plugins: [
+      esbuildPluginPino({ transports: ["pino-pretty"] })
+    ],
+    banner: {
+      js: `import { createRequire as __bannerCrReq } from 'node:module';
+import __bannerPath from 'node:path';
+import __bannerUrl from 'node:url';
+
+globalThis.require = __bannerCrReq(import.meta.url);
+globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
+globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
+    `,
+    },
+  });
 }
 
 buildAll().catch((err) => {
