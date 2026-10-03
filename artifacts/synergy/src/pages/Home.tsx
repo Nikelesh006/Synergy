@@ -287,7 +287,7 @@ export default function Home() {
         <SectionHeader
           title="Blogs"
           action={
-            <Link href="/blog" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <Link href="/blogs" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
               See More <ArrowRight className="h-4 w-4" />
             </Link>
           }
@@ -297,56 +297,62 @@ export default function Home() {
       </section>
 
       {/* Tutorials */}
-      <section className="container mx-auto px-4 pb-6">
-        <SectionHeader
-          title="Tutorials"
-          action={
-            <Link href="/tutorials" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-              See More <ArrowRight className="h-4 w-4" />
-            </Link>
-          }
-          className="mb-10"
-        />
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-          {tutorialPosts.map((tutorial) => (
-            <Link
-              key={tutorial.id}
-              href={`/tutorials/${tutorial.slug}`}
-              className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
-              aria-label={`Watch: ${tutorial.title}`}
-            >
-              {/* Cover — compact square on mobile, normal on larger screens */}
-              <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
-                <img
-                  src={tutorial.image}
-                  alt={tutorial.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+      {tutorialPosts.length > 0 && (
+        <section className="container mx-auto px-4 pb-6">
+          <SectionHeader
+            title="Tutorials"
+            action={
+              <Link href="/tutorials" className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                See More <ArrowRight className="h-4 w-4" />
+              </Link>
+            }
+            className="mb-10"
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            {tutorialPosts.map((tutorial) => (
+              <Link
+                key={tutorial.id}
+                href={`/tutorials/${tutorial.slug}`}
+                className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+                aria-label={`Watch: ${tutorial.title}`}
+              >
+                {/* Cover — compact square on mobile, normal on larger screens */}
+                <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
+                  <img
+                    src={tutorial.image || "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial"}
+                    alt={tutorial.title}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src =
+                        "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial";
+                    }}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
 
-                {/* Centered play button — smaller on mobile, full size on larger screens */}
-                <div className="flex absolute inset-0 items-center justify-center">
-                  <div className="w-9 h-9 sm:w-14 sm:h-14 bg-white/95 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-white transition-all duration-300 ring-2 sm:ring-4 ring-white/30">
-                    <Play className="h-4 w-4 sm:h-6 sm:w-6 text-slate-900 fill-slate-900 ml-0.5" />
+                  {/* Centered play button — smaller on mobile, full size on larger screens */}
+                  <div className="flex absolute inset-0 items-center justify-center">
+                    <div className="w-9 h-9 sm:w-14 sm:h-14 bg-white/95 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-white transition-all duration-300 ring-2 sm:ring-4 ring-white/30">
+                      <Play className="h-4 w-4 sm:h-6 sm:w-6 text-slate-900 fill-slate-900 ml-0.5" />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Title — only title on mobile, full editorial layout on larger screens */}
-              <div className="mt-2 sm:mt-5 px-1">
-                {/* Hide the "Video Tutorial" label on small mobile */}
-                <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                  <span className="h-px w-5 bg-slate-300" />
-                  <span>Video Tutorial</span>
+                {/* Title — only title on mobile, full editorial layout on larger screens */}
+                <div className="mt-2 sm:mt-5 px-1">
+                  {/* Hide the "Video Tutorial" label on small mobile */}
+                  <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                    <span className="h-px w-5 bg-slate-300" />
+                    <span>Video Tutorial</span>
+                  </div>
+                  <h3 className="mt-0 sm:mt-3 text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
+                    {tutorial.title}
+                  </h3>
                 </div>
-                <h3 className="mt-0 sm:mt-3 text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
-                  {tutorial.title}
-                </h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* B2B Strip — Custom Solutions & Training Banner */}
       <section className="container mx-auto px-4 pb-6">

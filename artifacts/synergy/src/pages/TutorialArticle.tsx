@@ -1,18 +1,34 @@
 import { Link, useParams } from "wouter";
-import { tutorialPosts } from "@/data/tutorials";
+import { useTutorial } from "@/hooks/useTutorials";
 import NotFound from "./not-found";
 import { Calendar, User, Clock, ArrowLeft } from "lucide-react";
 
 export default function TutorialArticle() {
   const { slug } = useParams();
-  const post = tutorialPosts.find(p => p.slug === slug);
+  const { data: post, isLoading, isError } = useTutorial(slug || "");
 
-  if (!post) return <NotFound />;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (isError || !post) return <NotFound />;
+
+  const getYoutubeVideoId = (url: string) => {
+    const match = url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    return match?.[1] || "";
+  };
+
+  const videoId = getYoutubeVideoId(post.youtubeUrl);
+  const image = post.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
 
   return (
     <div className="bg-white min-h-screen py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Link href="/tutorials" className="inline-flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-800 mb-8">
+        <Link href="/tutorials" className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 mb-8">
           <ArrowLeft className="h-4 w-4" /> Back to Tutorials
         </Link>
         
@@ -25,31 +41,33 @@ export default function TutorialArticle() {
           </h1>
           
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 py-4 border-y border-gray-100">
-            <div className="flex items-center gap-2"><User className="h-4 w-4" /> {post.author}</div>
-            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {post.date}</div>
-            <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {post.readTime}</div>
+            <div className="flex items-center gap-2"><User className="h-4 w-4" /> {post.instructor || post.channelName}</div>
+            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {post.publishDate}</div>
+            <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {post.duration}</div>
           </div>
         </div>
 
-        <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-gray-100">
-          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-        </div>
+        {videoId ? (
+          <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-black shadow-lg">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title={post.title}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        ) : image ? (
+          <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-gray-100">
+            <img src={image} alt={post.title} className="w-full h-full object-cover" />
+          </div>
+        ) : null}
 
         <div className="prose prose-lg max-w-none text-gray-700">
-          <p className="lead text-xl text-gray-600 mb-8">{post.excerpt}</p>
-          <p>{post.content}</p>
-          
-          <h2>Prerequisites</h2>
-          <ul>
-            <li>Development board</li>
-            <li>Basic understanding of programming</li>
-            <li>USB cable and internet connection</li>
-          </ul>
-          
-          <h3>Step 1: Setup the environment</h3>
-          <p>Before you begin, ensure you have the necessary development environment installed on your computer. Download the latest IDE and install the required board packages.</p>
-          
-          <p>If you encounter any issues during this tutorial, please refer to our forums or contact Synergy Tech Labs support for assistance.</p>
+          {post.shortDescription && (
+            <p className="lead text-xl text-gray-600 mb-8">{post.shortDescription}</p>
+          )}
+          <div className="whitespace-pre-line text-gray-800 leading-relaxed">{post.description}</div>
         </div>
       </div>
     </div>

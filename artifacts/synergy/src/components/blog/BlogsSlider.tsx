@@ -1,52 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-
-interface Blog {
-  id: number;
-  topic: string;
-  readTime: string;
-  image: string;
-}
-
-const BLOGS: Blog[] = [
-  {
-    id: 1,
-    topic: "The Future of Edge AI in Industrial Automation",
-    readTime: "2 min read",
-    image: "https://placehold.co/600x450/0f172a/ffffff?text=Edge+AI",
-  },
-  {
-    id: 2,
-    topic: "Getting Started with ROS 2 for Mobile Robots",
-    readTime: "2 min read",
-    image: "https://placehold.co/600x450/1e293b/ffffff?text=ROS+2",
-  },
-  {
-    id: 3,
-    topic: "Designing Low-Power IoT Devices That Last Years",
-    readTime: "2 min read",
-    image: "https://placehold.co/600x450/0f172a/ffffff?text=Low+Power+IoT",
-  },
-  {
-    id: 4,
-    topic: "Choosing the Right MCU for Your Embedded Project",
-    readTime: "2 min read",
-    image: "https://placehold.co/600x450/1e293b/ffffff?text=MCU+Guide",
-  },
-];
+import { useBlogPosts } from "@/hooks/useBlog";
 
 const AUTOPLAY_MS = 3500;
 const TRANSITION_MS = 700;
 
 export default function BlogsSlider() {
-  // To make a seamless loop with `perView` visible cards, we only need to
-  // duplicate the first `perView` items onto the end. When the track reaches
-  // index = BLOGS.length, the viewport is showing the duplicated leading
-  // cards (which are pixel-identical to position 0), so we can snap back to
-  // 0 with no visible jump.
+  const { data: blogPosts, isLoading } = useBlogPosts();
+  const blogs = blogPosts && blogPosts.length > 0 ? blogPosts : [];
+
   const [perView, setPerView] = useState(4);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const slidesRef = useRef<Blog[]>([]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -64,27 +28,23 @@ export default function BlogsSlider() {
     return () => window.removeEventListener("resize", compute);
   }, []);
 
-  // Rebuild the rendered slides list whenever the visible-card count
-  // changes. Duplicating only the first `perView` items is what makes the
-  // loop seamless: at index = BLOGS.length the visible window is showing
-  // exactly those duplicates, which look identical to position 0.
+  const shouldSlide = blogs.length > perView;
+
+  // Reset index if visible count or blogs count changes
   useEffect(() => {
-    slidesRef.current = [...BLOGS, ...BLOGS.slice(0, perView)];
-  }, [perView]);
+    setIndex(0);
+  }, [blogs.length, perView]);
+
+  // Seamless loop slides: duplicate leading `perView` items when sliding
+  const slides = shouldSlide ? [...blogs, ...blogs.slice(0, perView)] : blogs;
 
   // Autoplay — advances one card at a time, pauses on hover.
   useEffect(() => {
-    if (paused) return;
+    if (paused || !shouldSlide || blogs.length === 0) return;
     const t = setInterval(() => {
       setIndex((prev) => {
         const next = prev + 1;
-        if (next >= BLOGS.length) {
-          // We've reached the original-count position. The viewport is
-          // currently showing the duplicate leading cards (which match
-          // position 0 pixel-for-pixel). Wait for the smooth transition
-          // to finish, then imperatively snap back to 0 with the CSS
-          // transition disabled — the snap is invisible because the
-          // pre- and post-snap frames render the same content.
+        if (next >= blogs.length) {
           setTimeout(() => {
             const el = trackRef.current;
             if (el) {
@@ -95,15 +55,41 @@ export default function BlogsSlider() {
               el.style.transition = "";
             }
           }, TRANSITION_MS);
-          return BLOGS.length;
+          return blogs.length;
         }
         return next;
       });
     }, AUTOPLAY_MS);
     return () => clearInterval(t);
-  }, [paused]);
+  }, [paused, shouldSlide, blogs.length]);
 
-  const translatePct = (index * 100) / perView;
+  if (isLoading) {
+    return (
+      <div className="relative overflow-hidden">
+        <div className="flex">
+          {Array.from({ length: perView }).map((_, i) => (
+            <div
+              key={i}
+              className="shrink-0 px-1.5 sm:px-3 animate-pulse"
+              style={{ width: `${100 / perView}%` }}
+            >
+              <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-xl bg-slate-200 dark:bg-slate-800" />
+              <div className="mt-2 sm:mt-5 px-1 space-y-2">
+                <div className="hidden sm:block h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (blogs.length === 0) {
+    return null;
+  }
+
+  const translatePct = shouldSlide ? (index * 100) / perView : 0;
 
   return (
     <div
@@ -116,22 +102,26 @@ export default function BlogsSlider() {
         className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{ transform: `translateX(-${translatePct}%)` }}
       >
-        {slidesRef.current.map((blog, i) => (
+        {slides.map((blog, i) => (
           <div
-            key={`${blog.id}-${i}`}
+            key={`${blog._id || blog.slug || i}-${i}`}
             className="shrink-0 px-1.5 sm:px-3"
             style={{ width: `${100 / perView}%` }}
           >
             <Link
-              href="/blog"
+              href={blog.slug ? `/blog/${blog.slug}` : "/blogs"}
               className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
-              aria-label={`Read: ${blog.topic}`}
+              aria-label={`Read: ${blog.title}`}
             >
               {/* Cover — compact square on mobile, normal on larger screens */}
               <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                 <img
-                  src={blog.image}
-                  alt={blog.topic}
+                  src={blog.coverImage || "https://placehold.co/600x450/0f172a/ffffff?text=Synergy+Blog"}
+                  alt={blog.title}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      "https://placehold.co/600x450/0f172a/ffffff?text=Synergy+Blog";
+                  }}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
@@ -142,10 +132,10 @@ export default function BlogsSlider() {
                 {/* Hide read-time on mobile, show on larger screens */}
                 <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-slate-400">
                   <span className="h-px w-5 bg-slate-300" />
-                  <span>{blog.readTime}</span>
+                  <span>{blog.readTime || "2 min read"}</span>
                 </div>
                 <h3 className="mt-0 sm:mt-3 text-[11px] sm:text-base md:text-lg font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-blue-600 line-clamp-2">
-                  {blog.topic}
+                  {blog.title}
                 </h3>
               </div>
             </Link>

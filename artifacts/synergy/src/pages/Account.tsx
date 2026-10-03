@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
+import { Link } from "wouter";
 import {
   User,
   Package,
@@ -1130,14 +1131,29 @@ export default function Account() {
 
   const activeItem = navItems.find((n) => n.id === active) ?? navItems[0];
 
+  const handleLogout = () => {
+    setLoading(true);
+    setProfile(null);
+    setAddresses([]);
+    setIsEditing(false);
+    setAddressModalOpen(false);
+    logout();
+    setTimeout(() => {
+      setLoading(false);
+    }, 300);
+  };
+
   // Fetch profile data
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user?.userId) {
-        setLoading(false);
-        return;
-      }
+    if (!user?.userId) {
+      setProfile(null);
+      setAddresses([]);
+      setLoading(false);
+      return;
+    }
 
+    const fetchProfile = async () => {
+      setLoading(true);
       try {
         const response = await fetchApi<{ success: boolean; profile: ProfileData }>(`/users/profile/${user.userId}`);
         if (response.success && response.profile) {
@@ -1155,9 +1171,12 @@ export default function Account() {
 
   // Fetch addresses
   useEffect(() => {
-    const fetchAddresses = async () => {
-      if (!user?.userId) return;
+    if (!user?.userId) {
+      setAddresses([]);
+      return;
+    }
 
+    const fetchAddresses = async () => {
       try {
         const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
         if (response.success && response.addresses) {
@@ -1295,10 +1314,10 @@ export default function Account() {
     );
   }
 
-  if (!profile) {
+  if (!user || !profile) {
     return (
       <div className="bg-background min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Please log in to view your account.</p>
+        <p className="text-muted-foreground">Please log in to view your profile page.</p>
       </div>
     );
   }
@@ -1446,7 +1465,7 @@ export default function Account() {
                   <li className="mt-1 border-t border-border/60 px-2 pt-1.5">
                     <button
                       type="button"
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50/60"
                     >
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200/60">
