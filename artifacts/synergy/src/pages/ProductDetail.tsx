@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useState } from "react";
 import NotFound from "./not-found";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -50,7 +51,7 @@ export default function ProductDetail() {
           {/* Image Gallery */}
           <div className="w-full lg:w-5/12 flex flex-col gap-4">
             <div className="aspect-square bg-white rounded-lg border border-gray-200 flex items-center justify-center relative overflow-hidden">
-               <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+               <img src={getOptimizedImageUrl(product.images[activeImage], { width: 1000 })} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
             </div>
             {product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto">
@@ -62,7 +63,7 @@ export default function ProductDetail() {
                     aria-label={`Show image ${i + 1}`}
                     className={`w-20 h-20 bg-white rounded-md border ${i === activeImage ? 'border-blue-600 ring-1 ring-blue-600' : 'border-gray-200'} flex-shrink-0 overflow-hidden`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                    <img src={getOptimizedImageUrl(img, { width: 200, crop: "fill" })} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                   </button>
                 ))}
               </div>

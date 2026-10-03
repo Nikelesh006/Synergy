@@ -2,6 +2,7 @@ import { Link, useParams } from "wouter";
 import { useBlogPost } from "@/hooks/useBlog";
 import NotFound from "./not-found";
 import { Calendar, User, Clock, ArrowLeft } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export default function BlogArticle() {
   const { slug } = useParams();
@@ -40,7 +41,7 @@ export default function BlogArticle() {
         </div>
 
         <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-gray-100">
-          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+          <img src={getOptimizedImageUrl(post.coverImage, { width: 1200 })} alt={post.title} className="w-full h-full object-cover" />
         </div>
 
         <div className="prose prose-lg max-w-none text-gray-700">

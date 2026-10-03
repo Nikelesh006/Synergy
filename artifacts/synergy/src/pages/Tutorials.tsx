@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTutorials } from "@/hooks/useTutorials";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -124,7 +125,7 @@ export default function Tutorials() {
                   aria-label={featured.title}
                 >
                   <img
-                    src={featured.thumbnailUrl || featured.youtubeUrl}
+                    src={getOptimizedImageUrl(featured.thumbnailUrl, { width: 1000 }) || featured.youtubeUrl}
                     alt={featured.title}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
@@ -289,7 +290,7 @@ export default function Tutorials() {
                     aria-label={post.title}
                   >
                     <img
-                      src={post.thumbnailUrl || post.youtubeUrl}
+                      src={getOptimizedImageUrl(post.thumbnailUrl, { width: 600, crop: "fill" }) || post.youtubeUrl}
                       alt={post.title}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />

@@ -18,6 +18,7 @@ import {
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import { cn } from "@/lib/utils";
 
 export default function Cart() {
@@ -212,7 +213,7 @@ export default function Cart() {
                           className="block shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30 p-2"
                         >
                           <img
-                            src={item.product.images[0]}
+                            src={getOptimizedImageUrl(item.product.images[0], { width: 200, crop: "fill" })}
                             alt={item.product.name}
                             className="h-20 w-20 object-contain sm:h-24 sm:w-24"
                           />

@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ImagePlus,
   IndianRupee,
+  Loader2,
   PackagePlus,
   Save,
   UploadCloud,
@@ -25,6 +26,7 @@ import {
 import AdminNav from "@/components/admin/AdminNav";
 import { toast } from "@/hooks/use-toast";
 import { fetchApi } from "@/lib/api";
+import { uploadImagesToCloudinary } from "@/lib/cloudinary";
 type AdminProduct = {
   id: string;
   name: string;
@@ -182,6 +184,8 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
     }
   }, [params?.id]);
 
+  const [uploadingSlots, setUploadingSlots] = useState<number[]>([]);
+
   const imageList = useMemo(
     () => form.images.split(/\r?\n/).map((image) => image.trim()).filter(Boolean),
     [form.images]
@@ -212,26 +216,49 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
     const files = event.target.files;
     if (files && files.length > 0) {
       const selectedFiles = Array.from(files).slice(0, 5 - index);
-      if (selectedFiles.some((file) => !file.type.startsWith("image/") || file.size > 1024 * 1024)) {
-        toast({ title: "Image not added", description: "Use image files up to 1 MB each.", variant: "destructive" });
+      if (selectedFiles.some((file) => !file.type.startsWith("image/") || file.size > 10 * 1024 * 1024)) {
+        toast({ title: "Image not added", description: "Use image files up to 10 MB each.", variant: "destructive" });
         event.target.value = "";
         return;
       }
 
+      const targetSlots = selectedFiles.map((_, offset) => index + offset);
+      setUploadingSlots(targetSlots);
+
       try {
-        const newUrls = await Promise.all(selectedFiles.map((file) => new Promise<string>((resolve, reject) => {
+        const dataUrls = await Promise.all(selectedFiles.map((file) => new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(String(reader.result));
           reader.onerror = () => reject(new Error("Unable to read image"));
           reader.readAsDataURL(file);
         })));
+
+        let finalUrls = dataUrls;
+        try {
+          const cloudinaryUrls = await uploadImagesToCloudinary(dataUrls, "synergy/products");
+          if (cloudinaryUrls && cloudinaryUrls.length > 0) {
+            finalUrls = cloudinaryUrls;
+            toast({ title: "Images uploaded", description: `${cloudinaryUrls.length} image(s) hosted on Cloudinary.` });
+          }
+        } catch (uploadErr) {
+          console.warn("Cloudinary upload fallback to data URL:", uploadErr);
+          toast({
+            title: "Cloudinary upload note",
+            description: uploadErr instanceof Error && uploadErr.message.includes("Cloudinary is not configured")
+              ? "Cloudinary credentials not configured in server .env. Image stored locally."
+              : "Cloudinary upload failed; image stored locally.",
+          });
+        }
+
         const newList = [...imageList];
-        newUrls.forEach((url, offset) => { newList[index + offset] = url; });
+        finalUrls.forEach((url, offset) => { newList[index + offset] = url; });
         updateField("images", newList.filter(Boolean).join("\n"));
       } catch {
         toast({ title: "Image not added", description: "The selected image could not be read.", variant: "destructive" });
+      } finally {
+        setUploadingSlots([]);
+        event.target.value = "";
       }
-      event.target.value = "";
     }
   };
 
@@ -477,10 +504,16 @@ export default function AdminDashboard({ params }: { params?: { id?: string } })
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
                 {[0, 1, 2, 3, 4].map((index) => {
+                  const isUploading = uploadingSlots.includes(index);
                   const image = imageList[index];
                   return (
                     <div key={index} className="group relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-md border-2 border-dashed border-slate-200 bg-slate-50 transition-all hover:border-blue-300 hover:bg-blue-50">
-                      {image ? (
+                      {isUploading ? (
+                        <div className="flex flex-col items-center justify-center gap-2 p-2 text-center text-blue-600">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                          <span className="text-xs font-medium">Uploading...</span>
+                        </div>
+                      ) : image ? (
                         <>
                           <img src={image} alt={`Upload ${index + 1}`} className="h-full w-full object-cover" />
                           <button

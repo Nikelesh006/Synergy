@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ShoppingCart, Heart, ShieldCheck, ArrowRight } from "lucide-react";
 import { Product } from "@/types";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +90,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image */}
       <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden">
         <img
-          src={product.images[0]}
+          src={getOptimizedImageUrl(product.images[0], { width: 500, crop: "fill" })}
           alt={product.name}
           className="relative w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { useBlogPosts } from "@/hooks/useBlog";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 const AUTOPLAY_MS = 3500;
 const TRANSITION_MS = 700;
@@ -116,7 +117,7 @@ export default function BlogsSlider() {
               {/* Cover — compact square on mobile, normal on larger screens */}
               <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                 <img
-                  src={blog.coverImage || "https://placehold.co/600x450/0f172a/ffffff?text=Synergy+Blog"}
+                  src={getOptimizedImageUrl(blog.coverImage, { width: 600, crop: "fill" }) || "https://placehold.co/600x450/0f172a/ffffff?text=Synergy+Blog"}
                   alt={blog.title}
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).src =

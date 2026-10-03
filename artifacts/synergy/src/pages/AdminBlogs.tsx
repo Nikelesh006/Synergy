@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { CalendarDays, FileText, ImagePlus, Save, UploadCloud } from "lucide-react";
+import { CalendarDays, FileText, ImagePlus, Loader2, Save, UploadCloud } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { fetchApi } from "@/lib/api";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 type AdminBlog = {
   id: string;
@@ -67,6 +68,7 @@ const sectionTitleClass = "text-base font-bold text-black";
 
 export default function AdminBlogs() {
   const [form, setForm] = useState<AdminBlog>(defaultBlog);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [blogs, setBlogs] = useState<AdminBlog[]>(initialBlogs);
 
   const tagList = useMemo(
@@ -93,11 +95,44 @@ export default function AdminBlogs() {
     }
   };
 
-  const handleCoverUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    if (!file) return;
 
-    if (file) {
-      updateField("coverImage", URL.createObjectURL(file));
+    if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image not added", description: "Use image files up to 10 MB.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Unable to read image"));
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const cloudinaryUrl = await uploadImageToCloudinary(dataUrl, "synergy/blogs");
+        updateField("coverImage", cloudinaryUrl);
+        toast({ title: "Cover uploaded", description: "Image successfully uploaded to Cloudinary." });
+      } catch (uploadErr) {
+        console.warn("Cloudinary upload fallback to data URL:", uploadErr);
+        updateField("coverImage", dataUrl);
+        toast({
+          title: "Cloudinary upload note",
+          description: uploadErr instanceof Error && uploadErr.message.includes("Cloudinary is not configured")
+            ? "Cloudinary credentials not configured in server .env. Image stored locally."
+            : "Cloudinary upload failed; image stored locally.",
+        });
+      }
+    } catch {
+      toast({ title: "Image not added", description: "Could not read image file.", variant: "destructive" });
+    } finally {
+      setIsUploadingCover(false);
+      event.target.value = "";
     }
   };
 
@@ -346,7 +381,12 @@ export default function AdminBlogs() {
               </div>
               <div className="space-y-5">
                 <div className="group relative flex aspect-[16/9] w-full flex-col items-center justify-center overflow-hidden rounded-md border-2 border-dashed border-slate-200 bg-slate-50 transition-all hover:border-blue-300 hover:bg-blue-50">
-                  {form.coverImage ? (
+                  {isUploadingCover ? (
+                    <div className="flex flex-col items-center justify-center gap-2 p-4 text-center text-blue-600">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span className="text-sm font-medium">Uploading cover to Cloudinary...</span>
+                    </div>
+                  ) : form.coverImage ? (
                     <>
                       <img src={form.coverImage} alt="Blog cover preview" className="h-full w-full object-cover" />
                       <button

@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
-import { CalendarDays, Play, Save, Video } from "lucide-react";
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { CalendarDays, Loader2, Play, Save, UploadCloud, Video } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { fetchApi } from "@/lib/api";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 type AdminTutorial = {
   id: string;
@@ -88,6 +89,7 @@ function getYoutubeVideoId(value: string) {
 
 export default function AdminTutorials() {
   const [form, setForm] = useState<AdminTutorial>(defaultTutorial);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [tutorials, setTutorials] = useState<AdminTutorial[]>(initialTutorials);
 
   const youtubeVideoId = useMemo(() => getYoutubeVideoId(form.youtubeUrl), [form.youtubeUrl]);
@@ -113,6 +115,47 @@ export default function AdminTutorials() {
     // Auto-generate slug from title if slug is empty or matches the old title
     if (!form.slug || form.slug === generateSlug(form.title)) {
       updateField("slug", generateSlug(value));
+    }
+  };
+
+  const handleThumbnailUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image not added", description: "Use image files up to 10 MB.", variant: "destructive" });
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploadingThumbnail(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Unable to read image"));
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const cloudinaryUrl = await uploadImageToCloudinary(dataUrl, "synergy/tutorials");
+        updateField("thumbnailUrl", cloudinaryUrl);
+        toast({ title: "Thumbnail uploaded", description: "Image successfully uploaded to Cloudinary." });
+      } catch (uploadErr) {
+        console.warn("Cloudinary upload fallback to data URL:", uploadErr);
+        updateField("thumbnailUrl", dataUrl);
+        toast({
+          title: "Cloudinary upload note",
+          description: uploadErr instanceof Error && uploadErr.message.includes("Cloudinary is not configured")
+            ? "Cloudinary credentials not configured in server .env. Image stored locally."
+            : "Cloudinary upload failed; image stored locally.",
+        });
+      }
+    } catch {
+      toast({ title: "Image not added", description: "Could not read image file.", variant: "destructive" });
+    } finally {
+      setIsUploadingThumbnail(false);
+      event.target.value = "";
     }
   };
 
@@ -397,9 +440,25 @@ export default function AdminTutorials() {
                   </div>
                 </div>
               </div>
-              <div className="mt-5 space-y-2">
-                <Label htmlFor="thumbnailUrl" className="text-sm font-semibold text-black">Custom Thumbnail URL</Label>
-                <Input id="thumbnailUrl" value={form.thumbnailUrl} onChange={(event) => updateField("thumbnailUrl", event.target.value)} className={fieldClass} placeholder="Optional: leave blank to use the YouTube thumbnail" />
+              <div className="mt-5 space-y-3">
+                <Label htmlFor="thumbnailUrl" className="text-sm font-semibold text-black">Custom Thumbnail</Label>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input id="thumbnailUrl" value={form.thumbnailUrl} onChange={(event) => updateField("thumbnailUrl", event.target.value)} className={fieldClass} placeholder="Optional: YouTube thumbnail used if blank" />
+                  <label className="inline-flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-blue-700 bg-white px-4 text-sm font-semibold text-black shadow-sm transition-colors hover:bg-blue-50">
+                    {isUploadingThumbnail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-700" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-4 w-4 text-blue-700" />
+                        Upload Thumbnail
+                      </>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" disabled={isUploadingThumbnail} onChange={handleThumbnailUpload} />
+                  </label>
+                </div>
               </div>
             </div>
 

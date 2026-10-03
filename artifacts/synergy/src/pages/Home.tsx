@@ -9,6 +9,7 @@ import { useTutorials } from "@/hooks/useTutorials";
 import ProductCard from "@/components/product/ProductCard";
 import SectionHeader from "@/components/layout/SectionHeader";
 import BlogsSlider from "@/components/blog/BlogsSlider";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 const banners = [
   "/banner-1.jpg",
@@ -68,7 +69,7 @@ export default function Home() {
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"}`}
           >
             <img 
-              src={bg} 
+              src={getOptimizedImageUrl(bg, { width: 1920 })} 
               alt={`Banner ${index + 1}`} 
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -319,7 +320,7 @@ export default function Home() {
                 {/* Cover — compact square on mobile, normal on larger screens */}
                 <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                   <img
-                    src={tutorial.image || "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial"}
+                    src={getOptimizedImageUrl(tutorial.image, { width: 800, crop: "fill" }) || "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial"}
                     alt={tutorial.title}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src =

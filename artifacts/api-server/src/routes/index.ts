@@ -12,6 +12,7 @@ import cartRouter from "./cart.js";
 import wishlistRouter from "./wishlist.js";
 import usersRouter from "./users.js";
 import addressesRouter from "./addresses.js";
+import uploadRouter from "./upload.js";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use("/cart", cartRouter);
 router.use("/wishlist", wishlistRouter);
 router.use("/users", usersRouter);
 router.use("/addresses", addressesRouter);
+router.use("/upload", uploadRouter);
 
 export default router;

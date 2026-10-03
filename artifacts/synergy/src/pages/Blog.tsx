@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "wouter";
 import { useBlogPosts } from "@/hooks/useBlog";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -125,7 +126,7 @@ export default function Blog() {
                   aria-label={featured.title}
                 >
                   <img
-                    src={featured.coverImage}
+                    src={getOptimizedImageUrl(featured.coverImage, { width: 1000 })}
                     alt={featured.title}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
@@ -281,7 +282,7 @@ export default function Blog() {
                     aria-label={post.title}
                   >
                     <img
-                      src={post.coverImage}
+                      src={getOptimizedImageUrl(post.coverImage, { width: 600, crop: "fill" })}
                       alt={post.title}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />

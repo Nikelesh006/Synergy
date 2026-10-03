@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { fetchApi } from "@/lib/api";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export default function AdminProducts() {
   const [, setLocation] = useLocation();
@@ -253,7 +254,7 @@ export default function AdminProducts() {
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                               <img
-                                src={mainImage}
+                                src={getOptimizedImageUrl(mainImage, { width: 100, crop: "fill" })}
                                 alt={product.name}
                                 className="h-full w-full object-cover"
                               />

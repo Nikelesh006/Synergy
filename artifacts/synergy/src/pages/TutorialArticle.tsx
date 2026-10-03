@@ -2,6 +2,7 @@ import { Link, useParams } from "wouter";
 import { useTutorial } from "@/hooks/useTutorials";
 import NotFound from "./not-found";
 import { Calendar, User, Clock, ArrowLeft } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export default function TutorialArticle() {
   const { slug } = useParams();
@@ -59,7 +60,7 @@ export default function TutorialArticle() {
           </div>
         ) : image ? (
           <div className="aspect-video w-full rounded-xl overflow-hidden mb-12 bg-gray-100">
-            <img src={image} alt={post.title} className="w-full h-full object-cover" />
+            <img src={getOptimizedImageUrl(image, { width: 1200 })} alt={post.title} className="w-full h-full object-cover" />
           </div>
         ) : null}
 
