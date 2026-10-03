@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { connectDB } from '../lib/db';
-import { seedProducts } from './seed-products';
+import { connectDB } from '../lib/db.js';
+import { seedProducts } from './seed-products.js';
 
 async function runSeed() {
   try {

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { User, Order } from "../models";
+import { User, Order } from "../models/index.js";
 
 const router: IRouter = Router();
 
@@ -38,7 +38,7 @@ router.get("/profile/:userId", async (req, res): Promise<void> => {
 
     // Calculate stats from orders
     const orders = await Order.find({ userId: req.params.userId });
-    const totalOrdersValue = orders.reduce((sum, order) => sum + order.total, 0);
+    const totalOrdersValue = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
     const totalOrdersCount = orders.length;
     const savedItemsCount = user.wishlist?.length || 0;
 

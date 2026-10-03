@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { Enquiry } from "../models";
+import { Enquiry } from "../models/index.js";
 
 const router: IRouter = Router();
 
