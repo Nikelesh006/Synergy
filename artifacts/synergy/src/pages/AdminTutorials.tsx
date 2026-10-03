@@ -1,5 +1,7 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { CalendarDays, Loader2, Play, Save, UploadCloud, Video } from "lucide-react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, CalendarDays, Loader2, Play, Save, UploadCloud, Video } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,7 +68,7 @@ const initialTutorials: AdminTutorial[] = [];
 
 const tutorialCategories = ["IoT", "Automation", "Power Electronics", "Sensors", "Development Boards"];
 const tutorialLevels = ["Beginner", "Intermediate", "Advanced"];
-const tutorialStatuses = ["Review", "Published", "Archived"];
+const tutorialStatuses = ["Draft", "Review", "Published", "Archived"];
 
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";
@@ -87,10 +89,59 @@ function getYoutubeVideoId(value: string) {
   return match?.[1] || trimmed;
 }
 
-export default function AdminTutorials() {
+export default function AdminTutorials({ params }: { params?: { id?: string } }) {
+  const routeParams = useParams<{ id?: string }>();
+  const tutorialId = params?.id || routeParams?.id;
+  const isEditMode = !!tutorialId;
+
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<AdminTutorial>(defaultTutorial);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [tutorials, setTutorials] = useState<AdminTutorial[]>(initialTutorials);
+
+  useEffect(() => {
+    if (tutorialId) {
+      const loadTutorial = async () => {
+        try {
+          const tut = await fetchApi<any>(`/tutorials/${tutorialId}`);
+          if (tut) {
+            setForm({
+              id: tut._id || tut.id || "",
+              title: tut.title || "",
+              slug: tut.slug || "",
+              youtubeUrl: tut.youtubeUrl || "",
+              thumbnailUrl: tut.thumbnailUrl || "",
+              channelName: tut.channelName || "",
+              instructor: tut.instructor || tut.channelName || "",
+              category: tut.category || "",
+              level: tut.level || "Beginner",
+              status: tut.status || "Draft",
+              duration: tut.duration || "",
+              publishDate: tut.publishDate || "",
+              shortDescription: tut.shortDescription || "",
+              description: tut.description || "",
+              tags: Array.isArray(tut.tags) ? tut.tags.join(", ") : (tut.tags || ""),
+              resourcesUrl: tut.resourcesUrl || "",
+              metaTitle: tut.metaTitle || "",
+              metaDescription: tut.metaDescription || "",
+              isFeatured: Boolean(tut.isFeatured),
+            });
+          }
+        } catch (err) {
+          toast({
+            title: "Error loading tutorial",
+            description: "Could not fetch tutorial details for editing.",
+            variant: "destructive",
+          });
+        }
+      };
+      loadTutorial();
+    } else {
+      setForm(defaultTutorial);
+    }
+  }, [tutorialId]);
 
   const youtubeVideoId = useMemo(() => getYoutubeVideoId(form.youtubeUrl), [form.youtubeUrl]);
   const thumbnailUrl = form.thumbnailUrl || (youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : "");
@@ -159,7 +210,7 @@ export default function AdminTutorials() {
     }
   };
 
-  const handleAddTutorial = async () => {
+  const saveTutorial = async (overrideStatus?: string) => {
     // Validation
     if (!form.title || !form.slug || !form.youtubeUrl || !form.channelName || !form.category || !form.duration || !form.shortDescription || !form.description) {
       toast({
@@ -170,129 +221,70 @@ export default function AdminTutorials() {
       return;
     }
 
-    let finalSlug = form.slug;
-    let slugCounter = 1;
-    let slugExists = true;
-
-    // Try to find a unique slug
-    while (slugExists) {
-      try {
-        const testSlug = slugCounter === 1 ? finalSlug : `${finalSlug}-${slugCounter}`;
-        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/tutorials?slug=${testSlug}`, {
-          method: 'GET',
-        });
-        if (response.ok) {
-          const tutorials = await response.json();
-          const existingTutorial = tutorials.find((t: any) => t.slug === testSlug);
-          if (!existingTutorial) {
-            finalSlug = testSlug;
-            slugExists = false;
-          } else {
-            slugCounter++;
-          }
-        } else {
-          // If API fails, proceed with current slug and let backend handle it
-          slugExists = false;
-        }
-      } catch (error) {
-        // If check fails, proceed with current slug
-        slugExists = false;
-      }
-    }
-
     const tutorialToSave = {
-      title: form.title,
-      slug: finalSlug,
-      youtubeUrl: form.youtubeUrl,
-      thumbnailUrl: form.thumbnailUrl,
-      channelName: form.channelName,
-      instructor: form.instructor,
-      category: form.category,
-      level: form.level,
-      status: "Published",
-      duration: form.duration,
+      title: form.title.trim(),
+      slug: form.slug.trim(),
+      youtubeUrl: form.youtubeUrl.trim(),
+      thumbnailUrl: form.thumbnailUrl || (youtubeVideoId ? `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg` : ""),
+      channelName: form.channelName.trim(),
+      instructor: form.instructor.trim() || form.channelName.trim(),
+      category: form.category.trim(),
+      level: form.level || "Beginner",
+      status: overrideStatus || form.status || "Published",
+      duration: form.duration.trim(),
       publishDate: form.publishDate || new Date().toISOString().split('T')[0],
-      shortDescription: form.shortDescription,
-      description: form.description,
+      shortDescription: form.shortDescription.trim(),
+      description: form.description.trim(),
       tags: tagList,
-      resourcesUrl: form.resourcesUrl,
+      resourcesUrl: form.resourcesUrl || "",
       metaTitle: form.metaTitle || form.title,
       metaDescription: form.metaDescription || form.shortDescription,
       isFeatured: form.isFeatured,
     };
 
     try {
-      console.log("Sending tutorial data:", tutorialToSave);
-      const response = await fetchApi('/tutorials', {
-        method: 'POST',
-        body: JSON.stringify(tutorialToSave),
-      });
-
-      if (response) {
+      setIsSubmitting(true);
+      if (isEditMode) {
+        await fetchApi(`/tutorials/${tutorialId}`, {
+          method: 'PUT',
+          body: JSON.stringify(tutorialToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["tutorials"] });
+        toast({
+          title: "Tutorial updated successfully",
+          description: "The tutorial changes have been saved.",
+        });
+      } else {
+        await fetchApi('/tutorials', {
+          method: 'POST',
+          body: JSON.stringify(tutorialToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["tutorials"] });
         toast({
           title: "Tutorial added successfully",
-          description: "The tutorial has been published to the website.",
+          description: "The tutorial has been added and published.",
         });
-        
-        // Reset form
-        setForm(defaultTutorial);
       }
+      setLocation("/admin/tutorials-list");
     } catch (error) {
-      console.error("Error adding tutorial:", error);
+      console.error("Error saving tutorial:", error);
       toast({
-        title: "Error adding tutorial",
-        description: error instanceof Error ? error.message : "Failed to add tutorial to database. Please try again.",
+        title: isEditMode ? "Error updating tutorial" : "Error adding tutorial",
+        description: error instanceof Error ? error.message : "Failed to save tutorial to database. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleAddTutorial = async () => {
+    await saveTutorial("Published");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const tutorialToSave = {
-      title: form.title,
-      slug: form.slug,
-      youtubeUrl: form.youtubeUrl,
-      thumbnailUrl: form.thumbnailUrl,
-      channelName: form.channelName,
-      instructor: form.instructor,
-      category: form.category,
-      level: form.level,
-      status: form.status,
-      duration: form.duration,
-      publishDate: form.publishDate,
-      shortDescription: form.shortDescription,
-      description: form.description,
-      tags: tagList,
-      resourcesUrl: form.resourcesUrl,
-      metaTitle: form.metaTitle,
-      metaDescription: form.metaDescription,
-      isFeatured: form.isFeatured,
-    };
-
-    try {
-      const response = await fetchApi('/tutorials', {
-        method: 'POST',
-        body: JSON.stringify(tutorialToSave),
-      });
-
-      if (response) {
-        toast({
-          title: "Tutorial saved successfully",
-          description: "The tutorial has been added to the database.",
-        });
-        
-        // Reset form
-        setForm(defaultTutorial);
-      }
-    } catch (error) {
-      toast({
-        title: "Error saving tutorial",
-        description: "Failed to save tutorial to database. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await saveTutorial(isEditMode ? undefined : form.status);
   };
 
   return (
@@ -303,17 +295,28 @@ export default function AdminTutorials() {
         <div className="mb-6 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm shadow-slate-200/70">
           <div className="grid gap-0 lg:grid-cols-[1fr_420px]">
             <div className="border-b border-slate-200 p-6 lg:border-b-0 lg:border-r">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-700 shadow-sm">
-                  <Video className="h-5 w-5" />
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-700 shadow-sm">
+                    <Video className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-black">Tutorial Admin</div>
+                    <h1 className="text-3xl font-bold tracking-normal text-black">
+                      {isEditMode ? "Edit Tutorial" : "Add Tutorial Video"}
+                    </h1>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-black">Tutorial Admin</div>
-                  <h1 className="text-3xl font-bold tracking-normal text-black">Add Tutorial Video</h1>
-                </div>
+                <Link href="/admin/tutorials-list">
+                  <Button variant="outline" className="h-10 border-slate-200 text-slate-700 hover:bg-slate-50">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Tutorials List
+                  </Button>
+                </Link>
               </div>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-black">
-                Add YouTube tutorial metadata while showing only the video thumbnail with a play button in previews.
+                {isEditMode
+                  ? "Update video tutorial metadata, difficulty levels, duration, and content."
+                  : "Add YouTube tutorial metadata while showing only the video thumbnail with a play button in previews."}
               </p>
             </div>
             <div className="grid grid-cols-3 divide-x divide-slate-200 bg-slate-50/70 text-center">
@@ -504,14 +507,30 @@ export default function AdminTutorials() {
                 Featured Tutorial
               </label>
               <div className="flex gap-3">
-                <Button type="button" onClick={handleAddTutorial} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
-                  <Save className="h-4 w-4" />
-                  Add Tutorial
-                </Button>
-                <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
-                  <Save className="h-4 w-4" />
-                  Save Tutorial Draft
-                </Button>
+                {isEditMode ? (
+                  <>
+                    <Button type="submit" disabled={isSubmitting} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Update Tutorial
+                    </Button>
+                    <Link href="/admin/tutorials-list">
+                      <Button type="button" variant="outline" className="h-11 border-slate-200 px-5 font-semibold text-slate-700 hover:bg-slate-50">
+                        Cancel
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Button type="button" disabled={isSubmitting} onClick={handleAddTutorial} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Add Tutorial
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting} className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Tutorial Draft
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </form>

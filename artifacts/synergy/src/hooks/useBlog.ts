@@ -3,6 +3,7 @@ import { fetchApi } from "../lib/api";
 
 export interface BlogPost {
   _id: string;
+  id?: string;
   title: string;
   slug: string;
   excerpt: string;

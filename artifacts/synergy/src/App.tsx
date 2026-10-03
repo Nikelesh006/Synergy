@@ -20,10 +20,12 @@ import Wishlist from "@/pages/Wishlist";
 import Account from "@/pages/Account";
 import Login from "@/pages/Login";
 import AdminBlogs from "@/pages/AdminBlogs";
+import AdminBlogsList from "@/pages/AdminBlogsList";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProducts from "@/pages/AdminProducts";
 import AdminSection from "@/pages/AdminSection";
 import AdminTutorials from "@/pages/AdminTutorials";
+import AdminTutorialsList from "@/pages/AdminTutorialsList";
 import TrackOrder from "@/pages/TrackOrder";
 import BulkEnquiry from "@/pages/BulkEnquiry";
 import Services from "@/pages/Services";
@@ -31,6 +33,7 @@ import Brands from "@/pages/Brands";
 import Blog from "@/pages/Blog";
 import BlogArticle from "@/pages/BlogArticle";
 import Tutorials from "@/pages/Tutorials";
+import TutorialArticle from "@/pages/TutorialArticle";
 import Contact from "@/pages/Contact";
 import About from "@/pages/About";
 import FAQ from "@/pages/FAQ";
@@ -57,8 +60,14 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/admin/add-product" component={AdminDashboard} />
         <Route path="/admin/edit-product/:id" component={AdminDashboard} />
+        <Route path="/admin/blogs-list" component={AdminBlogsList} />
         <Route path="/admin/blogs" component={AdminBlogs} />
+        <Route path="/admin/add-blog" component={AdminBlogs} />
+        <Route path="/admin/edit-blog/:id" component={AdminBlogs} />
+        <Route path="/admin/tutorials-list" component={AdminTutorialsList} />
         <Route path="/admin/tutorials" component={AdminTutorials} />
+        <Route path="/admin/add-tutorial" component={AdminTutorials} />
+        <Route path="/admin/edit-tutorial/:id" component={AdminTutorials} />
         <Route path="/admin/products" component={AdminProducts} />
         <Route path="/admin/orders" component={AdminOrders} />
         <Route path="/admin" component={AdminDashboard} />
@@ -70,6 +79,7 @@ function Router() {
         <Route path="/blog" component={Blog} />
         <Route path="/blog/:slug" component={BlogArticle} />
         <Route path="/tutorials" component={Tutorials} />
+        <Route path="/tutorial/:slug" component={TutorialArticle} />
         <Route path="/contact" component={Contact} />
         <Route path="/about" component={About} />
         <Route path="/faq" component={FAQ} />

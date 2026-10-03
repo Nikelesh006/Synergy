@@ -1,11 +1,13 @@
 import { Link, useLocation } from "wouter";
-import { BookOpen, ClipboardList, FileText, Package, PackagePlus } from "lucide-react";
+import { BookOpen, ClipboardList, FilePlus, FileText, Package, PackagePlus, Video } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin/add-product", label: "Add product", icon: PackagePlus },
-  { href: "/admin/blogs", label: "Blogs", icon: FileText },
-  { href: "/admin/tutorials", label: "Tutorials", icon: BookOpen },
   { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/blogs-list", label: "Blogs List", icon: FileText },
+  { href: "/admin/blogs", label: "Add Blog", icon: FilePlus },
+  { href: "/admin/tutorials-list", label: "Tutorials List", icon: Video },
+  { href: "/admin/tutorials", label: "Add Tutorial", icon: BookOpen },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
 ];
 
@@ -17,7 +19,11 @@ export default function AdminNav() {
       <div className="flex flex-wrap gap-2">
         {adminLinks.map((item) => {
           const Icon = item.icon;
-          const isActive = location === item.href;
+          const isActive =
+            location === item.href ||
+            (item.href === "/admin/blogs-list" && location.startsWith("/admin/edit-blog")) ||
+            (item.href === "/admin/products" && location.startsWith("/admin/edit-product")) ||
+            (item.href === "/admin/tutorials-list" && location.startsWith("/admin/edit-tutorial"));
 
           return (
             <Link

@@ -3,6 +3,7 @@ import { fetchApi } from "../lib/api";
 
 export interface TutorialPost {
   _id: string;
+  id?: string;
   title: string;
   slug: string;
   shortDescription: string;
@@ -17,6 +18,10 @@ export interface TutorialPost {
   duration: string;
   publishDate: string;
   tags: string[];
+  resourcesUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  isFeatured?: boolean;
   createdAt: string;
   updatedAt: string;
 }

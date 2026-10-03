@@ -1,5 +1,7 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { CalendarDays, FileText, ImagePlus, Loader2, Save, UploadCloud } from "lucide-react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, CalendarDays, FileText, ImagePlus, Loader2, Save, UploadCloud } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,7 +59,7 @@ const defaultBlog: AdminBlog = {
 const initialBlogs: AdminBlog[] = [];
 
 const blogCategories = ["Buying Guide", "Technical", "Industry News", "Project Ideas", "Product Updates"];
-const blogStatuses = ["Review", "Published", "Archived"];
+const blogStatuses = ["Draft", "Review", "Published", "Archived"];
 
 const fieldClass =
   "h-12 rounded-md border-slate-200 bg-white/95 px-4 text-sm text-black shadow-sm transition-all placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-4 focus-visible:ring-blue-100";
@@ -66,10 +68,55 @@ const textareaClass =
 const panelClass = "rounded-md border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/70";
 const sectionTitleClass = "text-base font-bold text-black";
 
-export default function AdminBlogs() {
+export default function AdminBlogs({ params }: { params?: { id?: string } }) {
+  const routeParams = useParams<{ id?: string }>();
+  const blogId = params?.id || routeParams?.id;
+  const isEditMode = !!blogId;
+
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<AdminBlog>(defaultBlog);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [blogs, setBlogs] = useState<AdminBlog[]>(initialBlogs);
+
+  useEffect(() => {
+    if (blogId) {
+      const loadBlog = async () => {
+        try {
+          const blog = await fetchApi<any>(`/blogs/${blogId}`);
+          if (blog) {
+            setForm({
+              id: blog._id || blog.id || "",
+              title: blog.title || "",
+              slug: blog.slug || "",
+              author: blog.author || "",
+              category: blog.category || "",
+              status: blog.status || "Draft",
+              publishDate: blog.publishDate || "",
+              readTime: blog.readTime || "",
+              coverImage: blog.coverImage || "",
+              excerpt: blog.excerpt || "",
+              content: blog.content || "",
+              tags: Array.isArray(blog.tags) ? blog.tags.join(", ") : (blog.tags || ""),
+              metaTitle: blog.metaTitle || "",
+              metaDescription: blog.metaDescription || "",
+              isFeatured: Boolean(blog.isFeatured),
+            });
+          }
+        } catch (err) {
+          toast({
+            title: "Error loading blog",
+            description: "Could not fetch blog post details for editing.",
+            variant: "destructive",
+          });
+        }
+      };
+      loadBlog();
+    } else {
+      setForm(defaultBlog);
+    }
+  }, [blogId]);
 
   const tagList = useMemo(
     () => form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
@@ -136,7 +183,7 @@ export default function AdminBlogs() {
     }
   };
 
-  const handleAddBlog = async () => {
+  const saveBlog = async (overrideStatus?: string) => {
     // Validation
     if (!form.title || !form.slug || !form.author || !form.category || !form.coverImage || !form.excerpt || !form.content) {
       toast({
@@ -147,46 +194,16 @@ export default function AdminBlogs() {
       return;
     }
 
-    let finalSlug = form.slug;
-    let slugCounter = 1;
-    let slugExists = true;
-
-    // Try to find a unique slug
-    while (slugExists) {
-      try {
-        const testSlug = slugCounter === 1 ? finalSlug : `${finalSlug}-${slugCounter}`;
-        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/blogs?slug=${testSlug}`, {
-          method: 'GET',
-        });
-        if (response.ok) {
-          const blogs = await response.json();
-          const existingBlog = blogs.find((b: any) => b.slug === testSlug);
-          if (!existingBlog) {
-            finalSlug = testSlug;
-            slugExists = false;
-          } else {
-            slugCounter++;
-          }
-        } else {
-          // If API fails, proceed with current slug and let backend handle it
-          slugExists = false;
-        }
-      } catch (error) {
-        // If check fails, proceed with current slug
-        slugExists = false;
-      }
-    }
-
     const blogToSave = {
-      title: form.title,
-      slug: finalSlug,
-      author: form.author,
-      category: form.category,
-      status: "Published",
+      title: form.title.trim(),
+      slug: form.slug.trim(),
+      author: form.author.trim(),
+      category: form.category.trim(),
+      status: overrideStatus || form.status || "Published",
       publishDate: form.publishDate || new Date().toISOString().split('T')[0],
       readTime: form.readTime || '5 min read',
       coverImage: form.coverImage,
-      excerpt: form.excerpt,
+      excerpt: form.excerpt.trim(),
       content: form.content,
       tags: tagList,
       metaTitle: form.metaTitle || form.title,
@@ -195,73 +212,48 @@ export default function AdminBlogs() {
     };
 
     try {
-      console.log("Sending blog data:", blogToSave);
-      const response = await fetchApi('/blogs', {
-        method: 'POST',
-        body: JSON.stringify(blogToSave),
-      });
-
-      if (response) {
+      setIsSubmitting(true);
+      if (isEditMode) {
+        await fetchApi(`/blogs/${blogId}`, {
+          method: 'PUT',
+          body: JSON.stringify(blogToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["blog"] });
+        toast({
+          title: "Blog updated successfully",
+          description: "The blog post changes have been saved.",
+        });
+      } else {
+        await fetchApi('/blogs', {
+          method: 'POST',
+          body: JSON.stringify(blogToSave),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["blog"] });
         toast({
           title: "Blog added successfully",
-          description: "The blog has been published to the website.",
+          description: "The blog has been created and published.",
         });
-        
-        // Reset form
-        setForm(defaultBlog);
       }
+      setLocation("/admin/blogs-list");
     } catch (error) {
-      console.error("Error adding blog:", error);
+      console.error("Error saving blog:", error);
       toast({
-        title: "Error adding blog",
-        description: error instanceof Error ? error.message : "Failed to add blog to database. Please try again.",
+        title: isEditMode ? "Error updating blog" : "Error adding blog",
+        description: error instanceof Error ? error.message : "Failed to save blog to database. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleAddBlog = async () => {
+    await saveBlog("Published");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const blogToSave = {
-      title: form.title,
-      slug: form.slug,
-      author: form.author,
-      category: form.category,
-      status: form.status,
-      publishDate: form.publishDate,
-      readTime: form.readTime,
-      coverImage: form.coverImage,
-      excerpt: form.excerpt,
-      content: form.content,
-      tags: tagList,
-      metaTitle: form.metaTitle,
-      metaDescription: form.metaDescription,
-      isFeatured: form.isFeatured,
-    };
-
-    try {
-      const response = await fetchApi('/blogs', {
-        method: 'POST',
-        body: JSON.stringify(blogToSave),
-      });
-
-      if (response) {
-        toast({
-          title: "Blog saved successfully",
-          description: "The blog has been added to the database.",
-        });
-        
-        // Reset form
-        setForm(defaultBlog);
-      }
-    } catch (error) {
-      toast({
-        title: "Error saving blog",
-        description: "Failed to save blog to database. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await saveBlog(isEditMode ? undefined : form.status);
   };
 
   return (
@@ -272,17 +264,28 @@ export default function AdminBlogs() {
         <div className="mb-6 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm shadow-slate-200/70">
           <div className="grid gap-0 lg:grid-cols-[1fr_420px]">
             <div className="border-b border-slate-200 p-6 lg:border-b-0 lg:border-r">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-700 shadow-sm">
-                  <FileText className="h-5 w-5" />
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-700 shadow-sm">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-black">Content Admin</div>
+                    <h1 className="text-3xl font-bold tracking-normal text-black">
+                      {isEditMode ? "Edit Blog" : "Add Blog"}
+                    </h1>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-black">Content Admin</div>
-                  <h1 className="text-3xl font-bold tracking-normal text-black">Add Blog</h1>
-                </div>
+                <Link href="/admin/blogs-list">
+                  <Button variant="outline" className="h-10 border-slate-200 text-slate-700 hover:bg-slate-50">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Blogs List
+                  </Button>
+                </Link>
               </div>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-black">
-                Create blog articles with cover image, title, SEO fields, publishing status, tags, and full content.
+                {isEditMode
+                  ? "Update blog article content, cover image, category, and publishing status."
+                  : "Create blog articles with cover image, title, SEO fields, publishing status, tags, and full content."}
               </p>
             </div>
             <div className="grid grid-cols-3 divide-x divide-slate-200 bg-slate-50/70 text-center">
@@ -450,14 +453,30 @@ export default function AdminBlogs() {
                 Featured Blog
               </label>
               <div className="flex gap-3">
-                <Button type="button" onClick={handleAddBlog} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
-                  <Save className="h-4 w-4" />
-                  Add Blog
-                </Button>
-                <Button type="submit" className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
-                  <Save className="h-4 w-4" />
-                  Save Blog Draft
-                </Button>
+                {isEditMode ? (
+                  <>
+                    <Button type="submit" disabled={isSubmitting} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Update Blog
+                    </Button>
+                    <Link href="/admin/blogs-list">
+                      <Button type="button" variant="outline" className="h-11 border-slate-200 px-5 font-semibold text-slate-700 hover:bg-slate-50">
+                        Cancel
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Button type="button" disabled={isSubmitting} onClick={handleAddBlog} className="h-11 bg-blue-700 px-5 font-semibold text-white shadow-sm hover:bg-blue-800">
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Add Blog
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting} className="h-11 border border-blue-700 bg-white px-5 font-semibold text-black shadow-sm hover:bg-blue-50">
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Blog Draft
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </form>

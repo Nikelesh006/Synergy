@@ -223,6 +223,68 @@ class InMemoryStore {
     return true;
   }
 
+  // Blog helpers
+  addBlog(data: any) {
+    const newBlog = {
+      ...data,
+      _id: `mem_blog_${Date.now()}`,
+      id: `mem_blog_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.blogPosts.unshift(newBlog);
+    return newBlog;
+  }
+
+  updateBlog(id: string, data: any) {
+    const idx = this.blogPosts.findIndex((b) => b.id === id || b._id === id);
+    if (idx === -1) return null;
+    this.blogPosts[idx] = {
+      ...this.blogPosts[idx],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    return this.blogPosts[idx];
+  }
+
+  deleteBlog(id: string) {
+    const idx = this.blogPosts.findIndex((b) => b.id === id || b._id === id);
+    if (idx === -1) return false;
+    this.blogPosts.splice(idx, 1);
+    return true;
+  }
+
+  // Tutorial helpers
+  addTutorial(data: any) {
+    const newTutorial = {
+      ...data,
+      _id: `mem_tut_${Date.now()}`,
+      id: `mem_tut_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.tutorials.unshift(newTutorial);
+    return newTutorial;
+  }
+
+  updateTutorial(id: string, data: any) {
+    const idx = this.tutorials.findIndex((t) => t.id === id || t._id === id);
+    if (idx === -1) return null;
+    this.tutorials[idx] = {
+      ...this.tutorials[idx],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    return this.tutorials[idx];
+  }
+
+  deleteTutorial(id: string) {
+    const idx = this.tutorials.findIndex((t) => t.id === id || t._id === id);
+    if (idx === -1) return false;
+    this.tutorials.splice(idx, 1);
+    return true;
+  }
+
   // User auth helpers
   findUserByEmail(email: string) {
     return this.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
