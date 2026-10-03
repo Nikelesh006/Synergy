@@ -6,15 +6,17 @@ import { inMemoryStore } from "../data/inMemoryStore.js";
 const router = Router();
 
 // GET /api/categories
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/", async (_req: Request, res: Response): Promise<void> => {
   if (!isDbConnected()) {
-    return res.json(inMemoryStore.categories);
+    res.json(inMemoryStore.categories);
+    return;
   }
 
   try {
     const categories = await Category.find().sort({ name: 1 }).lean();
     if (!categories || categories.length === 0) {
-      return res.json(inMemoryStore.categories);
+      res.json(inMemoryStore.categories);
+      return;
     }
     res.json(categories.map((c) => ({ ...c, id: String(c._id) })));
   } catch (err) {
@@ -23,12 +25,13 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 
 // POST /api/categories
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     if (!isDbConnected()) {
       const newCat = { ...req.body, _id: `mem_cat_${Date.now()}`, id: `mem_cat_${Date.now()}` };
       inMemoryStore.categories.push(newCat);
-      return res.status(201).json(newCat);
+      res.status(201).json(newCat);
+      return;
     }
     const category = await Category.create(req.body);
     res.status(201).json({ ...category.toObject(), id: String(category._id) });

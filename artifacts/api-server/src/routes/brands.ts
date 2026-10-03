@@ -6,15 +6,17 @@ import { inMemoryStore } from "../data/inMemoryStore.js";
 const router = Router();
 
 // GET /api/brands
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/", async (_req: Request, res: Response): Promise<void> => {
   if (!isDbConnected()) {
-    return res.json(inMemoryStore.brands);
+    res.json(inMemoryStore.brands);
+    return;
   }
 
   try {
     const brands = await Brand.find().sort({ name: 1 }).lean();
     if (!brands || brands.length === 0) {
-      return res.json(inMemoryStore.brands);
+      res.json(inMemoryStore.brands);
+      return;
     }
     res.json(brands.map((b) => ({ ...b, id: String(b._id) })));
   } catch (err) {
@@ -23,12 +25,13 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 
 // POST /api/brands
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     if (!isDbConnected()) {
       const newBrand = { ...req.body, _id: `mem_brand_${Date.now()}`, id: `mem_brand_${Date.now()}` };
       inMemoryStore.brands.push(newBrand);
-      return res.status(201).json(newBrand);
+      res.status(201).json(newBrand);
+      return;
     }
     const brand = await Brand.create(req.body);
     res.status(201).json({ ...brand.toObject(), id: String(brand._id) });
