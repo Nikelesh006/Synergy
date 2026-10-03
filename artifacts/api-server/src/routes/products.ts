@@ -48,11 +48,12 @@ const nextAvailableSlug = async (baseSlug: string) => {
 };
 
 // GET /api/products
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   const query = req.query as Record<string, string>;
 
   if (!isDbConnected()) {
-    return res.json(inMemoryStore.getProducts(query));
+    res.json(inMemoryStore.getProducts(query));
+    return;
   }
 
   try {
@@ -112,7 +113,8 @@ router.get("/", async (req: Request, res: Response) => {
 
     if (!products || products.length === 0) {
       // If DB has no products, return from inMemoryStore
-      return res.json(inMemoryStore.getProducts(query));
+      res.json(inMemoryStore.getProducts(query));
+      return;
     }
 
     const mapped = products.map((p) => ({
@@ -136,8 +138,9 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/products/:slug
-router.get("/:slug", async (req: Request, res: Response) => {
-  const slugParam = req.params["slug"];
+router.get("/:slug", async (req: Request, res: Response): Promise<void> => {
+  const rawParam = req.params["slug"];
+  const slugParam = Array.isArray(rawParam) ? rawParam[0] : rawParam;
   if (typeof slugParam !== "string") {
     res.status(400).json({ error: "Invalid product parameter" });
     return;
@@ -145,8 +148,12 @@ router.get("/:slug", async (req: Request, res: Response) => {
 
   if (!isDbConnected()) {
     const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
-    if (memProd) return res.json(memProd);
-    return res.status(404).json({ error: "Product not found" });
+    if (memProd) {
+      res.json(memProd);
+      return;
+    }
+    res.status(404).json({ error: "Product not found" });
+    return;
   }
 
   try {
@@ -159,7 +166,10 @@ router.get("/:slug", async (req: Request, res: Response) => {
     }
     if (!raw) {
       const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
-      if (memProd) return res.json(memProd);
+      if (memProd) {
+        res.json(memProd);
+        return;
+      }
       res.status(404).json({ error: "Product not found" });
       return;
     }
@@ -173,14 +183,17 @@ router.get("/:slug", async (req: Request, res: Response) => {
     });
   } catch (err) {
     const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
-    if (memProd) return res.json(memProd);
+    if (memProd) {
+      res.json(memProd);
+      return;
+    }
     res.status(500).json({ error: "Failed to fetch product", details: String(err) });
   }
 });
 
 
 // POST /api/products
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const body = req.body as Record<string, unknown>;
     const requiredFields = ["name", "sku", "brand", "category", "subcategory"] as const;
@@ -237,7 +250,8 @@ router.post("/", async (req: Request, res: Response) => {
 
     if (!isDbConnected()) {
       const created = inMemoryStore.addProduct(productData);
-      return res.status(201).json(created);
+      res.status(201).json(created);
+      return;
     }
 
     const product = await Product.create(productData);
@@ -254,8 +268,10 @@ router.post("/", async (req: Request, res: Response) => {
 
 
 // PUT /api/products/:id
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
+    const rawId = req.params["id"];
+    const id = (Array.isArray(rawId) ? rawId[0] : rawId) as string;
     const body = req.body as Record<string, unknown>;
     const requiredFields = ["name", "sku", "brand", "category", "subcategory"] as const;
     const values = Object.fromEntries(
@@ -303,14 +319,16 @@ router.put("/:id", async (req: Request, res: Response) => {
     };
 
     if (!isDbConnected()) {
-      const updated = inMemoryStore.updateProduct(req.params["id"], productData);
+      const updated = inMemoryStore.updateProduct(id, productData);
       if (!updated) {
-        return res.status(404).json({ error: "Product not found" });
+        res.status(404).json({ error: "Product not found" });
+        return;
       }
-      return res.json(updated);
+      res.json(updated);
+      return;
     }
 
-    const product = await Product.findByIdAndUpdate(req.params["id"], productData, { new: true });
+    const product = await Product.findByIdAndUpdate(id, productData, { new: true });
     if (!product) {
       res.status(404).json({ error: "Product not found" });
       return;
@@ -323,17 +341,21 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/products/:id
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
+    const rawId = req.params["id"];
+    const id = (Array.isArray(rawId) ? rawId[0] : rawId) as string;
     if (!isDbConnected()) {
-      const deleted = inMemoryStore.deleteProduct(req.params["id"]);
+      const deleted = inMemoryStore.deleteProduct(id);
       if (!deleted) {
-        return res.status(404).json({ error: "Product not found" });
+        res.status(404).json({ error: "Product not found" });
+        return;
       }
-      return res.json({ message: "Product deleted" });
+      res.json({ message: "Product deleted" });
+      return;
     }
 
-    const product = await Product.findByIdAndDelete(req.params["id"]);
+    const product = await Product.findByIdAndDelete(id);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
       return;
@@ -346,7 +368,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
 
 // DELETE /api/products (delete all products)
-router.delete("/", async (req: Request, res: Response) => {
+router.delete("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await Product.deleteMany({});
     res.json({ message: `Deleted ${result.deletedCount} products` });

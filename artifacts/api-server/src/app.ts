@@ -45,9 +45,16 @@ app.use(
   }),
 );
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use("/api", router);
+
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err?.type === "entity.too.large") {
+    return res.status(413).json({ error: "The uploaded file or request payload is too large." });
+  }
+  return res.status(err?.status || 500).json({ error: err?.message || "Internal server error" });
+});
 
 export default app;
