@@ -43,7 +43,8 @@ router.get(
     };
     // Encode user data as JSON in URL
     const encodedUser = encodeURIComponent(JSON.stringify(userData));
-    res.redirect(`http://localhost:5173?auth=success&user=${encodedUser}`);
+    const frontendUrl = process.env.FRONTEND_URL || "https://synergy-dusky-theta.vercel.app";
+    res.redirect(`${frontendUrl}?auth=success&user=${encodedUser}`);
   }
 );
 

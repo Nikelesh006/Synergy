@@ -448,7 +448,7 @@ export default function Login() {
           </div>
 
           <a
-            href="http://localhost:5000/api/auth/google"
+            href="/api/auth/google"
             className="w-full h-10 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 text-xs font-semibold text-gray-700 transition-colors shadow-xs"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">

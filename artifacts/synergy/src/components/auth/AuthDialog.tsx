@@ -255,7 +255,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
 
   const handleGoogle = () => {
     // Redirect to backend Google OAuth endpoint
-    window.location.href = "http://localhost:5000/api/auth/google";
+    window.location.href = "/api/auth/google";
   };
 
   const signInFieldClass = (key: keyof SignInFields) =>

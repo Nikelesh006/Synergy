@@ -122127,7 +122127,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:5000/api/auth/google/callback"
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://synergy-dusky-theta.vercel.app/api/auth/google/callback"
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
@@ -125540,7 +125540,8 @@ router9.get(
       emailVerified: user.emailVerified
     };
     const encodedUser = encodeURIComponent(JSON.stringify(userData));
-    res.redirect(`http://localhost:5173?auth=success&user=${encodedUser}`);
+    const frontendUrl = process.env.FRONTEND_URL || "https://synergy-dusky-theta.vercel.app";
+    res.redirect(`${frontendUrl}?auth=success&user=${encodedUser}`);
   }
 );
 router9.post("/signup", async (req, res) => {
