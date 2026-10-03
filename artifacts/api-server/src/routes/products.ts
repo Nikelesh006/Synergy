@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { Product } from "../models/Product.js";
 import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
+import { uploadToCloudinary } from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 
 const router = Router();
@@ -45,6 +46,23 @@ const nextAvailableSlug = async (baseSlug: string) => {
     suffix += 1;
   }
   return slug;
+};
+
+const ensureCloudinaryImages = async (images: string[]): Promise<string[]> => {
+  return Promise.all(
+    images.map(async (img) => {
+      if (typeof img === "string" && img.startsWith("data:image")) {
+        try {
+          const uploaded = await uploadToCloudinary(img, { folder: "synergy/products" });
+          return uploaded.secure_url;
+        } catch (err) {
+          console.warn("Auto-upload base64 to Cloudinary failed:", err);
+          return img;
+        }
+      }
+      return img;
+    })
+  );
 };
 
 // GET /api/products
@@ -244,7 +262,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       specifications: parseSpecifications(body["specifications"]),
       features: stringList(body["features"]),
       applications: stringList(body["applications"]),
-      images,
+      images: await ensureCloudinaryImages(images),
       inStock: body["inStock"] === true && stock > 0,
     };
 
@@ -314,7 +332,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
       specifications: parseSpecifications(body["specifications"]),
       features: stringList(body["features"]),
       applications: stringList(body["applications"]),
-      images,
+      images: await ensureCloudinaryImages(images),
       inStock: body["inStock"] === true && stock > 0,
     };
 
