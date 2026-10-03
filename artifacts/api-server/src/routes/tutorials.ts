@@ -1,7 +1,10 @@
 import { Router, type IRouter } from "express";
-import { Tutorial } from "../models";
+import { Tutorial } from "../models/index.js";
+import { isDbConnected } from "../lib/db.js";
+import { inMemoryStore } from "../data/inMemoryStore.js";
 
 const router: IRouter = Router();
+
 
 // Create a new tutorial
 router.post("/", async (req, res): Promise<void> => {
@@ -75,29 +78,44 @@ router.post("/", async (req, res): Promise<void> => {
 
 // Get all tutorials
 router.get("/", async (_req, res): Promise<void> => {
+  if (!isDbConnected()) {
+    return res.json(inMemoryStore.tutorials);
+  }
   try {
     const tutorials = await Tutorial.find({ status: 'Published' });
+    if (!tutorials || tutorials.length === 0) {
+      return res.json(inMemoryStore.tutorials);
+    }
     res.json(tutorials);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch tutorials" });
+    res.json(inMemoryStore.tutorials);
   }
 });
 
 // Get a single tutorial by slug
 router.get("/:slug", async (req, res): Promise<void> => {
+  const slug = req.params.slug;
+  if (!isDbConnected()) {
+    const t = inMemoryStore.tutorials.find((item) => item.slug === slug || item.id === slug);
+    if (t) return res.json(t);
+    return res.status(404).json({ error: "Tutorial not found" });
+  }
   try {
-    const tutorial = await Tutorial.findOne({ slug: req.params.slug });
-    
+    const tutorial = await Tutorial.findOne({ slug });
     if (!tutorial) {
+      const t = inMemoryStore.tutorials.find((item) => item.slug === slug || item.id === slug);
+      if (t) return res.json(t);
       res.status(404).json({ error: "Tutorial not found" });
       return;
     }
-    
     res.json(tutorial);
   } catch (error) {
+    const t = inMemoryStore.tutorials.find((item) => item.slug === slug || item.id === slug);
+    if (t) return res.json(t);
     res.status(500).json({ error: "Failed to fetch tutorial" });
   }
 });
+
 
 // Update a tutorial
 router.put("/:id", async (req, res): Promise<void> => {

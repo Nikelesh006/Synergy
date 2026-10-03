@@ -1,8 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import { Product } from "../models/Product.js";
+import { isDbConnected } from "../lib/db.js";
+import { inMemoryStore } from "../data/inMemoryStore.js";
 import mongoose from "mongoose";
 
 const router = Router();
+
 
 const allowedCategories = new Set([
   "IoT",
@@ -46,6 +49,12 @@ const nextAvailableSlug = async (baseSlug: string) => {
 
 // GET /api/products
 router.get("/", async (req: Request, res: Response) => {
+  const query = req.query as Record<string, string>;
+
+  if (!isDbConnected()) {
+    return res.json(inMemoryStore.getProducts(query));
+  }
+
   try {
     const {
       category,
@@ -61,7 +70,7 @@ router.get("/", async (req: Request, res: Response) => {
       page = "1",
       limit = "24",
       sort = "relevance",
-    } = req.query as Record<string, string>;
+    } = query;
 
     const filter: Record<string, unknown> = {};
 
@@ -101,6 +110,11 @@ router.get("/", async (req: Request, res: Response) => {
       Product.countDocuments(filter),
     ]);
 
+    if (!products || products.length === 0) {
+      // If DB has no products, return from inMemoryStore
+      return res.json(inMemoryStore.getProducts(query));
+    }
+
     const mapped = products.map((p) => ({
       ...p,
       id: String(p._id),
@@ -116,18 +130,26 @@ router.get("/", async (req: Request, res: Response) => {
       pages: Math.ceil(total / limitNum),
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch products", details: String(err) });
+    // Fall back to inMemoryStore instead of 500 error
+    res.json(inMemoryStore.getProducts(query));
   }
 });
 
 // GET /api/products/:slug
 router.get("/:slug", async (req: Request, res: Response) => {
+  const slugParam = req.params["slug"];
+  if (typeof slugParam !== "string") {
+    res.status(400).json({ error: "Invalid product parameter" });
+    return;
+  }
+
+  if (!isDbConnected()) {
+    const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
+    if (memProd) return res.json(memProd);
+    return res.status(404).json({ error: "Product not found" });
+  }
+
   try {
-    const slugParam = req.params["slug"];
-    if (typeof slugParam !== "string") {
-      res.status(400).json({ error: "Invalid product parameter" });
-      return;
-    }
     let raw = null;
     if (mongoose.Types.ObjectId.isValid(slugParam)) {
       raw = await Product.findById(slugParam).lean();
@@ -136,6 +158,8 @@ router.get("/:slug", async (req: Request, res: Response) => {
       raw = await Product.findOne({ slug: slugParam }).lean();
     }
     if (!raw) {
+      const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
+      if (memProd) return res.json(memProd);
       res.status(404).json({ error: "Product not found" });
       return;
     }
@@ -148,9 +172,12 @@ router.get("/:slug", async (req: Request, res: Response) => {
         : product["specifications"],
     });
   } catch (err) {
+    const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
+    if (memProd) return res.json(memProd);
     res.status(500).json({ error: "Failed to fetch product", details: String(err) });
   }
 });
+
 
 // POST /api/products
 router.post("/", async (req: Request, res: Response) => {
@@ -207,6 +234,12 @@ router.post("/", async (req: Request, res: Response) => {
       images,
       inStock: body["inStock"] === true && stock > 0,
     };
+
+    if (!isDbConnected()) {
+      const created = inMemoryStore.addProduct(productData);
+      return res.status(201).json(created);
+    }
+
     const product = await Product.create(productData);
     res.status(201).json({ ...product.toObject(), id: String(product._id) });
   } catch (err) {
@@ -269,6 +302,14 @@ router.put("/:id", async (req: Request, res: Response) => {
       inStock: body["inStock"] === true && stock > 0,
     };
 
+    if (!isDbConnected()) {
+      const updated = inMemoryStore.updateProduct(req.params["id"], productData);
+      if (!updated) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      return res.json(updated);
+    }
+
     const product = await Product.findByIdAndUpdate(req.params["id"], productData, { new: true });
     if (!product) {
       res.status(404).json({ error: "Product not found" });
@@ -284,6 +325,14 @@ router.put("/:id", async (req: Request, res: Response) => {
 // DELETE /api/products/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
+    if (!isDbConnected()) {
+      const deleted = inMemoryStore.deleteProduct(req.params["id"]);
+      if (!deleted) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      return res.json({ message: "Product deleted" });
+    }
+
     const product = await Product.findByIdAndDelete(req.params["id"]);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
@@ -294,6 +343,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete product", details: String(err) });
   }
 });
+
 
 // DELETE /api/products (delete all products)
 router.delete("/", async (req: Request, res: Response) => {

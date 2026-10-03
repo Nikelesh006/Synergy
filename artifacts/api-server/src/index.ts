@@ -17,18 +17,18 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-// Connect to MongoDB then start the server
+// Initialize database connection (gracefully falls back if unavailable)
 connectDB()
-  .then(() => {
+  .catch((err) => {
+    logger.warn({ err: err?.message || err }, "MongoDB initialization encountered an error");
+  })
+  .finally(() => {
     app.listen(port, (err) => {
       if (err) {
         logger.error({ err }, "Error listening on port");
         process.exit(1);
       }
-      logger.info({ port }, "Server listening");
+      logger.info({ port }, "Synergy API Server listening successfully");
     });
-  })
-  .catch((err) => {
-    logger.error({ err }, "Failed to start server");
-    process.exit(1);
   });
+

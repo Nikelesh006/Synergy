@@ -1,7 +1,10 @@
 import { Router, type IRouter } from "express";
 import { BlogPost } from "../models/BlogPost.js";
+import { isDbConnected } from "../lib/db.js";
+import { inMemoryStore } from "../data/inMemoryStore.js";
 
 const router: IRouter = Router();
+
 
 // Create a new blog
 router.post("/", async (req, res): Promise<void> => {
@@ -67,29 +70,44 @@ router.post("/", async (req, res): Promise<void> => {
 
 // Get all blogs
 router.get("/", async (_req, res): Promise<void> => {
+  if (!isDbConnected()) {
+    return res.json(inMemoryStore.blogPosts);
+  }
   try {
     const blogs = await BlogPost.find({ status: 'Published' });
+    if (!blogs || blogs.length === 0) {
+      return res.json(inMemoryStore.blogPosts);
+    }
     res.json(blogs);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch blogs" });
+    res.json(inMemoryStore.blogPosts);
   }
 });
 
 // Get a single blog by slug
 router.get("/:slug", async (req, res): Promise<void> => {
+  const slug = req.params.slug;
+  if (!isDbConnected()) {
+    const b = inMemoryStore.blogPosts.find((item) => item.slug === slug || item.id === slug);
+    if (b) return res.json(b);
+    return res.status(404).json({ error: "Blog not found" });
+  }
   try {
-    const blog = await BlogPost.findOne({ slug: req.params.slug });
-    
+    const blog = await BlogPost.findOne({ slug });
     if (!blog) {
+      const b = inMemoryStore.blogPosts.find((item) => item.slug === slug || item.id === slug);
+      if (b) return res.json(b);
       res.status(404).json({ error: "Blog not found" });
       return;
     }
-    
     res.json(blog);
   } catch (error) {
+    const b = inMemoryStore.blogPosts.find((item) => item.slug === slug || item.id === slug);
+    if (b) return res.json(b);
     res.status(500).json({ error: "Failed to fetch blog" });
   }
 });
+
 
 // Update a blog
 router.put("/:id", async (req, res): Promise<void> => {

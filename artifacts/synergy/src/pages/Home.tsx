@@ -439,17 +439,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Brands Strip */}
-      <section className="container mx-auto px-4 py-6 sm:py-8 border-y border-gray-200 mt-4">
-        <h3 className="text-center text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-5 sm:mb-8">Trusted by industry leaders</h3>
-        <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-          {brands.slice(0, 6).map(brand => (
-            <Link href={`/shop?brand=${brand.slug}`} key={brand.id} className="text-base sm:text-xl font-black tracking-tighter text-gray-800 hover:text-blue-600 cursor-pointer">
-              {brand.name.toUpperCase()}
-            </Link>
-          ))}
+      {/* Trusted by industry leaders section */}
+      <section className="border-y border-slate-200/80 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/50 py-10 sm:py-14 my-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-semibold uppercase tracking-wider mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              Verified OEM & Component Partners
+            </div>
+            <h3 className="text-lg sm:text-2xl font-bold tracking-tight text-gray-900">
+              Trusted by Industry Leaders & Engineering Teams
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Direct sourcing partnerships ensuring 100% genuine parts, full warranties, and factory batch tracking.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 max-w-6xl mx-auto">
+            {(brands.length > 0 ? brands.slice(0, 6) : [
+              { id: "b1", name: "Havells", slug: "havells" },
+              { id: "b2", name: "Legrand", slug: "legrand" },
+              { id: "b3", name: "Schneider Electric", slug: "schneider" },
+              { id: "b4", name: "Siemens", slug: "siemens" },
+              { id: "b5", name: "ABB", slug: "abb" },
+              { id: "b6", name: "Polycab", slug: "polycab" }
+            ]).map((brand) => (
+              <Link
+                href={`/shop?brand=${brand.slug}`}
+                key={brand.id}
+                className="group relative flex flex-col items-center justify-center p-4 sm:p-5 rounded-xl bg-white border border-gray-200/80 shadow-xs hover:shadow-md hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 text-center cursor-pointer"
+              >
+                <span className="text-xs uppercase tracking-widest font-mono text-gray-400 group-hover:text-blue-600 transition-colors">
+                  Partner
+                </span>
+                <span className="mt-1 text-sm sm:text-base font-extrabold tracking-tight text-gray-800 group-hover:text-blue-700 transition-colors line-clamp-1">
+                  {brand.name}
+                </span>
+                <span className="mt-2 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500" /> Authorized
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
+
     </div>
   );
 }
