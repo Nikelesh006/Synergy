@@ -7,6 +7,19 @@ import bcrypt from "bcryptjs";
 
 const router = Router();
 
+function getAdminEmails(): string[] {
+  const envVal = process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "";
+  return envVal
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return getAdminEmails().includes(email.trim().toLowerCase());
+}
+
 
 // Google OAuth login route
 router.get("/google", (req: Request, res: Response, next: NextFunction) => {
@@ -30,6 +43,7 @@ router.get(
   (req: Request, res: Response) => {
     // Successful authentication - redirect back to frontend with complete user data
     const user = req.user as any;
+    const isUserAdmin = isAdminEmail(user.email);
     // Redirect to frontend with complete user info in query params
     const userData = {
       userId: user._id,
@@ -40,6 +54,8 @@ router.get(
       avatar: user.avatar,
       provider: user.provider,
       emailVerified: user.emailVerified,
+      role: isUserAdmin ? "admin" : (user.role || "user"),
+      isAdmin: isUserAdmin,
     };
     // Encode user data as JSON in URL
     const encodedUser = encodeURIComponent(JSON.stringify(userData));
@@ -150,6 +166,7 @@ router.post("/signin", async (req: Request, res: Response) => {
           }
           const isPasswordValid = await bcrypt.compare(password, user.password);
           if (isPasswordValid) {
+            const isUserAdmin = isAdminEmail(user.email);
             const userData = {
               userId: user._id,
               email: user.email,
@@ -157,6 +174,8 @@ router.post("/signin", async (req: Request, res: Response) => {
               avatar: user.avatar,
               provider: user.provider,
               emailVerified: user.emailVerified,
+              role: isUserAdmin ? "admin" : (user.role || "user"),
+              isAdmin: isUserAdmin,
             };
             res.json({ success: true, user: userData });
             return;
@@ -218,6 +237,7 @@ router.post("/signin", async (req: Request, res: Response) => {
 router.get("/me", (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     const user = req.user as any;
+    const isUserAdmin = isAdminEmail(user.email);
     res.json({
       success: true,
       user: {
@@ -225,6 +245,8 @@ router.get("/me", (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         avatar: user.avatar,
+        role: isUserAdmin ? "admin" : (user.role || "user"),
+        isAdmin: isUserAdmin,
       },
     });
   } else {

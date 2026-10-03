@@ -26,6 +26,7 @@ import AdminProducts from "@/pages/AdminProducts";
 import AdminSection from "@/pages/AdminSection";
 import AdminTutorials from "@/pages/AdminTutorials";
 import AdminTutorialsList from "@/pages/AdminTutorialsList";
+import AdminRoute from "@/components/admin/AdminRoute";
 import TrackOrder from "@/pages/TrackOrder";
 import BulkEnquiry from "@/pages/BulkEnquiry";
 import Services from "@/pages/Services";
@@ -58,19 +59,19 @@ function Router() {
         <Route path="/wishlist" component={Wishlist} />
         <Route path="/account" component={Account} />
         <Route path="/login" component={Login} />
-        <Route path="/admin/add-product" component={AdminDashboard} />
-        <Route path="/admin/edit-product/:id" component={AdminDashboard} />
-        <Route path="/admin/blogs-list" component={AdminBlogsList} />
-        <Route path="/admin/blogs" component={AdminBlogs} />
-        <Route path="/admin/add-blog" component={AdminBlogs} />
-        <Route path="/admin/edit-blog/:id" component={AdminBlogs} />
-        <Route path="/admin/tutorials-list" component={AdminTutorialsList} />
-        <Route path="/admin/tutorials" component={AdminTutorials} />
-        <Route path="/admin/add-tutorial" component={AdminTutorials} />
-        <Route path="/admin/edit-tutorial/:id" component={AdminTutorials} />
-        <Route path="/admin/products" component={AdminProducts} />
-        <Route path="/admin/orders" component={AdminOrders} />
-        <Route path="/admin" component={AdminDashboard} />
+        <AdminRoute path="/admin/add-product" component={AdminDashboard} />
+        <AdminRoute path="/admin/edit-product/:id" component={AdminDashboard} />
+        <AdminRoute path="/admin/blogs-list" component={AdminBlogsList} />
+        <AdminRoute path="/admin/blogs" component={AdminBlogs} />
+        <AdminRoute path="/admin/add-blog" component={AdminBlogs} />
+        <AdminRoute path="/admin/edit-blog/:id" component={AdminBlogs} />
+        <AdminRoute path="/admin/tutorials-list" component={AdminTutorialsList} />
+        <AdminRoute path="/admin/tutorials" component={AdminTutorials} />
+        <AdminRoute path="/admin/add-tutorial" component={AdminTutorials} />
+        <AdminRoute path="/admin/edit-tutorial/:id" component={AdminTutorials} />
+        <AdminRoute path="/admin/products" component={AdminProducts} />
+        <AdminRoute path="/admin/orders" component={AdminOrders} />
+        <AdminRoute path="/admin" component={AdminDashboard} />
         <Route path="/track-order" component={TrackOrder} />
         <Route path="/bulk-enquiry" component={BulkEnquiry} />
         <Route path="/services" component={Services} />

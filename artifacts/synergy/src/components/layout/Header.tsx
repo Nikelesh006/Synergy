@@ -63,7 +63,7 @@ function useTypewriter(phrases: string[]) {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const { cartCount, wishlist, openAuth, user } = useStore();
+  const { cartCount, wishlist, openAuth, user, isAdmin } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -152,35 +152,37 @@ export default function Header() {
 
           {/* Icons */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-6 flex-shrink-0">
-            <div className="group relative hidden sm:block">
-              <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
-                <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
-              </Link>
-              {/* Hover bridge so the cursor stays in the group while moving down to the panel */}
-              <div className="absolute top-full left-0 pt-3 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
-                <div
-                  className="w-52 origin-top-left rounded-xl border border-gray-100 bg-white/95 p-2 shadow-lg shadow-gray-900/5 ring-1 ring-black/5 backdrop-blur-sm
-                             opacity-0 -translate-y-1 scale-[0.98]
-                             transition-all duration-200 ease-out
-                             group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100"
-                >
-                  {adminLinks.map((item) => {
-                    const Icon = item.icon;
+            {isAdmin && (
+              <div className="group relative hidden sm:block">
+                <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+                  <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
+                </Link>
+                {/* Hover bridge so the cursor stays in the group while moving down to the panel */}
+                <div className="absolute top-full left-0 pt-3 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
+                  <div
+                    className="w-52 origin-top-left rounded-xl border border-gray-100 bg-white/95 p-2 shadow-lg shadow-gray-900/5 ring-1 ring-black/5 backdrop-blur-sm
+                               opacity-0 -translate-y-1 scale-[0.98]
+                               transition-all duration-200 ease-out
+                               group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100"
+                  >
+                    {adminLinks.map((item) => {
+                      const Icon = item.icon;
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="group/item flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:text-blue-600"
-                      >
-                        <Icon className="h-4 w-4 text-gray-400 transition-colors group-hover/item:text-blue-600" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="group/item flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:text-blue-600"
+                        >
+                          <Icon className="h-4 w-4 text-gray-400 transition-colors group-hover/item:text-blue-600" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {user ? (
               <Link
@@ -279,7 +281,7 @@ function MobileMenu({
   onSignIn: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  const { user } = useStore();
+  const { user, isAdmin } = useStore();
   // Track which parent sections are expanded (mirrors the desktop hover dropdowns)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     development: false,
@@ -400,16 +402,18 @@ function MobileMenu({
           />
 
           {/* Admin — collapsible like the other dropdowns */}
-          <MobileSection
-            label="Admin"
-            isOpen={openSections.admin}
-            onToggle={() => toggleSection('admin')}
-            onClose={onClose}
-            items={adminLinks.map((item) => ({
-              href: item.href,
-              label: item.label,
-            }))}
-          />
+          {isAdmin && (
+            <MobileSection
+              label="Admin"
+              isOpen={openSections.admin}
+              onToggle={() => toggleSection('admin')}
+              onClose={onClose}
+              items={adminLinks.map((item) => ({
+                href: item.href,
+                label: item.label,
+              }))}
+            />
+          )}
 
           <Link href="/about" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>About us</Link>
           <Link href="/faq" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 border-b border-gray-100" onClick={onClose}>FAQ</Link>

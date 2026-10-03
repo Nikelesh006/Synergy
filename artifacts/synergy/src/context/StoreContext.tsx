@@ -13,6 +13,8 @@ interface User {
   emailVerified?: boolean;
 }
 
+import { isEmailAdmin } from '../lib/admin';
+
 interface StoreContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity: number) => void;
@@ -37,10 +39,11 @@ interface StoreContextType {
   openAuth: (mode?: "signin" | "signup") => void;
   closeAuth: () => void;
 
-  // User authentication
+  // User authentication & Admin privilege
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
+  isAdmin: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -309,6 +312,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const isInCompare = useCallback((productId: string) => !!compare.find(p => p.id === productId), [compare]);
 
+  const isAdmin = useMemo(() => {
+    return isEmailAdmin(user?.email);
+  }, [user]);
+
   return (
     <StoreContext.Provider value={{
       cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
@@ -316,6 +323,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       compare, addToCompare, removeFromCompare, isInCompare,
       authOpen, authInitialMode, openAuth, closeAuth,
       user, setUser, logout,
+      isAdmin,
     }}>
       {children}
     </StoreContext.Provider>
