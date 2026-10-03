@@ -172,7 +172,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setWishlist([]);
     localStorage.removeItem('cart');
     localStorage.removeItem('wishlist');
+    // Redirect to home page if not already there
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
   }, []);
+
 
   // Cart actions
   const addToCart = useCallback(async (product: Product, quantity: number) => {

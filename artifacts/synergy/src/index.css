@@ -339,3 +339,15 @@
     inset: -1px;
   }
 }
+
+/* Disable dragging for all images throughout the site */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+

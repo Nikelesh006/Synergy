@@ -3,6 +3,7 @@ import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { connectDB } from "./lib/db.js";
 
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {

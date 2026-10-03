@@ -20,6 +20,7 @@ import { fetchApi } from "@/lib/api";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productImage";
 
 export default function AdminProducts() {
   const [, setLocation] = useLocation();
@@ -254,9 +255,13 @@ export default function AdminProducts() {
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                               <img
-                                src={getOptimizedImageUrl(mainImage, { width: 100, crop: "fill" })}
+                                src={getProductDisplayImage(mainImage, product.category, product.subcategory, 100)}
                                 alt={product.name}
                                 className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = getCategoryFallbackImage(product.category, product.subcategory);
+                                }}
                               />
                             </div>
                             <div>

@@ -13,10 +13,11 @@ export const categories: Category[] = [
   { id: "c10", name: "Safety Products", slug: "safety-products", description: "Helmets, gloves, and protective gear", productCount: 120 },
   { id: "c11", name: "Panel Accessories", slug: "panel-accessories", description: "Lugs, cable ties, din rails", productCount: 630 },
   { id: "c12", name: "Motors & Starters", slug: "motors-starters", description: "AC motors and submersible starters", productCount: 95 },
-  { id: "c13", name: "Development Boards", slug: "development-boards", description: "All kinds of development boards for your projects", productCount: 15 },
-  { id: "c14", name: "IoT", slug: "iot", description: "Internet of Things development boards and modules", productCount: 20 },
-  { id: "c15", name: "AI", slug: "ai", description: "Artificial Intelligence development boards and kits", productCount: 10 },
-  { id: "c16", name: "Robotics", slug: "robotics", description: "Robotics development boards and accessories", productCount: 25 },
-  { id: "c17", name: "Embedded Systems Boards", slug: "embedded-systems-boards", description: "Embedded systems development boards", productCount: 30 },
-  { id: "c18", name: "Sensors and Instrumentation (MR3461)", slug: "sensors-instrumentation-mr3461", description: "Lab equipments for Sensors and Instrumentation subject", productCount: 15 }
+  { id: "c13", name: "Development Boards", slug: "development-boards", description: "All kinds of development boards for your projects", image: "/categories/embedded-boards.jpg", productCount: 15 },
+  { id: "c14", name: "IoT", slug: "iot", description: "Internet of Things development boards and modules", image: "/categories/iot-boards.jpg", productCount: 20 },
+  { id: "c15", name: "AI", slug: "ai", description: "Artificial Intelligence development boards and kits", image: "/categories/ai-boards.jpg", productCount: 10 },
+  { id: "c16", name: "Robotics", slug: "robotics", description: "Robotics development boards and accessories", image: "/categories/robotics-boards.jpg", productCount: 25 },
+  { id: "c17", name: "Embedded Systems Boards", slug: "embedded-systems-boards", description: "Embedded systems development boards", image: "/categories/embedded-boards.jpg", productCount: 30 },
+  { id: "c18", name: "Sensors and Instrumentation (MR3461)", slug: "sensors-instrumentation-mr3461", description: "Lab equipments for Sensors and Instrumentation subject", image: "/categories/lab-equipments.jpg", productCount: 15 },
+  { id: "c19", name: "Lab Equipments", slug: "lab-equipments", description: "Calibrated instruments and benchtop test equipment for engineering labs", image: "/categories/lab-equipments.jpg", productCount: 15 }
 ];

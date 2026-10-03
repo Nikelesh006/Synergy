@@ -103,6 +103,16 @@ const categoryTheme: Record<
   },
 };
 
+const categoryImages: Record<string, string> = {
+  iot: "/categories/iot-boards.jpg",
+  ai: "/categories/ai-boards.jpg",
+  robotics: "/categories/robotics-boards.jpg",
+  "embedded-systems-boards": "/categories/embedded-boards.jpg",
+  "development-boards": "/categories/embedded-boards.jpg",
+  "lab-equipments": "/categories/lab-equipments.jpg",
+  "sensors-instrumentation-mr3461": "/categories/lab-equipments.jpg",
+};
+
 // Sensible default for any other category so the banner still looks great
 const defaultTheme = {
   accent: "text-slate-300",
@@ -475,43 +485,56 @@ function CategoryVisual({
           <Layers className="h-4 w-4 text-white/40" />
         </div>
 
-        {/* Board illustration */}
-        <div className={`mt-4 relative aspect-[5/3] rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 ring-1 border ${t.border} overflow-hidden`}>
-          {/* PCB traces */}
-          <svg viewBox="0 0 200 120" className="absolute inset-0 w-full h-full" aria-hidden>
-            <defs>
-              <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stopColor={t.trace[0]} stopOpacity="0" />
-                <stop offset="50%" stopColor={t.trace[0]} stopOpacity="0.7" />
-                <stop offset="100%" stopColor={t.trace[1]} stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <g stroke={`url(#${gradientId})`} strokeWidth="1" fill="none">
-              <path d="M0 30 H60 L80 50 H120 L140 30 H200" />
-              <path d="M0 70 H40 L60 90 H100 L120 70 H200" />
-              <path d="M0 100 H200" />
-            </g>
-            <g fill={t.dot} opacity="0.9">
-              <circle cx="40" cy="30" r="2" />
-              <circle cx="80" cy="50" r="2" />
-              <circle cx="140" cy="30" r="2" />
-              <circle cx="60" cy="90" r="2" />
-              <circle cx="120" cy="70" r="2" />
-            </g>
-          </svg>
-          {/* Chip */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className={`h-14 w-14 rounded-md bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ${t.border} flex items-center justify-center shadow-lg`}>
-              <t.ChipIcon className="h-7 w-7 text-white/80" />
+        {/* Board illustration / photo */}
+        <div className={`mt-4 relative aspect-[5/3] rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 ring-1 border ${t.border} overflow-hidden group`}>
+          {categoryImages[themeKey] ? (
+            <div className="relative w-full h-full">
+              <img
+                src={categoryImages[themeKey]}
+                alt={chipLabel}
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20 pointer-events-none" />
             </div>
-          </div>
-          {/* Side modules */}
-          <div className={`absolute left-3 top-3 h-6 w-8 rounded-sm ${t.iconBg} ring-1 ${t.border} flex items-center justify-center`}>
-            <CircuitBoard className="h-3.5 w-3.5" />
-          </div>
-          <div className={`absolute right-3 bottom-3 h-6 w-8 rounded-sm ${t.iconBg} ring-1 ${t.border} flex items-center justify-center`}>
-            <Wifi className="h-3.5 w-3.5" />
-          </div>
+          ) : (
+            <>
+              {/* PCB traces */}
+              <svg viewBox="0 0 200 120" className="absolute inset-0 w-full h-full" aria-hidden>
+                <defs>
+                  <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stopColor={t.trace[0]} stopOpacity="0" />
+                    <stop offset="50%" stopColor={t.trace[0]} stopOpacity="0.7" />
+                    <stop offset="100%" stopColor={t.trace[1]} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <g stroke={`url(#${gradientId})`} strokeWidth="1" fill="none">
+                  <path d="M0 30 H60 L80 50 H120 L140 30 H200" />
+                  <path d="M0 70 H40 L60 90 H100 L120 70 H200" />
+                  <path d="M0 100 H200" />
+                </g>
+                <g fill={t.dot} opacity="0.9">
+                  <circle cx="40" cy="30" r="2" />
+                  <circle cx="80" cy="50" r="2" />
+                  <circle cx="140" cy="30" r="2" />
+                  <circle cx="60" cy="90" r="2" />
+                  <circle cx="120" cy="70" r="2" />
+                </g>
+              </svg>
+              {/* Chip */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className={`h-14 w-14 rounded-md bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ${t.border} flex items-center justify-center shadow-lg`}>
+                  <t.ChipIcon className="h-7 w-7 text-white/80" />
+                </div>
+              </div>
+              {/* Side modules */}
+              <div className={`absolute left-3 top-3 h-6 w-8 rounded-sm ${t.iconBg} ring-1 ${t.border} flex items-center justify-center`}>
+                <CircuitBoard className="h-3.5 w-3.5" />
+              </div>
+              <div className={`absolute right-3 bottom-3 h-6 w-8 rounded-sm ${t.iconBg} ring-1 ${t.border} flex items-center justify-center`}>
+                <Wifi className="h-3.5 w-3.5" />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Stats row */}

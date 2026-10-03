@@ -35,14 +35,27 @@ class InMemoryStore {
   }
 
   reset() {
+    const getCategoryImage = (cat: string = "", sub: string = ""): string => {
+      const c = `${cat} ${sub}`.toLowerCase();
+      if (c.includes("iot") || c.includes("wifi")) return "/categories/iot-boards.jpg";
+      if (c.includes("ai")) return "/categories/ai-boards.jpg";
+      if (c.includes("robot") || c.includes("driver") || c.includes("motor")) return "/categories/robotics-boards.jpg";
+      if (c.includes("lab") || c.includes("sensor") || c.includes("mr3461") || c.includes("instrument")) return "/categories/lab-equipments.jpg";
+      return "/categories/embedded-boards.jpg";
+    };
+
     // Clone products with ID and string specifications
-    this.products = seedData.products.map((p, index) => ({
-      ...p,
-      _id: `mem_prod_${index + 1}`,
-      id: `mem_prod_${index + 1}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
+    this.products = seedData.products.map((p, index) => {
+      const hasRealImage = p.images?.some((img) => img && !img.includes("placehold.co") && !img.includes("placeholder"));
+      return {
+        ...p,
+        images: hasRealImage ? p.images : [getCategoryImage(p.category, p.subcategory)],
+        _id: `mem_prod_${index + 1}`,
+        id: `mem_prod_${index + 1}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    });
 
     this.categories = seedData.categories.map((c, index) => ({
       ...c,

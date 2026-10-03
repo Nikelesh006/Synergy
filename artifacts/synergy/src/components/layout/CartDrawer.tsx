@@ -4,6 +4,7 @@ import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productImage";
 
 export default function CartDrawer() {
   const { cart, cartCount, cartTotal, updateQuantity, removeFromCart } = useStore();
@@ -49,8 +50,16 @@ export default function CartDrawer() {
             <ul className="space-y-4">
               {cart.map((item) => (
                 <li key={item.product.id} className="flex gap-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                  <div className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-200 p-2 flex-shrink-0">
-                    <img src={getOptimizedImageUrl(item.product.images[0], { width: 160, crop: "fill" })} alt={item.product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                  <div className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-200 overflow-hidden flex-shrink-0">
+                    <img
+                      src={getProductDisplayImage(item.product.images?.[0], item.product.category, item.product.subcategory, 160)}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = getCategoryFallbackImage(item.product.category, item.product.subcategory);
+                      }}
+                    />
                   </div>
                   <div className="flex-1 flex flex-col">
                     <h4 className="text-sm font-semibold text-slate-900 line-clamp-2">{item.product.name}</h4>

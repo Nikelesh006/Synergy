@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   User,
   Package,
@@ -1128,6 +1128,7 @@ export default function Account() {
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | undefined>();
   const { user, logout, wishlist, addToCart, removeFromWishlist } = useStore();
+  const [, setLocation] = useLocation();
 
   const activeItem = navItems.find((n) => n.id === active) ?? navItems[0];
 
@@ -1138,10 +1139,15 @@ export default function Account() {
     setIsEditing(false);
     setAddressModalOpen(false);
     logout();
-    setTimeout(() => {
-      setLoading(false);
-    }, 300);
+    setLocation("/");
   };
+
+  // Redirect to home page if user is not logged in or logs out
+  useEffect(() => {
+    if (!user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
   // Fetch profile data
   useEffect(() => {

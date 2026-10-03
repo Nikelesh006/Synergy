@@ -19,6 +19,7 @@ import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productImage";
 import { cn } from "@/lib/utils";
 
 export default function Cart() {
@@ -210,12 +211,16 @@ export default function Cart() {
                       <div className="flex items-start gap-4 md:col-span-6">
                         <Link
                           href={`/product/${item.product.slug}`}
-                          className="block shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30 p-2"
+                          className="block shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30"
                         >
                           <img
-                            src={getOptimizedImageUrl(item.product.images[0], { width: 200, crop: "fill" })}
+                            src={getProductDisplayImage(item.product.images?.[0], item.product.category, item.product.subcategory, 200)}
                             alt={item.product.name}
-                            className="h-20 w-20 object-contain sm:h-24 sm:w-24"
+                            className="h-20 w-20 object-cover sm:h-24 sm:w-24"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = getCategoryFallbackImage(item.product.category, item.product.subcategory);
+                            }}
                           />
                         </Link>
                         <div className="min-w-0 flex-1">

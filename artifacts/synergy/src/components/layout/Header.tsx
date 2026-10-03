@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X, ChevronDown, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
@@ -63,7 +63,7 @@ function useTypewriter(phrases: string[]) {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const { cartCount, wishlist, openAuth, user, isAdmin } = useStore();
+  const { cartCount, wishlist, openAuth, user, isAdmin, logout } = useStore();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -185,23 +185,47 @@ export default function Header() {
             )}
 
             {user ? (
-              <Link
-                href="/account"
-                className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
-                aria-label="Go to profile"
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-xs font-semibold">
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
+              <div className="relative group">
+                <Link
+                  href="/account"
+                  className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
+                  aria-label="Go to profile"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-xs font-semibold">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                  )}
+                </Link>
+                {/* User Dropdown */}
+                <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50 animate-in fade-in-50 slide-in-from-top-1">
+                  <div className="px-3.5 py-2 border-b border-gray-100">
+                    <p className="text-xs font-bold text-gray-800 truncate">{user.name || "User"}</p>
+                    <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
                   </div>
-                )}
-              </Link>
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    My Account
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => logout()}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50 text-left transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Logout
+                  </button>
+                </div>
+              </div>
             ) : (
               <button
                 type="button"

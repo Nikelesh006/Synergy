@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight, Cpu, Wifi, CircuitBoard, Layers, Microchip } from "lucide-react";
+import { ArrowRight, Play, Package, Lightbulb, ArrowUpRight, Cpu, Wifi, CircuitBoard, Layers, Microchip, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
@@ -10,13 +10,25 @@ import ProductCard from "@/components/product/ProductCard";
 import SectionHeader from "@/components/layout/SectionHeader";
 import BlogsSlider from "@/components/blog/BlogsSlider";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import synergyBanner1 from "../../public/synergy-banner1.png";
+import synergyBanner2 from "../../public/synergy-banner2.png";
+import synergyBanner3 from "../../public/synergy-banner3.png";
+import synergyBanner4 from "../../public/synergy-banner4.png";
+import catIotImg from "../../public/categories/iot-boards.jpg";
+import catAiImg from "../../public/categories/ai-boards.jpg";
+import catRoboticsImg from "../../public/categories/robotics-boards.jpg";
+import catEmbeddedImg from "../../public/categories/embedded-boards.jpg";
+import catLabImg from "../../public/categories/lab-equipments.jpg";
 
 const banners = [
-  "/banner-1.jpg",
-  "/banner-2.jpg",
-  "/banner-3.jpg",
-  "/banner-4.jpg",
+  synergyBanner1,
+  synergyBanner2,
+  synergyBanner3,
+  synergyBanner4,
 ];
+
+
+
 
 export default function Home() {
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -52,7 +64,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(timer);
   }, []);
 
@@ -61,23 +73,42 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-10 sm:gap-16 md:gap-20 pb-10 sm:pb-16 md:pb-20">
-      {/* Hero Section */}
-      <section className="relative w-full aspect-[8/3] bg-gray-100 overflow-hidden pb-6">
+      {/* Hero Carousel Section */}
+      <section className="relative w-full aspect-[8/3] bg-slate-900 overflow-hidden pb-6 group">
         {banners.map((bg, index) => (
           <div 
             key={index} 
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
           >
             <img 
-              src={getOptimizedImageUrl(bg, { width: 1920 })} 
-              alt={`Banner ${index + 1}`} 
-              className="w-full h-full object-cover"
+              src={bg} 
+              alt={`Synergy Banner ${index + 1}`} 
+              className="w-full h-full object-cover object-center"
               onError={(e) => {
-                e.currentTarget.src = `https://placehold.co/1920x720/1a1a2e/ffffff?text=Banner+${index + 1}+-+8:3+Ratio`;
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `/synergy-banner${index + 1}.png`;
               }}
             />
           </div>
         ))}
+
+        {/* Carousel Prev/Next Arrows */}
+        <button
+          type="button"
+          onClick={() => setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length)}
+          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg cursor-pointer"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setCurrentBanner((prev) => (prev + 1) % banners.length)}
+          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg cursor-pointer"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
         
         {/* Navigation Dots */}
         <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center gap-2">
@@ -85,12 +116,14 @@ export default function Home() {
             <button
               key={index}
               onClick={() => setCurrentBanner(index)}
-              className={`h-2 rounded-full transition-all duration-300 shadow-sm ${index === currentBanner ? "bg-white w-8" : "bg-white/50 hover:bg-white/80 w-2"}`}
+              className={`h-2 rounded-full transition-all duration-300 shadow-sm cursor-pointer ${index === currentBanner ? "bg-white w-8" : "bg-white/50 hover:bg-white/80 w-2"}`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       </section>
+
+
 
 
 
@@ -108,18 +141,26 @@ export default function Home() {
         />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
           {[
-            { id: 1, name: <>IOT Development<br/>Boards</>, slug: "iot" },
-            { id: 2, name: <>AI Development<br/>Boards</>, slug: "ai" },
-            { id: 3, name: <>Robotics Development<br/>Boards</>, slug: "robotics" },
-            { id: 4, name: <>Embedded Systems<br/>Development Boards</>, slug: "embedded-systems-boards" },
-            { id: 5, name: "Lab Equipments", slug: "lab-equipments" }
+            { id: 1, name: <>IOT Development<br/>Boards</>, slug: "iot", image: catIotImg, fallback: "/categories/iot-boards.jpg" },
+            { id: 2, name: <>AI Development<br/>Boards</>, slug: "ai", image: catAiImg, fallback: "/categories/ai-boards.jpg" },
+            { id: 3, name: <>Robotics Development<br/>Boards</>, slug: "robotics", image: catRoboticsImg, fallback: "/categories/robotics-boards.jpg" },
+            { id: 4, name: <>Embedded Systems<br/>Development Boards</>, slug: "embedded-systems-boards", image: catEmbeddedImg, fallback: "/categories/embedded-boards.jpg" },
+            { id: 5, name: "Lab Equipments", slug: "lab-equipments", image: catLabImg, fallback: "/categories/lab-equipments.jpg" }
           ].map(cat => (
             <Link key={cat.id} href={`/category/${cat.slug}`} className="flex flex-col items-center group">
-              <div className="w-full aspect-square bg-gray-50 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center mb-4 group-hover:shadow-md group-hover:border-blue-300 transition-all overflow-hidden relative">
-                {/* Fallback Icon - you can replace this completely with an <img /> tag when ready */}
-                <Package className="h-12 w-12 text-blue-500/50 absolute" />
+              <div className="w-full aspect-square bg-slate-100/80 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-center mb-3 group-hover:shadow-md group-hover:border-blue-400 group-hover:-translate-y-1 transition-all duration-300 overflow-hidden relative p-2.5">
+                <img 
+                  src={cat.image} 
+                  alt={typeof cat.name === 'string' ? cat.name : cat.slug}
+                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 ease-out"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = cat.fallback;
+                  }}
+                />
               </div>
-              <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 text-center leading-tight">
+              <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 text-center leading-tight transition-colors">
                 {cat.name}
               </span>
             </Link>
