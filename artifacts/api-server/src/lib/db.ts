@@ -14,10 +14,12 @@ export function isDbConnected(): boolean {
 }
 
 // Try public DNS servers to resolve MongoDB Atlas SRV records on Windows
-try {
-  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
-} catch {
-  // Ignore DNS configuration failure
+if (process.platform === "win32") {
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+  } catch {
+    // Ignore DNS configuration failure
+  }
 }
 
 async function autoSeedIfEmpty() {

@@ -2,20 +2,27 @@ import type { Request, Response } from "express";
 import app from "../artifacts/api-server/src/app.js";
 import { connectDB } from "../artifacts/api-server/src/lib/db.js";
 
-let isDbConnected = false;
+let dbPromise: Promise<void> | null = null;
 
 async function ensureDb() {
-  if (!isDbConnected) {
-    try {
-      await connectDB();
-      isDbConnected = true;
-    } catch (err: any) {
+  if (!dbPromise) {
+    dbPromise = connectDB().catch((err) => {
       console.warn("MongoDB connection warning in Vercel serverless function:", err?.message || err);
-    }
+      dbPromise = null;
+    });
   }
+  return dbPromise;
 }
 
 export default async function handler(req: Request, res: Response) {
-  await ensureDb();
-  return app(req, res);
+  try {
+    await ensureDb();
+    return app(req, res);
+  } catch (error: any) {
+    console.error("Unhandled serverless error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error in API handler",
+      details: error?.message || String(error),
+    });
+  }
 }

@@ -9,12 +9,24 @@ const router = Router();
 
 
 // Google OAuth login route
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/google", (req: Request, res: Response, next: NextFunction) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    res.status(503).json({ error: "Google OAuth is not configured on this server." });
+    return;
+  }
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+});
 
 // Google OAuth callback route
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "http://localhost:5173/login?error=oauth_failed" }),
+  (req: Request, res: Response, next: NextFunction) => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      res.redirect("/login?error=oauth_not_configured");
+      return;
+    }
+    passport.authenticate("google", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+  },
   (req: Request, res: Response) => {
     // Successful authentication - redirect back to frontend with complete user data
     const user = req.user as any;
