@@ -40,43 +40,28 @@ type AdminTutorial = {
 };
 
 const defaultTutorial: AdminTutorial = {
-  id: "tutorial-draft-001",
-  title: "Getting Started with ESP32 IoT Projects",
-  slug: "getting-started-with-esp32-iot-projects",
-  youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  id: "",
+  title: "",
+  slug: "",
+  youtubeUrl: "",
   thumbnailUrl: "",
-  channelName: "Synergy Tutorials",
-  instructor: "Synergy Team",
-  category: "IoT",
+  channelName: "",
+  instructor: "",
+  category: "",
   level: "Beginner",
   status: "Draft",
-  duration: "12:30",
-  publishDate: "2026-06-29",
-  shortDescription: "Learn the basic setup, wiring, and first upload flow for ESP32 based IoT projects.",
-  description:
-    "This tutorial walks through ESP32 board selection, USB driver checks, IDE setup, Wi-Fi configuration, and a simple first test for IoT project development.",
-  tags: "ESP32,IoT,Development Boards,Tutorial",
-  resourcesUrl: "https://synergy.in/resources/esp32-starter",
-  metaTitle: "Getting Started with ESP32 IoT Projects",
-  metaDescription: "A beginner-friendly ESP32 tutorial covering setup, wiring, Wi-Fi, and first project checks.",
-  isFeatured: true,
+  duration: "",
+  publishDate: "",
+  shortDescription: "",
+  description: "",
+  tags: "",
+  resourcesUrl: "",
+  metaTitle: "",
+  metaDescription: "",
+  isFeatured: false,
 };
 
-const initialTutorials: AdminTutorial[] = [
-  defaultTutorial,
-  {
-    ...defaultTutorial,
-    id: "tutorial-draft-002",
-    title: "How to Wire a Relay Module Safely",
-    slug: "how-to-wire-a-relay-module-safely",
-    youtubeUrl: "https://youtu.be/aqz-KE-bpKQ",
-    category: "Automation",
-    level: "Intermediate",
-    status: "Published",
-    duration: "09:45",
-    isFeatured: false,
-  },
-];
+const initialTutorials: AdminTutorial[] = [];
 
 const tutorialCategories = ["IoT", "Automation", "Power Electronics", "Sensors", "Development Boards"];
 const tutorialLevels = ["Beginner", "Intermediate", "Advanced"];
@@ -207,20 +192,7 @@ export default function AdminTutorials() {
         });
         
         // Reset form
-        setForm({
-          ...defaultTutorial,
-          id: `tutorial-draft-${String(tutorials.length + 1).padStart(3, "0")}`,
-          title: "",
-          slug: "",
-          youtubeUrl: "",
-          thumbnailUrl: "",
-          shortDescription: "",
-          description: "",
-          tags: "",
-          resourcesUrl: "",
-          metaTitle: "",
-          metaDescription: "",
-        });
+        setForm(defaultTutorial);
       }
     } catch (error) {
       console.error("Error adding tutorial:", error);
@@ -269,20 +241,7 @@ export default function AdminTutorials() {
         });
         
         // Reset form
-        setForm({
-          ...defaultTutorial,
-          id: `tutorial-draft-${String(tutorials.length + 1).padStart(3, "0")}`,
-          title: "",
-          slug: "",
-          youtubeUrl: "",
-          thumbnailUrl: "",
-          shortDescription: "",
-          description: "",
-          tags: "",
-          resourcesUrl: "",
-          metaTitle: "",
-          metaDescription: "",
-        });
+        setForm(defaultTutorial);
       }
     } catch (error) {
       toast({

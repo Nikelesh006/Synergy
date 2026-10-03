@@ -47,45 +47,27 @@ type AdminProduct = {
 };
 
 const defaultProduct: AdminProduct = {
-  id: "iot-smart-board-001",
-  name: "IoT Smart Board Controller 8 Relay",
-  sku: "IOT-SB-8R-WIFI",
-  brand: "Synergy Controls",
-  category: "IOT",
-  subcategory: "ESP32 (Rex32)",
-  description:
-    "Industrial IoT smart board with 8 relay outputs, app-ready control, sensor inputs, and DIN rail mounting for automation projects.",
-  keyFeatures: "8 relay outputs, WiFi control, DIN rail mounting",
-  specifications: "Input: 12V DC, Connectivity: WiFi, Relay Rating: 10A",
-  images:
-    "https://placehold.co/700x700/e8f1ff/1f2937?text=IoT+Smart+Board\nhttps://placehold.co/700x700/ecfdf5/1f2937?text=Relay+Module",
-  price: "3499",
-  offerPrice: "2999",
-  stock: "24",
-  mpn: "N/A",
+  id: "",
+  name: "",
+  sku: "",
+  brand: "",
+  category: "",
+  subcategory: "",
+  description: "",
+  keyFeatures: "",
+  specifications: "",
+  images: "",
+  price: "",
+  offerPrice: "",
+  stock: "",
+  mpn: "",
   hsnCode: "",
-  tags: "Power Supply,DC Power Supply,Voltage Regulator",
-  isFeatured: true,
+  tags: "",
+  isFeatured: false,
   inStock: true,
 };
 
-const initialProducts: AdminProduct[] = [
-  defaultProduct,
-  {
-    ...defaultProduct,
-    id: "iot-smart-board-002",
-    name: "ESP32 Smart Energy Monitor Board",
-    sku: "IOT-EM-ESP32-CT",
-    subcategory: "ESP32 (Rex32)",
-    description: "ESP32 based board for current sensing and energy telemetry.",
-    price: "2199",
-    offerPrice: "1899",
-    stock: "36",
-    mpn: "N/A",
-    tags: "ESP32,Energy Monitor",
-    isFeatured: false,
-  },
-];
+const initialProducts: AdminProduct[] = [];
 
 const categories = [
   "IOT",

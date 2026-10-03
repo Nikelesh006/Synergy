@@ -36,37 +36,24 @@ type AdminBlog = {
 };
 
 const defaultBlog: AdminBlog = {
-  id: "blog-draft-001",
-  title: "How to Choose the Right IoT Development Board",
-  slug: "how-to-choose-the-right-iot-development-board",
-  author: "Synergy Editorial",
-  category: "Buying Guide",
+  id: "",
+  title: "",
+  slug: "",
+  author: "",
+  category: "",
   status: "Draft",
-  publishDate: "2026-06-29",
-  readTime: "6 min read",
-  coverImage: "https://placehold.co/1200x720/e8f1ff/111827?text=IoT+Development+Board+Guide",
-  excerpt: "A practical guide to comparing connectivity, processor, GPIO, power, and expansion needs before choosing an IoT board.",
-  content:
-    "Start by defining the application requirements, including connectivity, power limits, sensor interfaces, enclosure space, and production quantity. Then compare available boards by processor, memory, wireless support, documentation, and long-term availability.",
-  tags: "IoT,Development Boards,Buying Guide,Electronics",
-  metaTitle: "How to Choose the Right IoT Development Board",
-  metaDescription: "Learn what to check before buying an IoT development board for your electronics or automation project.",
-  isFeatured: true,
+  publishDate: "",
+  readTime: "",
+  coverImage: "",
+  excerpt: "",
+  content: "",
+  tags: "",
+  metaTitle: "",
+  metaDescription: "",
+  isFeatured: false,
 };
 
-const initialBlogs: AdminBlog[] = [
-  defaultBlog,
-  {
-    ...defaultBlog,
-    id: "blog-draft-002",
-    title: "Power Supply Basics for Embedded Projects",
-    slug: "power-supply-basics-for-embedded-projects",
-    category: "Technical",
-    status: "Published",
-    readTime: "8 min read",
-    isFeatured: false,
-  },
-];
+const initialBlogs: AdminBlog[] = [];
 
 const blogCategories = ["Buying Guide", "Technical", "Industry News", "Project Ideas", "Product Updates"];
 const blogStatuses = ["Review", "Published", "Archived"];
@@ -186,17 +173,7 @@ export default function AdminBlogs() {
         });
         
         // Reset form
-        setForm({
-          ...defaultBlog,
-          id: `blog-draft-${String(blogs.length + 1).padStart(3, "0")}`,
-          title: "",
-          slug: "",
-          coverImage: "",
-          excerpt: "",
-          content: "",
-          metaTitle: "",
-          metaDescription: "",
-        });
+        setForm(defaultBlog);
       }
     } catch (error) {
       console.error("Error adding blog:", error);
@@ -241,17 +218,7 @@ export default function AdminBlogs() {
         });
         
         // Reset form
-        setForm({
-          ...defaultBlog,
-          id: `blog-draft-${String(blogs.length + 1).padStart(3, "0")}`,
-          title: "",
-          slug: "",
-          coverImage: "",
-          excerpt: "",
-          content: "",
-          metaTitle: "",
-          metaDescription: "",
-        });
+        setForm(defaultBlog);
       }
     } catch (error) {
       toast({
