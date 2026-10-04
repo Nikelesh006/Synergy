@@ -14,6 +14,10 @@ import synergyBanner1 from "../../public/synergy-banner1.png";
 import synergyBanner2 from "../../public/synergy-banner2.png";
 import synergyBanner3 from "../../public/synergy-banner3.png";
 import synergyBanner4 from "../../public/synergy-banner4.png";
+import synergymBanner1 from "../../public/synergym-banner1.png";
+import synergymBanner2 from "../../public/synergym-banner2.png";
+import synergymBanner3 from "../../public/synergym-banner3.png";
+import synergymBanner4 from "../../public/synergym-banner4.png";
 import catIotImg from "../../public/categories/iot-boards.jpg";
 import catAiImg from "../../public/categories/ai-boards.jpg";
 import catRoboticsImg from "../../public/categories/robotics-boards.jpg";
@@ -21,10 +25,34 @@ import catEmbeddedImg from "../../public/categories/embedded-boards.jpg";
 import catLabImg from "../../public/categories/lab-equipments.jpg";
 
 const banners = [
-  synergyBanner1,
-  synergyBanner2,
-  synergyBanner3,
-  synergyBanner4,
+  {
+    desktop: synergyBanner1,
+    mobile: synergymBanner1,
+    desktopFallback: "/synergy-banner1.png",
+    mobileFallback: "/synergym-banner1.png",
+    alt: "Synergy Development Boards",
+  },
+  {
+    desktop: synergyBanner2,
+    mobile: synergymBanner2,
+    desktopFallback: "/synergy-banner2.png",
+    mobileFallback: "/synergym-banner2.png",
+    alt: "Synergy Smart Boards",
+  },
+  {
+    desktop: synergyBanner3,
+    mobile: synergymBanner3,
+    desktopFallback: "/synergy-banner3.png",
+    mobileFallback: "/synergym-banner3.png",
+    alt: "Synergy Learn Build Create",
+  },
+  {
+    desktop: synergyBanner4,
+    mobile: synergymBanner4,
+    desktopFallback: "/synergy-banner4.png",
+    mobileFallback: "/synergym-banner4.png",
+    alt: "Synergy Rex32 IoT Board",
+  },
 ];
 
 
@@ -32,6 +60,31 @@ const banners = [
 
 export default function Home() {
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 45;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    } else if (isRightSwipe) {
+      setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
+    }
+  };
 
   const { data: productsData } = useProducts();
   const { data: categoriesData } = useCategories();
@@ -74,21 +127,30 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-10 sm:gap-16 md:gap-20 pb-10 sm:pb-16 md:pb-20">
       {/* Hero Carousel Section */}
-      <section className="relative w-full aspect-[8/3] bg-slate-900 overflow-hidden pb-6 group">
-        {banners.map((bg, index) => (
+      <section 
+        className="relative w-full aspect-[1200/1311] md:aspect-[8/3] bg-slate-900 overflow-hidden pb-6 group select-none"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {banners.map((item, index) => (
           <div 
             key={index} 
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
           >
-            <img 
-              src={bg} 
-              alt={`Synergy Banner ${index + 1}`} 
-              className="w-full h-full object-cover object-center"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = `/synergy-banner${index + 1}.png`;
-              }}
-            />
+            <picture className="w-full h-full block">
+              <source media="(min-width: 768px)" srcSet={item.desktop} />
+              <img 
+                src={item.mobile} 
+                alt={item.alt} 
+                className="w-full h-full object-cover object-center"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
+                  e.currentTarget.src = isDesktop ? item.desktopFallback : item.mobileFallback;
+                }}
+              />
+            </picture>
           </div>
         ))}
 
@@ -111,12 +173,12 @@ export default function Home() {
         </button>
         
         {/* Navigation Dots */}
-        <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center gap-2">
+        <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 z-30 flex justify-center gap-1.5 sm:gap-2">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentBanner(index)}
-              className={`h-2 rounded-full transition-all duration-300 shadow-sm cursor-pointer ${index === currentBanner ? "bg-white w-8" : "bg-white/50 hover:bg-white/80 w-2"}`}
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 shadow-sm cursor-pointer ${index === currentBanner ? "bg-white w-6 sm:w-8" : "bg-white/50 hover:bg-white/80 w-1.5 sm:w-2"}`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

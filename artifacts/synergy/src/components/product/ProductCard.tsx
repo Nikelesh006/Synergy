@@ -14,7 +14,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, addToWishlist, isInWishlist } = useStore();
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -40,7 +40,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isInWishlist(product.id)) return;
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+      toast({
+        title: "Removed from Wishlist",
+        description: `${product.name} has been removed from your wishlist.`,
+        duration: 2500,
+      });
+      return;
+    }
     addToWishlist(product);
     toast({
       title: "Saved to Wishlist",
@@ -71,6 +79,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/product/${product.slug}`}
+      onClick={() => {
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          if (document.documentElement) document.documentElement.scrollTop = 0;
+          if (document.body) document.body.scrollTop = 0;
+        }
+      }}
       className="group relative flex flex-col bg-gradient-to-b from-white to-gray-50/60 border border-gray-200/80 rounded-2xl hover:border-gray-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 overflow-hidden"
     >
       {/* Subtle gradient glow on hover */}
@@ -100,11 +115,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           }}
         />
 
-        {/* Quick Actions (Hover) */}
-        <div className="absolute right-2 top-2 sm:right-3 sm:top-3 flex flex-col gap-1.5 sm:gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+        {/* Quick Actions (Hover on desktop, always visible on mobile) */}
+        <div className="absolute right-2 top-2 sm:right-3 sm:top-3 flex flex-col gap-1.5 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 translate-x-0 sm:translate-x-2 sm:group-hover:translate-x-0">
           <button
             onClick={handleWishlist}
-            className={`group/wishlist p-1.5 sm:p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-red-50 border border-gray-100 transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+            className={`group/wishlist p-1.5 sm:p-2.5 bg-white/95 sm:bg-white/90 backdrop-blur-sm rounded-full shadow-md sm:shadow-lg hover:bg-red-50 border border-gray-100 transition-all ${isInWishlist(product.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
           >
             <Heart
               className={`h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300 ${isInWishlist(product.id) ? 'fill-current' : 'group-hover/wishlist:fill-current group-hover/wishlist:scale-110'}`}

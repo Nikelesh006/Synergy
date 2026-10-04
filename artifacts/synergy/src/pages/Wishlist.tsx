@@ -1,11 +1,24 @@
 import { Link } from "wouter";
-import { Heart, ArrowRight } from "lucide-react";
+import { Heart, ArrowRight, ShoppingCart } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Wishlist() {
-  const { wishlist } = useStore();
+  const { wishlist, addToCart } = useStore();
+  const { toast } = useToast();
+
+  const handleAddAllToCart = () => {
+    if (wishlist.length === 0) return;
+    wishlist.forEach((item) => addToCart(item.product, 1));
+    toast({
+      title: "Added All to Cart",
+      description: `All ${wishlist.length} item(s) from your wishlist have been added to your cart.`,
+      variant: "cart",
+      duration: 3000,
+    });
+  };
 
   if (wishlist.length === 0) {
     return (
@@ -47,19 +60,24 @@ export default function Wishlist() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-8">
+    <div className="bg-gray-50 min-h-screen py-5 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
-            <p className="text-sm text-gray-500 mt-1">{wishlist.length} items saved</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">My Wishlist</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{wishlist.length} item{wishlist.length === 1 ? '' : 's'} saved</p>
           </div>
-          <Button variant="outline" className="border-gray-300 text-gray-700">
-            Add All to Cart
+          <Button 
+            variant="outline" 
+            onClick={handleAddAllToCart}
+            className="w-full sm:w-auto border-gray-300 text-gray-700 text-xs sm:text-sm font-medium h-9 sm:h-10 hover:bg-slate-100 flex items-center justify-center gap-1.5"
+          >
+            <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
+            <span>Add All to Cart</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-x-4 md:gap-x-6 gap-y-4 sm:gap-y-10 md:gap-y-12">
           {wishlist.map((item) => (
             <ProductCard key={item.product.id} product={item.product} />
           ))}

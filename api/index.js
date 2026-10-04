@@ -123262,12 +123262,13 @@ var seedData = {
     { name: "Safety Products", slug: "safety-products", description: "Helmets, gloves, and protective gear", productCount: 120 },
     { name: "Panel Accessories", slug: "panel-accessories", description: "Lugs, cable ties, din rails", productCount: 630 },
     { name: "Motors & Starters", slug: "motors-starters", description: "AC motors and submersible starters", productCount: 95 },
-    { name: "Development Boards", slug: "development-boards", description: "All kinds of development boards for your projects", productCount: 15 },
-    { name: "IoT", slug: "iot", description: "Internet of Things development boards and modules", productCount: 20 },
-    { name: "AI", slug: "ai", description: "Artificial Intelligence development boards and kits", productCount: 10 },
-    { name: "Robotics", slug: "robotics", description: "Robotics development boards and accessories", productCount: 25 },
-    { name: "Embedded Systems Boards", slug: "embedded-systems-boards", description: "Embedded systems development boards", productCount: 30 },
-    { name: "Sensors and Instrumentation (MR3461)", slug: "sensors-instrumentation-mr3461", description: "Lab equipments for Sensors and Instrumentation subject", productCount: 15 }
+    { name: "Development Boards", slug: "development-boards", description: "All kinds of development boards for your projects", image: "/categories/embedded-boards.jpg", productCount: 15 },
+    { name: "IoT", slug: "iot", description: "Internet of Things development boards and modules", image: "/categories/iot-boards.jpg", productCount: 20 },
+    { name: "AI", slug: "ai", description: "Artificial Intelligence development boards and kits", image: "/categories/ai-boards.jpg", productCount: 10 },
+    { name: "Robotics", slug: "robotics", description: "Robotics development boards and accessories", image: "/categories/robotics-boards.jpg", productCount: 25 },
+    { name: "Embedded Systems Boards", slug: "embedded-systems-boards", description: "Embedded systems development boards", image: "/categories/embedded-boards.jpg", productCount: 30 },
+    { name: "Sensors and Instrumentation (MR3461)", slug: "sensors-instrumentation-mr3461", description: "Lab equipments for Sensors and Instrumentation subject", image: "/categories/lab-equipments.jpg", productCount: 15 },
+    { name: "Lab Equipments", slug: "lab-equipments", description: "Calibrated instruments and benchtop test equipment for engineering labs", image: "/categories/lab-equipments.jpg", productCount: 15 }
   ],
   brands: [
     { name: "Havells", slug: "havells", description: "Leading electrical equipment company in India.", productCount: 1200 },
@@ -125166,13 +125167,25 @@ var InMemoryStore = class {
     this.reset();
   }
   reset() {
-    this.products = seedData.products.map((p, index) => ({
-      ...p,
-      _id: `mem_prod_${index + 1}`,
-      id: `mem_prod_${index + 1}`,
-      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-    }));
+    const getCategoryImage = (cat = "", sub = "") => {
+      const c = `${cat} ${sub}`.toLowerCase();
+      if (c.includes("iot") || c.includes("wifi")) return "/categories/iot-boards.jpg";
+      if (c.includes("ai")) return "/categories/ai-boards.jpg";
+      if (c.includes("robot") || c.includes("driver") || c.includes("motor")) return "/categories/robotics-boards.jpg";
+      if (c.includes("lab") || c.includes("sensor") || c.includes("mr3461") || c.includes("instrument")) return "/categories/lab-equipments.jpg";
+      return "/categories/embedded-boards.jpg";
+    };
+    this.products = seedData.products.map((p, index) => {
+      const hasRealImage = p.images?.some((img) => img && !img.includes("placehold.co") && !img.includes("placeholder"));
+      return {
+        ...p,
+        images: hasRealImage ? p.images : [getCategoryImage(p.category, p.subcategory)],
+        _id: `mem_prod_${index + 1}`,
+        id: `mem_prod_${index + 1}`,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+      };
+    });
     this.categories = seedData.categories.map((c, index) => ({
       ...c,
       _id: `mem_cat_${index + 1}`,

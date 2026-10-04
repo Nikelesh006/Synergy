@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NotFound from "./not-found";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productImage";
@@ -15,11 +15,27 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const { data: product, isLoading, isError } = useProduct(slug || "");
-  const { addToCart, addToWishlist, isInWishlist } = useStore();
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!isLoading && product && typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    }
+  }, [isLoading, product]);
 
   if (isLoading) {
     return (
@@ -145,7 +161,15 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                   <button
                     onClick={() => {
-                      if (isInWishlist(product.id)) return;
+                      if (isInWishlist(product.id)) {
+                        removeFromWishlist(product.id);
+                        toast({
+                          title: "Removed from Wishlist",
+                          description: `${product.name} has been removed from your wishlist.`,
+                          duration: 2500,
+                        });
+                        return;
+                      }
                       addToWishlist(product);
                       toast({
                         title: "Saved to Wishlist",
