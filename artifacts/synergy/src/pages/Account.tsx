@@ -1353,7 +1353,7 @@ export default function Account() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Manage your profile, orders, addresses, and billing — all in one
-            place.
+            place
           </p>
         </div>
       </section>

@@ -37,7 +37,7 @@ if (typeof window !== "undefined") {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === "IMG" || target.closest("img"))) {
         e.preventDefault();
-        return false;
+        return;
       }
     },
     { capture: true }
