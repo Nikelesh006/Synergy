@@ -24,7 +24,7 @@ export default function TutorialArticle() {
   };
 
   const videoId = getYoutubeVideoId(post.youtubeUrl);
-  const image = post.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "");
+  const image = post.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors");
 
   return (
     <div className="bg-white min-h-screen py-12">

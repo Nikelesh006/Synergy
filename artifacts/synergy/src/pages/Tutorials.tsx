@@ -26,6 +26,17 @@ function formatDate(iso: string) {
   });
 }
 
+function getTutorialThumbnail(thumb?: string, ytUrl?: string) {
+  if (thumb && !thumb.startsWith("http://www.youtube") && !thumb.startsWith("https://www.youtube")) {
+    return thumb;
+  }
+  const match = ytUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  if (match?.[1]) {
+    return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+  }
+  return "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors";
+}
+
 export default function Tutorials() {
   const { data: tutorials, isLoading } = useTutorials();
   const tutorialPosts = tutorials || [];
@@ -125,8 +136,12 @@ export default function Tutorials() {
                   aria-label={featured.title}
                 >
                   <img
-                    src={getOptimizedImageUrl(featured.thumbnailUrl, { width: 1000 }) || featured.youtubeUrl}
+                    src={getOptimizedImageUrl(getTutorialThumbnail(featured.thumbnailUrl, featured.youtubeUrl), { width: 1000 })}
                     alt={featured.title}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src =
+                        "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors";
+                    }}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0" />
@@ -290,8 +305,12 @@ export default function Tutorials() {
                     aria-label={post.title}
                   >
                     <img
-                      src={getOptimizedImageUrl(post.thumbnailUrl, { width: 600, crop: "fill" }) || post.youtubeUrl}
+                      src={getOptimizedImageUrl(getTutorialThumbnail(post.thumbnailUrl, post.youtubeUrl), { width: 600, crop: "fill" })}
                       alt={post.title}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src =
+                          "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors";
+                      }}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 to-transparent" />

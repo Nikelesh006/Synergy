@@ -105,11 +105,11 @@ export default function Home() {
       const videoId = getYoutubeVideoId(tutorial.youtubeUrl);
       const fallbackThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "";
       return {
-        id: tutorial._id,
+        id: tutorial._id || tutorial.id,
         title: tutorial.title,
         slug: tutorial.slug,
         youtubeUrl: tutorial.youtubeUrl,
-        image: tutorial.thumbnailUrl || fallbackThumbnail
+        image: tutorial.thumbnailUrl || fallbackThumbnail || "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors"
       };
     });
   }, [tutorialsData]);
@@ -423,11 +423,11 @@ export default function Home() {
                 {/* Cover — compact square on mobile, normal on larger screens */}
                 <div className="relative w-full aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-900">
                   <img
-                    src={getOptimizedImageUrl(tutorial.image, { width: 800, crop: "fill" }) || "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial"}
+                    src={getOptimizedImageUrl(tutorial.image, { width: 800, crop: "fill" }) || "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors"}
                     alt={tutorial.title}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src =
-                        "https://placehold.co/800x450/0f172a/ffffff?text=Video+Tutorial";
+                        "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors";
                     }}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   />

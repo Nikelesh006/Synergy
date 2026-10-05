@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, Loader2, Play, Save, UploadCloud, Video } from "lucide-react";
+import { ArrowLeft, CalendarDays, Loader2, Play, Save, UploadCloud, Video, Sparkles } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,28 @@ type AdminTutorial = {
   isFeatured: boolean;
 };
 
+export const rex32Preset: AdminTutorial = {
+  id: "",
+  title: "Interfacing Sensors with REX32 Robotics Core",
+  slug: "interfacing-sensors-rex32-robotics-core",
+  youtubeUrl: "https://www.youtube.com/watch?v=s5Q8hM5H89A",
+  thumbnailUrl: "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors",
+  channelName: "Synergy Robotics Lab",
+  instructor: "Synergy Embedded Systems",
+  category: "Sensors",
+  level: "Intermediate",
+  status: "Published",
+  duration: "14:20",
+  publishDate: new Date().toISOString().split("T")[0],
+  shortDescription: "REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB.",
+  description: "Learn how to get started with the REX32 Robotics Core development board.\n\nREX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB.\n\nIn this step-by-step tutorial, you will learn:\n1. REX32 industrial hardware architecture, power rails, and pin configuration.\n2. Reading on-board sensors and interfacing external I2C/analog sensor modules.\n3. Safe high-power motor driver configuration and PWM speed control.\n4. Isolated AC load control switching with opto-isolated channels.\n5. Real-time telemetry monitoring over WiFi and Bluetooth.",
+  tags: "REX32, Sensors, Robotics Core, Development Board, Motor Drivers",
+  resourcesUrl: "https://github.com/synergy/rex32-robotics-core-guide",
+  metaTitle: "Interfacing Sensors with REX32 Robotics Core",
+  metaDescription: "REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB.",
+  isFeatured: true,
+};
+
 const defaultTutorial: AdminTutorial = {
   id: "",
   title: "",
@@ -64,7 +86,7 @@ const defaultTutorial: AdminTutorial = {
   isFeatured: false,
 };
 
-const initialTutorials: AdminTutorial[] = [];
+const initialTutorials: AdminTutorial[] = [rex32Preset];
 
 const tutorialCategories = ["IoT", "Automation", "Power Electronics", "Sensors", "Development Boards"];
 const tutorialLevels = ["Beginner", "Intermediate", "Advanced"];
@@ -100,6 +122,40 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tutorials, setTutorials] = useState<AdminTutorial[]>(initialTutorials);
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const list = await fetchApi<any[]>("/tutorials?all=true");
+        if (Array.isArray(list) && list.length > 0) {
+          setTutorials(list.map((tut: any) => ({
+            id: tut._id || tut.id || "",
+            title: tut.title || "",
+            slug: tut.slug || "",
+            youtubeUrl: tut.youtubeUrl || "",
+            thumbnailUrl: tut.thumbnailUrl || "",
+            channelName: tut.channelName || "",
+            instructor: tut.instructor || tut.channelName || "",
+            category: tut.category || "",
+            level: tut.level || "Beginner",
+            status: tut.status || "Draft",
+            duration: tut.duration || "",
+            publishDate: tut.publishDate || "",
+            shortDescription: tut.shortDescription || "",
+            description: tut.description || "",
+            tags: Array.isArray(tut.tags) ? tut.tags.join(", ") : (tut.tags || ""),
+            resourcesUrl: tut.resourcesUrl || "",
+            metaTitle: tut.metaTitle || "",
+            metaDescription: tut.metaDescription || "",
+            isFeatured: Boolean(tut.isFeatured),
+          })));
+        }
+      } catch (e) {
+        // keep default preset
+      }
+    };
+    fetchRecent();
+  }, []);
 
   useEffect(() => {
     if (tutorialId) {
@@ -345,35 +401,94 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
                   <h2 className={sectionTitleClass}>Video Details</h2>
                   <p className="mt-1 text-sm text-black">Required YouTube source, title, channel, and tutorial classification.</p>
                 </div>
-                <Badge variant="outline" className="w-fit border-blue-200 bg-white text-black">
-                  YouTube ready
-                </Badge>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setForm(rex32Preset);
+                      toast({
+                        title: "REX32 Template Loaded",
+                        description: "Populated form with REX32 Robotics Core & Sensor tutorial preset.",
+                      });
+                    }}
+                    className="h-8 border-blue-300 bg-blue-50 text-xs font-semibold text-blue-800 hover:bg-blue-100"
+                  >
+                    <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-600" />
+                    Load REX32 Sensor Preset
+                  </Button>
+                  <Badge variant="outline" className="w-fit border-blue-200 bg-white text-black">
+                    YouTube ready
+                  </Badge>
+                </div>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="youtubeUrl" className="text-sm font-semibold text-black">YouTube Video URL or ID</Label>
-                  <Input id="youtubeUrl" value={form.youtubeUrl} onChange={(event) => updateField("youtubeUrl", event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="youtubeUrl"
+                    value={form.youtubeUrl}
+                    onChange={(event) => updateField("youtubeUrl", event.target.value)}
+                    className={fieldClass}
+                    placeholder="https://www.youtube.com/watch?v=s5Q8hM5H89A"
+                    required
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="title" className="text-sm font-semibold text-black">Tutorial Title</Label>
-                  <Input id="title" value={form.title} onChange={(event) => handleTitleChange(event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="title"
+                    value={form.title}
+                    onChange={(event) => handleTitleChange(event.target.value)}
+                    className={fieldClass}
+                    placeholder="e.g. Interfacing Sensors with REX32 Robotics Core"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="slug" className="text-sm font-semibold text-black">Slug</Label>
-                  <Input id="slug" value={form.slug} onChange={(event) => updateField("slug", event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="slug"
+                    value={form.slug}
+                    onChange={(event) => updateField("slug", event.target.value)}
+                    className={fieldClass}
+                    placeholder="e.g. interfacing-sensors-rex32-robotics-core"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="channelName" className="text-sm font-semibold text-black">YouTube Channel</Label>
-                  <Input id="channelName" value={form.channelName} onChange={(event) => updateField("channelName", event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="channelName"
+                    value={form.channelName}
+                    onChange={(event) => updateField("channelName", event.target.value)}
+                    className={fieldClass}
+                    placeholder="e.g. Synergy Robotics Lab"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="instructor" className="text-sm font-semibold text-black">Instructor</Label>
-                  <Input id="instructor" value={form.instructor} onChange={(event) => updateField("instructor", event.target.value)} className={fieldClass} />
+                  <Input
+                    id="instructor"
+                    value={form.instructor}
+                    onChange={(event) => updateField("instructor", event.target.value)}
+                    className={fieldClass}
+                    placeholder="e.g. Synergy Embedded Systems"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration" className="text-sm font-semibold text-black">Video Duration</Label>
-                  <Input id="duration" value={form.duration} onChange={(event) => updateField("duration", event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="duration"
+                    value={form.duration}
+                    onChange={(event) => updateField("duration", event.target.value)}
+                    className={fieldClass}
+                    placeholder="e.g. 14:20"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-3">
@@ -431,13 +546,17 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
                 <p className="mt-1 text-sm text-black">The page displays the YouTube thumbnail only, with a play button overlay.</p>
               </div>
 
-              <div className="relative aspect-video overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+              <div className="relative aspect-video overflow-hidden rounded-md border border-slate-200 bg-slate-900">
                 {thumbnailUrl ? (
                   <img src={thumbnailUrl} alt={form.title || "Tutorial thumbnail"} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-black">Enter a YouTube URL to show thumbnail</div>
+                  <img
+                    src="https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors"
+                    alt="REX32 placeholder thumbnail"
+                    className="h-full w-full object-cover opacity-90"
+                  />
                 )}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-blue-700 shadow-md">
                     <Play className="ml-1 h-7 w-7 fill-current" />
                   </div>
@@ -446,7 +565,13 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
               <div className="mt-5 space-y-3">
                 <Label htmlFor="thumbnailUrl" className="text-sm font-semibold text-black">Custom Thumbnail</Label>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <Input id="thumbnailUrl" value={form.thumbnailUrl} onChange={(event) => updateField("thumbnailUrl", event.target.value)} className={fieldClass} placeholder="Optional: YouTube thumbnail used if blank" />
+                  <Input
+                    id="thumbnailUrl"
+                    value={form.thumbnailUrl}
+                    onChange={(event) => updateField("thumbnailUrl", event.target.value)}
+                    className={fieldClass}
+                    placeholder="https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors"
+                  />
                   <label className="inline-flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-blue-700 bg-white px-4 text-sm font-semibold text-black shadow-sm transition-colors hover:bg-blue-50">
                     {isUploadingThumbnail ? (
                       <>
@@ -474,28 +599,65 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
               <div className="grid gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="shortDescription" className="text-sm font-semibold text-black">Short Description</Label>
-                  <Input id="shortDescription" value={form.shortDescription} onChange={(event) => updateField("shortDescription", event.target.value)} className={fieldClass} required />
+                  <Input
+                    id="shortDescription"
+                    value={form.shortDescription}
+                    onChange={(event) => updateField("shortDescription", event.target.value)}
+                    className={fieldClass}
+                    placeholder="REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB."
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description" className="text-sm font-semibold text-black">Full Description</Label>
-                  <Textarea id="description" value={form.description} onChange={(event) => updateField("description", event.target.value)} className={textareaClass} />
+                  <Textarea
+                    id="description"
+                    value={form.description}
+                    onChange={(event) => updateField("description", event.target.value)}
+                    className={textareaClass}
+                    placeholder="Learn how to get started with the REX32 Robotics Core development board. REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB."
+                  />
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="tags" className="text-sm font-semibold text-black">Tags</Label>
-                    <Input id="tags" value={form.tags} onChange={(event) => updateField("tags", event.target.value)} className={fieldClass} />
+                    <Input
+                      id="tags"
+                      value={form.tags}
+                      onChange={(event) => updateField("tags", event.target.value)}
+                      className={fieldClass}
+                      placeholder="REX32, Sensors, Robotics Core, Development Board, Motor Drivers"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="resourcesUrl" className="text-sm font-semibold text-black">Resources URL</Label>
-                    <Input id="resourcesUrl" value={form.resourcesUrl} onChange={(event) => updateField("resourcesUrl", event.target.value)} className={fieldClass} />
+                    <Input
+                      id="resourcesUrl"
+                      value={form.resourcesUrl}
+                      onChange={(event) => updateField("resourcesUrl", event.target.value)}
+                      className={fieldClass}
+                      placeholder="https://github.com/synergy/rex32-robotics-core-guide"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="metaTitle" className="text-sm font-semibold text-black">Meta Title</Label>
-                    <Input id="metaTitle" value={form.metaTitle} onChange={(event) => updateField("metaTitle", event.target.value)} className={fieldClass} />
+                    <Input
+                      id="metaTitle"
+                      value={form.metaTitle}
+                      onChange={(event) => updateField("metaTitle", event.target.value)}
+                      className={fieldClass}
+                      placeholder="Interfacing Sensors with REX32 Robotics Core"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="metaDescription" className="text-sm font-semibold text-black">Meta Description</Label>
-                    <Input id="metaDescription" value={form.metaDescription} onChange={(event) => updateField("metaDescription", event.target.value)} className={fieldClass} />
+                    <Input
+                      id="metaDescription"
+                      value={form.metaDescription}
+                      onChange={(event) => updateField("metaDescription", event.target.value)}
+                      className={fieldClass}
+                      placeholder="REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB."
+                    />
                   </div>
                 </div>
               </div>
@@ -541,13 +703,17 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
                 <Video className="h-5 w-5 text-blue-700" />
                 <h2 className={sectionTitleClass}>Video Card Preview</h2>
               </div>
-              <div className="relative aspect-video overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+              <div className="relative aspect-video overflow-hidden rounded-md border border-slate-200 bg-slate-900">
                 {thumbnailUrl ? (
                   <img src={thumbnailUrl} alt={form.title || "Tutorial preview"} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-black">No thumbnail</div>
+                  <img
+                    src="https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors"
+                    alt="REX32 placeholder preview"
+                    className="h-full w-full object-cover opacity-90"
+                  />
                 )}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-blue-700 shadow-md">
                     <Play className="ml-1 h-6 w-6 fill-current" />
                   </div>
@@ -555,17 +721,17 @@ export default function AdminTutorials({ params }: { params?: { id?: string } })
               </div>
               <div className="mt-4 space-y-3">
                 <div>
-                  <h3 className="font-bold text-black">{form.title || "Untitled tutorial"}</h3>
-                  <p className="mt-1 text-sm text-black">{form.shortDescription || "Tutorial short description"}</p>
+                  <h3 className="font-bold text-black">{form.title || "Interfacing Sensors with REX32 Robotics Core"}</h3>
+                  <p className="mt-1 text-sm text-black">{form.shortDescription || "REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB."}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="border-blue-200 bg-white text-black">{form.category}</Badge>
-                  <Badge variant="outline" className="border-slate-200 bg-white text-black">{form.level}</Badge>
-                  <Badge variant="outline" className="border-slate-200 bg-white text-black">{form.status}</Badge>
+                  <Badge variant="outline" className="border-blue-200 bg-white text-black">{form.category || "Sensors"}</Badge>
+                  <Badge variant="outline" className="border-slate-200 bg-white text-black">{form.level || "Intermediate"}</Badge>
+                  <Badge variant="outline" className="border-slate-200 bg-white text-black">{form.status || "Draft"}</Badge>
                 </div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-black">
                   <CalendarDays className="h-4 w-4 text-blue-700" />
-                  {form.publishDate || "No publish date"} · {form.duration || "Duration"}
+                  {form.publishDate || "2024-06-01"} · {form.duration || "14:20"}
                 </div>
               </div>
             </section>
