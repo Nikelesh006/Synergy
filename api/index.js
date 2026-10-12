@@ -126237,6 +126237,21 @@ router6.get("/", async (req, res) => {
     return;
   }
   try {
+    let cleanTutorialDoc2 = function(t2) {
+      if (t2 && (t2.youtubeUrl?.includes("dQw4w9Wg") || t2.title?.includes("ESP32 and WiFi"))) {
+        return {
+          ...t2,
+          title: t2.title?.includes("ESP32") ? "Interfacing Sensors with REX32 Robotics Core" : t2.title,
+          slug: t2.slug?.includes("esp32") ? "interfacing-sensors-rex32-robotics-core" : t2.slug,
+          youtubeUrl: "https://www.youtube.com/watch?v=s5Q8hM5H89A",
+          thumbnailUrl: !t2.thumbnailUrl || t2.thumbnailUrl.includes("placehold.co") || t2.thumbnailUrl.includes("ESP32") ? "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors" : t2.thumbnailUrl,
+          shortDescription: t2.title?.includes("ESP32") ? "REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB." : t2.shortDescription,
+          category: t2.title?.includes("ESP32") ? "Sensors" : t2.category
+        };
+      }
+      return t2;
+    };
+    var cleanTutorialDoc = cleanTutorialDoc2;
     const filter = {};
     if (status) {
       filter.status = status;
@@ -126263,7 +126278,7 @@ router6.get("/", async (req, res) => {
       res.json(inMemoryStore.tutorials.filter((t2) => t2.status === "Published"));
       return;
     }
-    const mapped = tutorials.map((t2) => ({ ...t2, id: String(t2._id) }));
+    const mapped = tutorials.map(cleanTutorialDoc2).map((t2) => ({ ...t2, id: String(t2._id) }));
     res.json(mapped);
   } catch (error) {
     console.error("Error fetching tutorials:", error);
@@ -126273,10 +126288,24 @@ router6.get("/", async (req, res) => {
 router6.get("/:idOrSlug", async (req, res) => {
   const { idOrSlug } = req.params;
   const target = Array.isArray(idOrSlug) ? idOrSlug[0] : idOrSlug;
+  function cleanTutorialDoc(t2) {
+    if (t2 && (t2.youtubeUrl?.includes("dQw4w9Wg") || t2.title?.includes("ESP32 and WiFi"))) {
+      return {
+        ...t2,
+        title: t2.title?.includes("ESP32") ? "Interfacing Sensors with REX32 Robotics Core" : t2.title,
+        slug: t2.slug?.includes("esp32") ? "interfacing-sensors-rex32-robotics-core" : t2.slug,
+        youtubeUrl: "https://www.youtube.com/watch?v=s5Q8hM5H89A",
+        thumbnailUrl: !t2.thumbnailUrl || t2.thumbnailUrl.includes("placehold.co") || t2.thumbnailUrl.includes("ESP32") ? "https://placehold.co/800x400/0f172a/38bdf8?text=REX32+Robotics+Core+Sensors" : t2.thumbnailUrl,
+        shortDescription: t2.title?.includes("ESP32") ? "REX32 Robotics Core integrates full-featured high-power motor drivers, AC load control, on-board sensors, and wireless connectivity directly onto a single industrial-grade PCB." : t2.shortDescription,
+        category: t2.title?.includes("ESP32") ? "Sensors" : t2.category
+      };
+    }
+    return t2;
+  }
   if (!isDbConnected()) {
     const t2 = inMemoryStore.tutorials.find((item) => item.slug === target || item.id === target || item._id === target);
     if (t2) {
-      res.json(t2);
+      res.json(cleanTutorialDoc(t2));
       return;
     }
     res.status(404).json({ error: "Tutorial not found" });
@@ -126293,13 +126322,13 @@ router6.get("/:idOrSlug", async (req, res) => {
     if (!tutorial) {
       const t2 = inMemoryStore.tutorials.find((item) => item.slug === target || item.id === target || item._id === target);
       if (t2) {
-        res.json(t2);
+        res.json(cleanTutorialDoc(t2));
         return;
       }
       res.status(404).json({ error: "Tutorial not found" });
       return;
     }
-    res.json({ ...tutorial, id: String(tutorial._id) });
+    res.json(cleanTutorialDoc({ ...tutorial, id: String(tutorial._id) }));
   } catch (error) {
     console.error("Error fetching single tutorial:", error);
     res.status(500).json({ error: "Failed to fetch tutorial" });

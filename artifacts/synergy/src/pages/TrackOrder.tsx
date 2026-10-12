@@ -5,7 +5,21 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
 export default function TrackOrder() {
-  const [isTracking, setIsTracking] = useState(false);
+  const [orderId, setOrderId] = useState(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("trackingId") || p.get("id") || "";
+    }
+    return "";
+  });
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [isTracking, setIsTracking] = useState(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      return Boolean(p.get("trackingId") || p.get("id"));
+    }
+    return false;
+  });
 
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +43,22 @@ export default function TrackOrder() {
           <form onSubmit={handleTrack} className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-              <Input type="text" placeholder="e.g. SYN-12345" required />
+              <Input
+                type="text"
+                placeholder="e.g. SYN-89241"
+                value={orderId}
+                onChange={(e) => setOrderId(e.target.value)}
+                required
+              />
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Email or Phone</label>
-              <Input type="text" placeholder="Enter email or phone number" required />
+              <Input
+                type="text"
+                placeholder="Enter email or phone number"
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
+              />
             </div>
             <div className="flex items-end">
               <Button type="submit" className="w-full md:w-auto h-10 px-8 bg-blue-600 hover:bg-blue-700">
@@ -48,7 +73,7 @@ export default function TrackOrder() {
             <div className="border-b border-gray-200 p-6 bg-slate-50">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Order #SYN-12345</h2>
+                  <h2 className="text-lg font-bold text-gray-900">Order #{orderId || "SYN-89241"}</h2>
                   <p className="text-sm text-gray-500">Placed on Oct 24, 2024</p>
                 </div>
                 <div className="text-right">

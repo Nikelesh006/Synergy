@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X, ChevronDown, LogOut } from "lucide-react";
+import { LayoutDashboard, Search, User, Heart, ShoppingCart, Cpu, Flame, Menu, X, ChevronDown, LogOut, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MegaMenu from "./MegaMenu";
@@ -215,6 +215,13 @@ export default function Header() {
                   >
                     <User className="h-3.5 w-3.5" />
                     My Account
+                  </Link>
+                  <Link
+                    href="/account?tab=orders"
+                    className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  >
+                    <Package className="h-3.5 w-3.5" />
+                    My Orders
                   </Link>
                   <button
                     type="button"

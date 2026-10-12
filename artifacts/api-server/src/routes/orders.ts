@@ -24,6 +24,30 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/orders
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const { userId, email } = req.query;
+    const filter: Record<string, any> = {};
+    if (userId) filter.userId = userId;
+    if (email) filter["customer.email"] = email;
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, orders: orders.map((o: any) => ({ ...o, id: String(o._id) })) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
+  }
+});
+
+// GET /api/orders/user/:userId
+router.get("/user/:userId", async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, orders: orders.map((o: any) => ({ ...o, id: String(o._id) })) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user orders", details: String(err) });
+  }
+});
+
 // GET /api/orders/:trackingId
 router.get("/:trackingId", async (req: Request, res: Response) => {
   try {

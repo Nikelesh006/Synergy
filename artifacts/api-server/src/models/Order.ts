@@ -21,6 +21,7 @@ interface IShippingAddress {
 
 export interface IOrder extends Document {
   trackingId: string;
+  userId?: string;
   customer: {
     name: string;
     email: string;
@@ -66,6 +67,7 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
 const orderSchema = new Schema<IOrder>(
   {
     trackingId: { type: String, required: true, unique: true },
+    userId: { type: String, index: true },
     customer: {
       name: { type: String, required: true },
       email: { type: String, required: true },

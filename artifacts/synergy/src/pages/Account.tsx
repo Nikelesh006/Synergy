@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   User,
@@ -9,6 +9,8 @@ import {
   Settings,
   Bell,
   ChevronRight,
+  ChevronLeft,
+  ArrowRight,
   Mail,
   Phone,
   Building2,
@@ -28,6 +30,15 @@ import {
   Receipt,
   Crown,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  ShoppingBag,
+  RotateCcw,
+  ExternalLink,
+  Copy,
+  Check,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +46,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/context/StoreContext";
 import { fetchApi } from "@/lib/api";
+import ProductCard from "@/components/product/ProductCard";
+import { products as catalogProducts } from "@/data/products";
+import { useToast } from "@/hooks/use-toast";
+import { Product } from "@/types";
 
 type SectionId =
   | "profile"
@@ -87,35 +102,991 @@ const navItems: NavItem[] = [
 ];
 
 
-const orders = [
-  {
-    id: "SYN-12345",
-    date: "Oct 24, 2024",
-    items: "STM32 Dev Board × 4, Sensors Kit × 2",
-    amount: "₹12,450",
-    status: "In Transit",
-    statusTone: "blue",
-    icon: Truck,
-  },
-  {
-    id: "SYN-12100",
-    date: "Sep 15, 2024",
-    items: "IoT Gateway Pro, 50× Node Modules",
-    amount: "₹45,800",
-    status: "Delivered",
-    statusTone: "emerald",
-    icon: CheckCircle2,
-  },
-  {
-    id: "SYN-11890",
-    date: "Aug 02, 2024",
-    items: "Workshop Kit – Robotics Batch 2024",
-    amount: "₹8,200",
-    status: "Processing",
-    statusTone: "amber",
-    icon: Clock,
-  },
-];
+export interface OrderItem {
+  product: Product;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface DetailedOrder {
+  id: string;
+  trackingId?: string;
+  date: string;
+  time?: string;
+  status: "In Transit" | "Delivered" | "Processing" | "Confirmed" | "Cancelled";
+  statusTone: "blue" | "emerald" | "amber" | "indigo" | "rose";
+  estimatedDelivery?: string;
+  deliveredDate?: string;
+  courierName: string;
+  trackingNumber: string;
+  paymentMethod: string;
+  paymentStatus: "Paid" | "Pending" | "Refunded";
+  subtotal: number;
+  gst: number;
+  shippingCharge: number;
+  total: number;
+  shippingAddress: {
+    name: string;
+    phone: string;
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  trackingSteps: {
+    title: string;
+    description: string;
+    timestamp?: string;
+    completed: boolean;
+    current?: boolean;
+  }[];
+  items: OrderItem[];
+}
+
+function getInitialRichOrders(): DetailedOrder[] {
+  const p0 = catalogProducts[0] || {
+    id: "1",
+    name: "ESP32 (Rex32)",
+    slug: "esp32-rex32",
+    sku: "DEV-ESP32-REX",
+    brand: "Espressif",
+    category: "IoT",
+    subcategory: "ESP32 (Rex32)",
+    shortDescription: "Versatile ESP32 development board (Rex32) with WiFi and Bluetooth.",
+    description: "The ESP32 Rex32 is a low-cost, low-power microcontroller with integrated Wi-Fi and Bluetooth.",
+    specifications: { "Processor": "Dual-core Xtensa 32-bit LX6" },
+    features: ["Low Power", "High Performance"],
+    applications: ["Smart Home", "IoT"],
+    images: ["/categories/iot-boards.jpg"],
+    price: 450,
+    compareAtPrice: 550,
+    currency: "INR",
+    stock: 145,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.8,
+    reviewCount: 124,
+    isFeatured: true,
+    isNewArrival: true,
+    isBestSeller: true,
+    warrantyInfo: "1 Year Manufacturer Warranty",
+    shippingInfo: "Ships within 24 hours.",
+  };
+
+  const p1 = catalogProducts[1] || {
+    id: "2",
+    name: "ESP32 AI Development Board (REX32 AI)",
+    slug: "esp32-ai-rex32-ai",
+    sku: "DEV-ESP32-AI",
+    brand: "Espressif",
+    category: "AI",
+    subcategory: "ESP32 (Rex32 AI)",
+    shortDescription: "Advanced ESP32 board tailored for Edge AI and computer vision.",
+    description: "Designed specifically for Edge AI computing.",
+    specifications: { "Processor": "Dual-core Xtensa LX7" },
+    features: ["Edge AI Support"],
+    applications: ["Voice Recognition"],
+    images: ["/categories/ai-boards.jpg"],
+    price: 1250,
+    compareAtPrice: 1500,
+    currency: "INR",
+    stock: 52,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.9,
+    reviewCount: 89,
+    isFeatured: true,
+    isNewArrival: true,
+    isBestSeller: true,
+    warrantyInfo: "1 Year Manufacturer Warranty",
+    shippingInfo: "Ships within 24-48 hours.",
+  };
+
+  const p2 = catalogProducts[2] || {
+    id: "3",
+    name: "Arduino Development Board",
+    slug: "arduino-development-board",
+    sku: "DEV-ARD-UNO",
+    brand: "Arduino",
+    category: "Embedded Systems Boards",
+    subcategory: "Arduino development",
+    shortDescription: "Classic Arduino development board for beginners and pros.",
+    description: "Perfect starting point for your electronics projects.",
+    specifications: { "Microcontroller": "ATmega328P" },
+    features: ["Easy to Program"],
+    applications: ["Prototyping"],
+    images: ["/categories/embedded-boards.jpg"],
+    price: 850,
+    currency: "INR",
+    stock: 300,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.8,
+    reviewCount: 412,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: true,
+    warrantyInfo: "1 Year Manufacturer Warranty",
+    shippingInfo: "Standard shipping applies.",
+  };
+
+  const p3 = catalogProducts[25] || {
+    id: "26",
+    name: "Raspberry Pi 4 Model B (4GB)",
+    slug: "raspberry-pi-4-model-b-4gb",
+    sku: "RPI-4-4GB",
+    brand: "Raspberry Pi",
+    category: "Development Boards",
+    subcategory: "Single Board Computers",
+    shortDescription: "High-performance quad-core 64-bit single board computer.",
+    description: "Powerful single board computer.",
+    specifications: { "Processor": "Broadcom BCM2711" },
+    features: ["Dual micro-HDMI"],
+    applications: ["IoT", "Edge Computing"],
+    images: ["/categories/embedded-boards.jpg"],
+    price: 5200,
+    currency: "INR",
+    stock: 45,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.8,
+    reviewCount: 340,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: true,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships immediately",
+  };
+
+  const p4 = catalogProducts[19] || {
+    id: "20",
+    name: "Fluke T6-1000 Electrical Tester",
+    slug: "fluke-t6-1000-electrical-tester",
+    sku: "FLU-T6-1000",
+    brand: "Fluke",
+    category: "Tools & Test Equipment",
+    subcategory: "Testers",
+    shortDescription: "Measure voltage and current without test leads.",
+    description: "Electrical tester with FieldSense technology.",
+    specifications: { "FieldSense AC Voltage": "1000 V" },
+    features: ["FieldSense Technology"],
+    applications: ["Industrial Maintenance"],
+    images: ["/categories/lab-equipments.jpg"],
+    price: 12500,
+    currency: "INR",
+    stock: 8,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.9,
+    reviewCount: 34,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: false,
+    warrantyInfo: "2 Years Manufacturer Warranty",
+    shippingInfo: "Premium Shipping Available.",
+  };
+
+  const p5 = catalogProducts[3] || {
+    id: "4",
+    name: "ESP32 Servo Driver",
+    slug: "esp32-servo-driver",
+    sku: "DRV-ESP32-SRV",
+    brand: "Synergy Tech Labs",
+    category: "Robotics",
+    subcategory: "ESP32 servo drivers",
+    shortDescription: "Multi-channel servo driver shield for ESP32.",
+    description: "Control multiple servo motors effortlessly.",
+    specifications: { "Channels": "16", "Interface": "I2C" },
+    features: ["Daisy-chainable", "High Precision"],
+    applications: ["Robotics", "RC Vehicles"],
+    images: ["/categories/robotics-boards.jpg"],
+    price: 650,
+    currency: "INR",
+    stock: 80,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.7,
+    reviewCount: 45,
+    isFeatured: true,
+    isNewArrival: true,
+    isBestSeller: false,
+    warrantyInfo: "6 Months Warranty",
+    shippingInfo: "Available for immediate dispatch.",
+  };
+
+  const p6 = catalogProducts[4] || {
+    id: "5",
+    name: "ESP32 DC Driver",
+    slug: "esp32-dc-driver",
+    sku: "DRV-ESP32-DC",
+    brand: "Synergy Tech Labs",
+    category: "Robotics",
+    subcategory: "ESP32 DC drivers",
+    shortDescription: "High-power dual DC motor driver for ESP32.",
+    description: "Robust and reliable control for up to two high-current DC motors.",
+    specifications: { "Motor Channels": "2", "Max Current": "3A per channel" },
+    features: ["Thermal Protection", "PWM Speed Control"],
+    applications: ["Mobile Robots", "Conveyor Belts"],
+    images: ["/categories/robotics-boards.jpg"],
+    price: 780,
+    currency: "INR",
+    stock: 65,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.6,
+    reviewCount: 32,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: true,
+    warrantyInfo: "6 Months Warranty",
+    shippingInfo: "Ships within 2-3 business days.",
+  };
+
+  const p7 = catalogProducts[29] || {
+    id: "30",
+    name: "STM32 Nucleo-F401RE",
+    slug: "stm32-nucleo-f401re",
+    sku: "STM-NUC-F401RE",
+    brand: "STMicroelectronics",
+    category: "Embedded Systems Boards",
+    subcategory: "Development Boards",
+    shortDescription: "Development board for STM32F401RE microcontroller.",
+    description: "Affordable and flexible way to try out new ideas and build prototypes.",
+    specifications: { "Microcontroller": "STM32F401RE", "Core": "ARM Cortex-M4" },
+    features: ["Arduino Uno V3 connectivity", "Integrated ST-LINK/V2-1"],
+    applications: ["Embedded Systems", "Motor Control"],
+    images: ["/categories/embedded-boards.jpg"],
+    price: 1800,
+    currency: "INR",
+    stock: 50,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.6,
+    reviewCount: 45,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: false,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships within 24hrs",
+  };
+
+  const p8 = catalogProducts[33] || {
+    id: "34",
+    name: "Teensy 4.1",
+    slug: "teensy-4-1",
+    sku: "TEENSY-41",
+    brand: "PJRC",
+    category: "Robotics",
+    subcategory: "Microcontrollers",
+    shortDescription: "High-performance microcontroller running at 600 MHz.",
+    description: "Fastest microcontroller with an expanded set of powerful peripherals.",
+    specifications: { "Processor": "ARM Cortex-M7 at 600 MHz", "Flash Memory": "8MB" },
+    features: ["Incredibly Fast", "Ethernet Mac", "Lots of I/O Pins"],
+    applications: ["Audio Synthesis", "Fast Control Loops"],
+    images: ["/categories/robotics-boards.jpg"],
+    price: 2800,
+    currency: "INR",
+    stock: 40,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.9,
+    reviewCount: 156,
+    isFeatured: false,
+    isNewArrival: false,
+    isBestSeller: true,
+    warrantyInfo: "No warranty",
+    shippingInfo: "Ships within 24hrs",
+  };
+
+  const p9 = catalogProducts[14] || {
+    id: "15",
+    name: "Siemens SENTRON MCCB 100A",
+    slug: "siemens-sentron-mccb-100a",
+    sku: "SIE-MCCB-100A-3P",
+    brand: "Siemens",
+    category: "Circuit Protection",
+    subcategory: "MCCB",
+    shortDescription: "100A 3-Pole Molded Case Circuit Breaker.",
+    description: "Heavy duty protection for industrial loads.",
+    specifications: { "Rating": "100A", "Poles": "3 Pole", "Breaking Capacity": "36kA" },
+    features: ["Adjustable Trip", "Compact Size"],
+    applications: ["Main Distribution Boards"],
+    images: ["/categories/embedded-boards.jpg"],
+    price: 8500,
+    currency: "INR",
+    stock: 15,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.9,
+    reviewCount: 33,
+    isFeatured: true,
+    isNewArrival: false,
+    isBestSeller: false,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships within 2-3 days",
+  };
+
+  const p10 = catalogProducts[32] || {
+    id: "33",
+    name: "Google Coral Dev Board Mini",
+    slug: "google-coral-dev-board-mini",
+    sku: "CORAL-MINI",
+    brand: "Google Coral",
+    category: "AI",
+    subcategory: "AI Computing",
+    shortDescription: "Single-board computer with an Edge TPU.",
+    description: "Fast machine learning inferencing in a small form factor.",
+    specifications: { "ML Accelerator": "Google Edge TPU coprocessor", "Memory": "2GB LPDDR3" },
+    features: ["On-device ML", "Small form-factor"],
+    applications: ["Vision AI", "Voice Recognition"],
+    images: ["/categories/ai-boards.jpg"],
+    price: 9500,
+    currency: "INR",
+    stock: 15,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.5,
+    reviewCount: 34,
+    isFeatured: false,
+    isNewArrival: false,
+    isBestSeller: false,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships in 2-3 days",
+  };
+
+  const p11 = catalogProducts[31] || {
+    id: "32",
+    name: "Raspberry Pi Pico W",
+    slug: "raspberry-pi-pico-w",
+    sku: "RPI-PICO-W",
+    brand: "Raspberry Pi",
+    category: "IoT",
+    subcategory: "Microcontrollers",
+    shortDescription: "Tiny, fast, and versatile microcontroller board with WiFi.",
+    description: "Adds on-board single-band 2.4GHz wireless interfaces.",
+    specifications: { "Microcontroller": "RP2040", "Wireless": "2.4GHz 802.11n wireless LAN" },
+    features: ["Dual-core Cortex-M0+", "Programmable I/O"],
+    applications: ["Smart Home", "Sensor Nodes"],
+    images: ["/categories/iot-boards.jpg"],
+    price: 650,
+    currency: "INR",
+    stock: 150,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.8,
+    reviewCount: 89,
+    isFeatured: true,
+    isNewArrival: true,
+    isBestSeller: true,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships immediately",
+  };
+
+  const p12 = catalogProducts[27] || {
+    id: "28",
+    name: "NVIDIA Jetson Nano Developer Kit",
+    slug: "nvidia-jetson-nano-developer-kit",
+    sku: "NV-JETSON-NANO",
+    brand: "NVIDIA",
+    category: "AI",
+    subcategory: "AI Computing",
+    shortDescription: "Small, powerful computer for AI development.",
+    description: "Run multiple neural networks in parallel.",
+    specifications: { "GPU": "128-core Maxwell", "CPU": "Quad-core ARM A57" },
+    features: ["High AI Performance", "Low Power Consumption"],
+    applications: ["AI Robotics", "Edge AI", "Computer Vision"],
+    images: ["/categories/ai-boards.jpg"],
+    price: 14500,
+    currency: "INR",
+    stock: 12,
+    inStock: true,
+    minOrderQty: 1,
+    rating: 4.9,
+    reviewCount: 89,
+    isFeatured: true,
+    isNewArrival: true,
+    isBestSeller: false,
+    warrantyInfo: "1 Year",
+    shippingInfo: "Ships in 2-3 days",
+  };
+
+  return [
+    {
+      id: "SYN-89241",
+      trackingId: "SYN-89241",
+      date: "Oct 24, 2024",
+      time: "02:45 PM",
+      status: "In Transit",
+      statusTone: "blue",
+      estimatedDelivery: "Thursday, Oct 28, 2024",
+      courierName: "Delhivery Express Logistics",
+      trackingNumber: "DLHV-89241-BLR",
+      paymentMethod: "UPI (Google Pay • Ref #92841029)",
+      paymentStatus: "Paid",
+      subtotal: 4300,
+      gst: 774,
+      shippingCharge: 0,
+      total: 5074,
+      shippingAddress: {
+        name: "Synergy Tech Labs R&D Hub",
+        phone: "+91 98765 43210",
+        line1: "Plot 42, Electronic City Phase 1",
+        line2: "Near Infosys Gate 4",
+        city: "Bengaluru",
+        state: "Karnataka",
+        pincode: "560100",
+      },
+      trackingSteps: [
+        {
+          title: "Order Placed & Verified",
+          description: "Order placed successfully and payment confirmed via UPI.",
+          timestamp: "Oct 24, 02:45 PM",
+          completed: true,
+        },
+        {
+          title: "Quality Check & Packed",
+          description: "Hardware items tested and packed with anti-static packaging.",
+          timestamp: "Oct 25, 10:15 AM",
+          completed: true,
+        },
+        {
+          title: "Dispatched from Hub",
+          description: "Handed over to Delhivery Express courier facility.",
+          timestamp: "Oct 25, 05:40 PM",
+          completed: true,
+        },
+        {
+          title: "In Transit (En Route)",
+          description: "Departed from Bangalore Air Sorting Hub towards destination center.",
+          timestamp: "Oct 26, 08:30 AM",
+          completed: true,
+          current: true,
+        },
+        {
+          title: "Out for Delivery",
+          description: "Courier executive will deliver with secure OTP verification.",
+          timestamp: "Expected Oct 28",
+          completed: false,
+        },
+        {
+          title: "Delivered",
+          description: "Package handed over to recipient.",
+          completed: false,
+        },
+      ],
+      items: [
+        {
+          product: p0,
+          quantity: 4,
+          unitPrice: 450,
+        },
+        {
+          product: p1,
+          quantity: 2,
+          unitPrice: 1250,
+        },
+      ],
+    },
+    {
+      id: "SYN-78105",
+      trackingId: "SYN-78105",
+      date: "Sep 15, 2024",
+      time: "11:10 AM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Sep 18, 2024 at 02:15 PM",
+      courierName: "Blue Dart Apex Air",
+      trackingNumber: "BLDT-78105-MAA",
+      paymentMethod: "HDFC Corporate Net Banking",
+      paymentStatus: "Paid",
+      subtotal: 12950,
+      gst: 2331,
+      shippingCharge: 0,
+      total: 15281,
+      shippingAddress: {
+        name: "Industrial Robotics Lab",
+        phone: "+91 94440 18273",
+        line1: "Synergy Innovation Park, Ambattur Industrial Estate",
+        line2: "Phase II, Tech Building 3B",
+        city: "Chennai",
+        state: "Tamil Nadu",
+        pincode: "600058",
+      },
+      trackingSteps: [
+        {
+          title: "Order Placed & Verified",
+          description: "Corporate order placed and payment received.",
+          timestamp: "Sep 15, 11:10 AM",
+          completed: true,
+        },
+        {
+          title: "Packed & Serial Numbers Logged",
+          description: "All boards scanned and sealed.",
+          timestamp: "Sep 16, 09:30 AM",
+          completed: true,
+        },
+        {
+          title: "Dispatched via Blue Dart Air",
+          description: "Dispatched from primary distribution center.",
+          timestamp: "Sep 16, 06:15 PM",
+          completed: true,
+        },
+        {
+          title: "Arrived at Destination Hub",
+          description: "Arrived at Chennai Delivery Center.",
+          timestamp: "Sep 17, 10:20 PM",
+          completed: true,
+        },
+        {
+          title: "Out for Delivery",
+          description: "Dispatched with Blue Dart Courier Agent.",
+          timestamp: "Sep 18, 08:45 AM",
+          completed: true,
+        },
+        {
+          title: "Delivered & Signed",
+          description: "Delivered to Mr. Rajesh (Lab In-charge). Signed with OTP.",
+          timestamp: "Sep 18, 02:15 PM",
+          completed: true,
+          current: true,
+        },
+      ],
+      items: [
+        {
+          product: p3,
+          quantity: 2,
+          unitPrice: 5200,
+        },
+        {
+          product: p2,
+          quantity: 3,
+          unitPrice: 850,
+        },
+      ],
+    },
+    {
+      id: "SYN-65420",
+      trackingId: "SYN-65420",
+      date: "Aug 02, 2024",
+      time: "04:20 PM",
+      status: "Processing",
+      statusTone: "amber",
+      estimatedDelivery: "Expected dispatch within 24 hours",
+      courierName: "DTDC Express Cargo",
+      trackingNumber: "DTDC-65420-HYD",
+      paymentMethod: "Corporate Credit Card (•••• 4521)",
+      paymentStatus: "Paid",
+      subtotal: 12500,
+      gst: 2250,
+      shippingCharge: 0,
+      total: 14750,
+      shippingAddress: {
+        name: "Embedded Automation Works",
+        phone: "+91 99887 76655",
+        line1: "HITEC City Phase 2, Madhapur",
+        line2: "Tech Zone Tower B, 4th Floor",
+        city: "Hyderabad",
+        state: "Telangana",
+        pincode: "500081",
+      },
+      trackingSteps: [
+        {
+          title: "Order Placed & Payment Verified",
+          description: "Payment confirmed via corporate card.",
+          timestamp: "Aug 02, 04:20 PM",
+          completed: true,
+        },
+        {
+          title: "Fulfillment & Calibration Inspection",
+          description: "Precision multimeter and boards under inspection.",
+          timestamp: "Aug 03, 09:30 AM",
+          completed: true,
+          current: true,
+        },
+        {
+          title: "Packaging & Dispatch",
+          description: "Will be dispatched once calibration certificate is printed.",
+          completed: false,
+        },
+        {
+          title: "In Transit",
+          description: "On way to Hyderabad hub.",
+          completed: false,
+        },
+        {
+          title: "Delivered",
+          description: "Delivery at site location.",
+          completed: false,
+        },
+      ],
+      items: [
+        {
+          product: p4,
+          quantity: 1,
+          unitPrice: 12500,
+        },
+      ],
+    },
+    {
+      id: "SYN-54219",
+      trackingId: "SYN-54219",
+      date: "Jul 12, 2024",
+      time: "01:15 PM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Jul 15, 2024 at 11:30 AM",
+      courierName: "Delhivery Express",
+      trackingNumber: "DLHV-54219-BLR",
+      paymentMethod: "UPI (PhonePe • Ref #48291034)",
+      paymentStatus: "Paid",
+      subtotal: 3940,
+      gst: 709,
+      shippingCharge: 150,
+      total: 4799,
+      shippingAddress: {
+        name: "Synergy Site Office",
+        phone: "+91 91234 56789",
+        line1: "Rajiv Gandhi Salai (OMR Road)",
+        line2: "Sholinganallur Junction",
+        city: "Chennai",
+        state: "Tamil Nadu",
+        pincode: "600119",
+      },
+      trackingSteps: [
+        {
+          title: "Order Placed",
+          description: "Order received and approved.",
+          timestamp: "Jul 12, 01:15 PM",
+          completed: true,
+        },
+        {
+          title: "Packed & Dispatched",
+          description: "Handed over to Delhivery logistics.",
+          timestamp: "Jul 13, 10:00 AM",
+          completed: true,
+        },
+        {
+          title: "In Transit",
+          description: "Arrived at central delivery station.",
+          timestamp: "Jul 14, 04:30 PM",
+          completed: true,
+        },
+        {
+          title: "Delivered & Signed",
+          description: "Delivered securely at site reception.",
+          timestamp: "Jul 15, 11:30 AM",
+          completed: true,
+          current: true,
+        },
+      ],
+      items: [
+        {
+          product: p0,
+          quantity: 2,
+          unitPrice: 450,
+        },
+        {
+          product: p1,
+          quantity: 1,
+          unitPrice: 1250,
+        },
+        {
+          product: p2,
+          quantity: 2,
+          unitPrice: 850,
+        },
+      ],
+    },
+    {
+      id: "SYN-49120",
+      trackingId: "SYN-49120",
+      date: "Jun 28, 2024",
+      time: "03:10 PM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Jul 01, 2024 at 04:00 PM",
+      courierName: "Blue Dart Apex Logistics",
+      trackingNumber: "BLDT-49120-BLR",
+      paymentMethod: "UPI (Google Pay)",
+      paymentStatus: "Paid",
+      subtotal: 3510,
+      gst: 632,
+      shippingCharge: 0,
+      total: 4142,
+      shippingAddress: {
+        name: "Robotics Prototyping Cell",
+        phone: "+91 98844 55667",
+        line1: "Peenya Industrial Area Phase 3",
+        line2: "Sector 4, Plot 18",
+        city: "Bengaluru",
+        state: "Karnataka",
+        pincode: "560058",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Payment approved.", timestamp: "Jun 28, 03:10 PM", completed: true },
+        { title: "Packed", description: "Drivers tested and sealed.", timestamp: "Jun 29, 11:00 AM", completed: true },
+        { title: "In Transit", description: "Arrived at local hub.", timestamp: "Jun 30, 08:15 PM", completed: true },
+        { title: "Delivered", description: "Delivered to security desk.", timestamp: "Jul 01, 04:00 PM", completed: true, current: true },
+      ],
+      items: [
+        { product: p5, quantity: 3, unitPrice: 650 },
+        { product: p6, quantity: 2, unitPrice: 780 },
+      ],
+    },
+    {
+      id: "SYN-42095",
+      trackingId: "SYN-42095",
+      date: "Jun 10, 2024",
+      time: "09:45 AM",
+      status: "In Transit",
+      statusTone: "blue",
+      estimatedDelivery: "Friday, Jun 14, 2024",
+      courierName: "Delhivery Logistics Air",
+      trackingNumber: "DLHV-42095-DEL",
+      paymentMethod: "HDFC Corporate Card",
+      paymentStatus: "Paid",
+      subtotal: 9200,
+      gst: 1656,
+      shippingCharge: 0,
+      total: 10856,
+      shippingAddress: {
+        name: "Advanced Embedded Lab",
+        phone: "+91 98110 22334",
+        line1: "Okhla Industrial Area Phase 2",
+        line2: "Block C, Building 14",
+        city: "New Delhi",
+        state: "Delhi",
+        pincode: "110020",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Order confirmed.", timestamp: "Jun 10, 09:45 AM", completed: true },
+        { title: "Dispatched", description: "Handed over to courier.", timestamp: "Jun 11, 02:00 PM", completed: true },
+        { title: "In Transit", description: "Package en route to Delhi hub.", timestamp: "Jun 12, 06:30 AM", completed: true, current: true },
+        { title: "Out for Delivery", description: "Scheduled for Jun 14.", completed: false },
+        { title: "Delivered", description: "Awaiting delivery.", completed: false },
+      ],
+      items: [
+        { product: p7, quantity: 2, unitPrice: 1800 },
+        { product: p8, quantity: 2, unitPrice: 2800 },
+      ],
+    },
+    {
+      id: "SYN-38501",
+      trackingId: "SYN-38501",
+      date: "May 22, 2024",
+      time: "05:30 PM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on May 25, 2024 at 01:20 PM",
+      courierName: "DTDC Heavy Cargo",
+      trackingNumber: "DTDC-38501-PUN",
+      paymentMethod: "Net Banking",
+      paymentStatus: "Paid",
+      subtotal: 8500,
+      gst: 1530,
+      shippingCharge: 0,
+      total: 10030,
+      shippingAddress: {
+        name: "Synergy Power Panel Division",
+        phone: "+91 97654 32109",
+        line1: "Bhosari MIDC Industrial Estate",
+        line2: "Plot W-45, Near Landewadi Chowk",
+        city: "Pune",
+        state: "Maharashtra",
+        pincode: "411026",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Order created.", timestamp: "May 22, 05:30 PM", completed: true },
+        { title: "Inspection Passed", description: "Breaker trip mechanism calibrated.", timestamp: "May 23, 10:00 AM", completed: true },
+        { title: "Dispatched", description: "Dispatched via DTDC Surface.", timestamp: "May 23, 04:00 PM", completed: true },
+        { title: "Delivered", description: "Delivered to warehouse receiving.", timestamp: "May 25, 01:20 PM", completed: true, current: true },
+      ],
+      items: [
+        { product: p9, quantity: 1, unitPrice: 8500 },
+      ],
+    },
+    {
+      id: "SYN-33214",
+      trackingId: "SYN-33214",
+      date: "May 05, 2024",
+      time: "10:15 AM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on May 08, 2024 at 12:45 PM",
+      courierName: "Blue Dart Apex",
+      trackingNumber: "BLDT-33214-HYD",
+      paymentMethod: "UPI (Paytm)",
+      paymentStatus: "Paid",
+      subtotal: 11450,
+      gst: 2061,
+      shippingCharge: 0,
+      total: 13511,
+      shippingAddress: {
+        name: "Edge AI Research Center",
+        phone: "+91 98490 12345",
+        line1: "Gachibowli Financial District",
+        line2: "Tech Park II, 8th Floor",
+        city: "Hyderabad",
+        state: "Telangana",
+        pincode: "500032",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Verified by billing.", timestamp: "May 05, 10:15 AM", completed: true },
+        { title: "Dispatched", description: "Sent via Air Cargo.", timestamp: "May 06, 03:30 PM", completed: true },
+        { title: "Delivered", description: "Signed by lab director.", timestamp: "May 08, 12:45 PM", completed: true, current: true },
+      ],
+      items: [
+        { product: p10, quantity: 1, unitPrice: 9500 },
+        { product: p11, quantity: 3, unitPrice: 650 },
+      ],
+    },
+    {
+      id: "SYN-29108",
+      trackingId: "SYN-29108",
+      date: "Apr 18, 2024",
+      time: "02:00 PM",
+      status: "Processing",
+      statusTone: "amber",
+      estimatedDelivery: "Expected in 2 business days",
+      courierName: "Delhivery Surface",
+      trackingNumber: "DLHV-29108-COI",
+      paymentMethod: "Credit Card (•••• 8812)",
+      paymentStatus: "Paid",
+      subtotal: 3860,
+      gst: 695,
+      shippingCharge: 0,
+      total: 4555,
+      shippingAddress: {
+        name: "Mechatronics Testing Center",
+        phone: "+91 94880 77665",
+        line1: "Civil Aerodrome Post, Avinashi Road",
+        line2: "Near SITRA Junction",
+        city: "Coimbatore",
+        state: "Tamil Nadu",
+        pincode: "641014",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Order validated.", timestamp: "Apr 18, 02:00 PM", completed: true },
+        { title: "Processing", description: "Components queued for assembly check.", timestamp: "Apr 19, 09:30 AM", completed: true, current: true },
+        { title: "Dispatched", description: "Pending courier pickup.", completed: false },
+        { title: "Delivered", description: "Awaiting dispatch.", completed: false },
+      ],
+      items: [
+        { product: p6, quantity: 2, unitPrice: 780 },
+        { product: p2, quantity: 2, unitPrice: 850 },
+        { product: p5, quantity: 1, unitPrice: 650 },
+      ],
+    },
+    {
+      id: "SYN-25490",
+      trackingId: "SYN-25490",
+      date: "Apr 02, 2024",
+      time: "11:20 AM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Apr 05, 2024 at 03:10 PM",
+      courierName: "DTDC Express Cargo",
+      trackingNumber: "DTDC-25490-BLR",
+      paymentMethod: "Corporate Net Banking",
+      paymentStatus: "Paid",
+      subtotal: 11700,
+      gst: 2106,
+      shippingCharge: 0,
+      total: 13806,
+      shippingAddress: {
+        name: "Synergy Tech Labs R&D Hub",
+        phone: "+91 98765 43210",
+        line1: "Plot 42, Electronic City Phase 1",
+        line2: "Near Infosys Gate 4",
+        city: "Bengaluru",
+        state: "Karnataka",
+        pincode: "560100",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Payment approved.", timestamp: "Apr 02, 11:20 AM", completed: true },
+        { title: "Dispatched", description: "Dispatched from central warehouse.", timestamp: "Apr 03, 04:00 PM", completed: true },
+        { title: "Delivered", description: "Received at central intake.", timestamp: "Apr 05, 03:10 PM", completed: true, current: true },
+      ],
+      items: [
+        { product: p3, quantity: 1, unitPrice: 5200 },
+        { product: p0, quantity: 10, unitPrice: 450 },
+        { product: p1, quantity: 1, unitPrice: 1250 },
+      ],
+    },
+    {
+      id: "SYN-21870",
+      trackingId: "SYN-21870",
+      date: "Mar 15, 2024",
+      time: "04:40 PM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Mar 18, 2024 at 10:15 AM",
+      courierName: "Delhivery Express",
+      trackingNumber: "DLHV-21870-KOC",
+      paymentMethod: "UPI (Google Pay)",
+      paymentStatus: "Paid",
+      subtotal: 5800,
+      gst: 1044,
+      shippingCharge: 0,
+      total: 6844,
+      shippingAddress: {
+        name: "Smart Grid Instrumentation Wing",
+        phone: "+91 94470 33445",
+        line1: "Infopark Phase 2, Kakkanad",
+        line2: "SEZ Building 4",
+        city: "Kochi",
+        state: "Kerala",
+        pincode: "682042",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "Order confirmed.", timestamp: "Mar 15, 04:40 PM", completed: true },
+        { title: "Dispatched", description: "Shipped with Delhivery.", timestamp: "Mar 16, 01:00 PM", completed: true },
+        { title: "Delivered", description: "Delivered to site manager.", timestamp: "Mar 18, 10:15 AM", completed: true, current: true },
+      ],
+      items: [
+        { product: p7, quantity: 2, unitPrice: 1800 },
+        { product: p11, quantity: 2, unitPrice: 650 },
+        { product: p0, quantity: 2, unitPrice: 450 },
+      ],
+    },
+    {
+      id: "SYN-18450",
+      trackingId: "SYN-18450",
+      date: "Feb 28, 2024",
+      time: "01:00 PM",
+      status: "Delivered",
+      statusTone: "emerald",
+      deliveredDate: "Delivered on Mar 02, 2024 at 02:30 PM",
+      courierName: "Blue Dart Apex Air",
+      trackingNumber: "BLDT-18450-AHM",
+      paymentMethod: "Corporate Net Banking",
+      paymentStatus: "Paid",
+      subtotal: 14500,
+      gst: 2610,
+      shippingCharge: 0,
+      total: 17110,
+      shippingAddress: {
+        name: "Gujarat Industrial Automation Center",
+        phone: "+91 98250 99887",
+        line1: "GIDC Industrial Estate, Vatva",
+        line2: "Phase IV, Road No. 12",
+        city: "Ahmedabad",
+        state: "Gujarat",
+        pincode: "382445",
+      },
+      trackingSteps: [
+        { title: "Order Placed", description: "High-value computing order placed.", timestamp: "Feb 28, 01:00 PM", completed: true },
+        { title: "Packed", description: "ESD packaging verified.", timestamp: "Feb 29, 10:00 AM", completed: true },
+        { title: "Dispatched via Air", description: "Blue Dart flight transit.", timestamp: "Mar 01, 09:00 AM", completed: true },
+        { title: "Delivered", description: "Delivered and verified.", timestamp: "Mar 02, 02:30 PM", completed: true, current: true },
+      ],
+      items: [
+        { product: p12, quantity: 1, unitPrice: 14500 },
+      ],
+    },
+  ];
+}
 
 interface Address {
   _id?: string;
@@ -411,85 +1382,1184 @@ function ProfileSection({ profile, onEdit }: { profile: ProfileData; onEdit: () 
   );
 }
 
-function OrdersSection() {
-  return (
-    <SectionShell
-      eyebrow="Activity"
-      title="Recent Orders"
-      description="Track shipments, download invoices, and reorder essentials."
-      action={
-        <Button variant="ghost" className="h-9 rounded-full text-sm">
-          View all orders
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        </Button>
-      }
-    >
-      <div className="overflow-hidden rounded-xl border border-border/60">
-        <div className="hidden grid-cols-12 gap-3 border-b border-border/60 bg-muted/40 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground sm:grid">
-          <div className="col-span-3">Order ID</div>
-          <div className="col-span-4">Items</div>
-          <div className="col-span-2">Amount</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-1 text-right">Action</div>
-        </div>
+function printInvoice(order: DetailedOrder) {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+  const itemsHtml = order.items
+    .map(
+      (it, idx) => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${idx + 1}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
+        <strong>${it.product.name}</strong><br/>
+        <span style="font-size: 11px; color: #6b7280;">SKU: ${it.product.sku || "N/A"} | Brand: ${it.product.brand || "Synergy"}</span>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${it.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">₹${it.unitPrice.toLocaleString("en-IN")}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">18%</td>
+      <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">₹${(it.unitPrice * it.quantity).toLocaleString("en-IN")}</td>
+    </tr>
+  `
+    )
+    .join("");
 
-        <ul className="divide-y divide-border/60">
-          {orders.map((order) => {
-            const Icon = order.icon;
-            return (
-              <li
-                key={order.id}
-                className="grid grid-cols-1 gap-3 px-4 py-4 sm:grid-cols-12 sm:items-center sm:gap-3 sm:px-4"
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Tax Invoice - ${order.id}</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; padding: 40px; margin: 0; background: #fff; font-size: 13px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 24px; }
+        .logo { font-size: 24px; font-weight: 800; color: #2563eb; letter-spacing: -0.5px; }
+        .badge { display: inline-block; padding: 4px 10px; background: #eff6ff; color: #1d4ed8; font-weight: 700; border-radius: 6px; font-size: 11px; }
+        .grid { display: flex; justify-content: space-between; margin-bottom: 24px; gap: 20px; }
+        .col { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th { background: #f3f4f6; text-align: left; padding: 10px; font-size: 11px; text-transform: uppercase; color: #4b5563; }
+        .summary { width: 320px; margin-left: auto; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 16px; font-weight: 800; color: #111827; border-top: 2px solid #111827; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #6b7280; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div>
+          <div class="logo">SYNERGY TECH LABS</div>
+          <p style="margin: 4px 0 0 0; color: #4b5563; font-size: 12px;">Next-Gen Hardware & Electrical Solutions</p>
+          <p style="margin: 2px 0 0 0; color: #6b7280; font-size: 11px;">GSTIN: 33AAECS9821F1Z8 | PAN: AAECS9821F</p>
+        </div>
+        <div style="text-align: right;">
+          <div class="badge">ORIGINAL TAX INVOICE</div>
+          <h2 style="margin: 8px 0 2px 0; font-size: 18px;">Invoice #${order.id}</h2>
+          <p style="margin: 0; color: #6b7280; font-size: 12px;">Date: ${order.date}</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="col">
+          <p style="font-weight: 700; text-transform: uppercase; font-size: 11px; color: #6b7280; margin-bottom: 6px;">Billed & Shipped To:</p>
+          <p style="font-weight: 600; margin: 0 0 4px 0;">${order.shippingAddress.name}</p>
+          <p style="color: #4b5563; margin: 0; line-height: 1.5;">
+            ${order.shippingAddress.line1}${order.shippingAddress.line2 ? ", " + order.shippingAddress.line2 : ""}<br/>
+            ${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}<br/>
+            Phone: ${order.shippingAddress.phone}
+          </p>
+        </div>
+        <div class="col" style="text-align: right;">
+          <p style="font-weight: 700; text-transform: uppercase; font-size: 11px; color: #6b7280; margin-bottom: 6px;">Order & Shipping Info:</p>
+          <p style="margin: 0 0 4px 0;"><strong>Tracking ID:</strong> ${order.trackingNumber}</p>
+          <p style="margin: 0 0 4px 0; color: #4b5563;"><strong>Courier:</strong> ${order.courierName}</p>
+          <p style="margin: 0 0 4px 0; color: #4b5563;"><strong>Payment:</strong> ${order.paymentMethod} (${order.paymentStatus})</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Description</th>
+            <th style="text-align: center; width: 60px;">Qty</th>
+            <th style="text-align: right; width: 100px;">Rate</th>
+            <th style="text-align: right; width: 60px;">GST</th>
+            <th style="text-align: right; width: 110px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+
+      <div class="summary">
+        <div class="summary-row">
+          <span style="color: #4b5563;">Subtotal</span>
+          <span>₹${order.subtotal.toLocaleString("en-IN")}</span>
+        </div>
+        <div class="summary-row">
+          <span style="color: #4b5563;">Shipping & Handling</span>
+          <span>${order.shippingCharge === 0 ? "FREE" : "₹" + order.shippingCharge}</span>
+        </div>
+        <div class="summary-row">
+          <span style="color: #4b5563;">CGST (9%)</span>
+          <span>₹${Math.round(order.gst / 2).toLocaleString("en-IN")}</span>
+        </div>
+        <div class="summary-row">
+          <span style="color: #4b5563;">SGST (9%)</span>
+          <span>₹${Math.round(order.gst / 2).toLocaleString("en-IN")}</span>
+        </div>
+        <div class="total-row">
+          <span>Total (INR)</span>
+          <span>₹${order.total.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>This is a computer-generated tax invoice and requires no physical signature. Thank you for partnering with Synergy Tech Labs!</p>
+        <p>Support: support@synergytechlabs.com | Toll-Free: 1800-419-8989</p>
+      </div>
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      </script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+function OrdersSection() {
+  const { user, addToCart } = useStore();
+  const { toast } = useToast();
+  const [ordersList, setOrdersList] = useState<DetailedOrder[]>(getInitialRichOrders());
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  const [selectedItemIndices, setSelectedItemIndices] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Pagination & "View All" states
+  const [isViewAll, setIsViewAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 4;
+  const ordersTopRef = useRef<HTMLDivElement>(null);
+
+  // Reset page to 1 whenever search query or status filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
+  // Attempt to fetch any orders created by the user from API and merge
+  useEffect(() => {
+    if (!user?.userId) return;
+
+    const fetchUserOrders = async () => {
+      try {
+        const response = await fetchApi<{ success: boolean; orders: any[] }>(`/orders/user/${user.userId}`);
+        if (response?.success && Array.isArray(response.orders) && response.orders.length > 0) {
+          const apiOrders: DetailedOrder[] = response.orders.map((o: any) => {
+            const mappedItems: OrderItem[] = (o.items || []).map((it: any) => {
+              const matchedCatalog = catalogProducts.find(
+                (cp) => cp.id === it.productId || cp.sku === it.sku || cp.name.toLowerCase() === (it.name || "").toLowerCase()
+              );
+              const fallbackProduct: Product = {
+                id: it.productId || `prod_${Date.now()}`,
+                name: it.name || "Hardware Component",
+                slug: it.slug || (it.name ? it.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "component"),
+                sku: it.sku || "SYN-HW",
+                brand: it.brand || "Synergy",
+                category: it.category || "Development Boards",
+                subcategory: it.subcategory || "General",
+                shortDescription: it.name || "Hardware component",
+                description: it.description || "Synergy component",
+                specifications: {},
+                features: ["Authentic Component", "GST Billed"],
+                applications: ["Prototyping", "Industrial"],
+                images: it.image ? [it.image] : ["/categories/embedded-boards.jpg"],
+                price: it.price || 999,
+                currency: "INR",
+                stock: 50,
+                inStock: true,
+                minOrderQty: 1,
+                rating: 4.8,
+                reviewCount: 30,
+                isFeatured: true,
+                isNewArrival: false,
+                isBestSeller: true,
+                warrantyInfo: "1 Year",
+                shippingInfo: "Ships within 24 hours",
+              };
+              return {
+                product: matchedCatalog || fallbackProduct,
+                quantity: it.quantity || 1,
+                unitPrice: it.price || 999,
+              };
+            });
+
+            const statusNormalized = (o.status || "confirmed").toLowerCase();
+            let status: DetailedOrder["status"] = "Processing";
+            let statusTone: DetailedOrder["statusTone"] = "amber";
+
+            if (statusNormalized === "delivered") {
+              status = "Delivered";
+              statusTone = "emerald";
+            } else if (statusNormalized === "shipped" || statusNormalized === "in transit") {
+              status = "In Transit";
+              statusTone = "blue";
+            } else if (statusNormalized === "cancelled") {
+              status = "Cancelled";
+              statusTone = "rose";
+            }
+
+            return {
+              id: o.trackingId || `SYN-${o._id?.toString().slice(-5).toUpperCase() || "NEW"}`,
+              trackingId: o.trackingId || `SYN-${o._id?.toString().slice(-5).toUpperCase()}`,
+              date: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              time: new Date(o.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+              status,
+              statusTone,
+              estimatedDelivery: "3-5 business days",
+              courierName: "Delhivery Logistics Air",
+              trackingNumber: o.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
+              paymentMethod: o.paymentMethod ? o.paymentMethod.toUpperCase() : "UPI",
+              paymentStatus: o.paymentStatus === "paid" ? "Paid" : "Pending",
+              subtotal: o.subtotal || o.total || 0,
+              gst: o.gst || Math.round((o.total || 0) * 0.18),
+              shippingCharge: o.shippingCharge || 0,
+              total: o.total || 0,
+              shippingAddress: {
+                name: o.shippingAddress?.fullName || o.customer?.name || user.name || "Customer",
+                phone: o.shippingAddress?.phone || o.customer?.phone || "+91 9876543210",
+                line1: o.shippingAddress?.addressLine1 || "Corporate Hub",
+                line2: o.shippingAddress?.addressLine2 || "",
+                city: o.shippingAddress?.city || "Bengaluru",
+                state: o.shippingAddress?.state || "Karnataka",
+                pincode: o.shippingAddress?.pincode || "560100",
+              },
+              trackingSteps: [
+                {
+                  title: "Order Placed",
+                  description: "Order placed successfully.",
+                  timestamp: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                  completed: true,
+                },
+                {
+                  title: "Order Confirmed & Processing",
+                  description: "Order verified by fulfillment team.",
+                  completed: true,
+                  current: status === "Processing",
+                },
+                {
+                  title: "In Transit",
+                  description: "Dispatched with Delhivery courier.",
+                  completed: status === "In Transit" || status === "Delivered",
+                  current: status === "In Transit",
+                },
+                {
+                  title: "Delivered",
+                  description: "Delivered to shipping destination.",
+                  completed: status === "Delivered",
+                  current: status === "Delivered",
+                },
+              ],
+              items: mappedItems.length > 0 ? mappedItems : getInitialRichOrders()[0].items,
+            };
+          });
+
+          // Merge without duplicates
+          setOrdersList((prev) => {
+            const existingIds = new Set(apiOrders.map((o) => o.id));
+            const filteredPrev = prev.filter((o) => !existingIds.has(o.id));
+            return [...apiOrders, ...filteredPrev];
+          });
+        }
+      } catch (e) {
+        // Fallback to rich seed orders gracefully
+      }
+    };
+
+    fetchUserOrders();
+  }, [user]);
+
+  const toggleOrderExpanded = (orderId: string) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
+
+  const handleCopyOrderId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    toast({
+      title: "Order ID Copied",
+      description: `${id} copied to your clipboard.`,
+      duration: 2000,
+    });
+    setTimeout(() => {
+      setCopiedId((current) => (current === id ? null : current));
+    }, 2500);
+  };
+
+  const handleBuyAgain = (order: DetailedOrder) => {
+    order.items.forEach((item) => {
+      addToCart(item.product, item.quantity);
+    });
+    toast({
+      title: "Items Added to Cart",
+      description: `All items from order ${order.id} were added to your cart.`,
+      variant: "cart",
+      duration: 3500,
+    });
+  };
+
+  // Filter orders by search & status
+  const filteredOrders = ordersList.filter((order) => {
+    const matchesSearch =
+      searchQuery.trim() === "" ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some((item) =>
+        item.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.product.brand.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+    const matchesStatus =
+      statusFilter === "all" ||
+      order.status.toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage) || 1;
+  const hasMoreThan4 = filteredOrders.length > 4;
+
+  // In standard view: show first 4. In "View All" view: show 4 per page with pagination 1, 2, 3, 4, 5...
+  const displayedOrders = isViewAll
+    ? filteredOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage)
+    : filteredOrders.slice(0, 4);
+
+  const scrollToOrdersTop = () => {
+    if (ordersTopRef.current) {
+      const topOffset = ordersTopRef.current.getBoundingClientRect().top + window.pageYOffset - 90;
+      window.scrollTo({ top: Math.max(0, topOffset), behavior: "smooth" });
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    scrollToOrdersTop();
+  };
+
+  const getPageNumbers = (): (number | string)[] => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  const statusCounts = {
+    all: ordersList.length,
+    "in transit": ordersList.filter((o) => o.status === "In Transit").length,
+    delivered: ordersList.filter((o) => o.status === "Delivered").length,
+    processing: ordersList.filter((o) => o.status === "Processing").length,
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Top Header & Search Filter Bar */}
+      <SectionShell
+        eyebrow="Activity"
+        title="My Orders"
+        description="Track current deliveries, review live order status, download GST invoices, and reorder hardware."
+        action={
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200/60">
+              <Package className="h-3.5 w-3.5" />
+              {ordersList.length} Total Orders
+            </span>
+            {hasMoreThan4 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (!isViewAll) {
+                    setIsViewAll(true);
+                    setCurrentPage(1);
+                  } else {
+                    setIsViewAll(false);
+                    setCurrentPage(1);
+                  }
+                  scrollToOrdersTop();
+                }}
+                className="h-8 rounded-full text-xs font-semibold px-3 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 transition-all shadow-sm"
               >
-                <div className="sm:col-span-3">
-                  <p className="text-sm font-semibold text-foreground">
-                    {order.id}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{order.date}</p>
-                </div>
-                <div className="sm:col-span-4">
-                  <p className="text-sm text-foreground">{order.items}</p>
-                </div>
-                <div className="sm:col-span-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    {order.amount}
-                  </p>
-                </div>
-                <div className="sm:col-span-2">
+                {isViewAll ? "Show Recent 4" : `View All (${filteredOrders.length})`}
+              </Button>
+            )}
+          </div>
+        }
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Search Box */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search by Order ID, Product name, or Tracking code..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 pl-10 pr-9 rounded-xl border-border/80 bg-background text-sm"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground font-semibold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {[
+              { id: "all", label: "All Orders", count: statusCounts.all },
+              { id: "in transit", label: "In Transit", count: statusCounts["in transit"] },
+              { id: "delivered", label: "Delivered", count: statusCounts.delivered },
+              { id: "processing", label: "Processing", count: statusCounts.processing },
+            ].map((tab) => {
+              const active = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
+                    active
+                      ? "bg-blue-600 text-white shadow-sm ring-1 ring-blue-600"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <span>{tab.label}</span>
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1",
-                      statusToneClass(order.statusTone)
+                      "px-1.5 py-0.2 rounded-full text-[10px] font-bold",
+                      active ? "bg-white/20 text-white" : "bg-background/80 text-foreground"
                     )}
                   >
-                    <Icon className="h-3 w-3" strokeWidth={2} />
-                    {order.status}
+                    {tab.count}
                   </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </SectionShell>
+
+      {/* Orders List Container */}
+      {filteredOrders.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border/80 bg-card/60 p-10 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-4">
+            <Package className="h-7 w-7" />
+          </div>
+          <h3 className="text-base font-semibold text-foreground">No orders found</h3>
+          <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
+            {searchQuery
+              ? `No orders matching "${searchQuery}". Try searching by another product name or reset your search filter.`
+              : "No orders match the selected status filter."}
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-3">
+            {searchQuery && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs"
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+              >
+                Reset Filters
+              </Button>
+            )}
+            <Link href="/shop">
+              <Button size="sm" className="rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs px-4">
+                Browse Shop Catalog
+              </Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div ref={ordersTopRef} className="space-y-6">
+          {displayedOrders.map((order) => {
+            const isExpanded = Boolean(expandedOrders[order.id]);
+            const selectedItemIndex = selectedItemIndices[order.id] || 0;
+            const currentOrderItem = order.items[selectedItemIndex] || order.items[0];
+
+            return (
+              <div
+                key={order.id}
+                className="group relative rounded-2xl border border-border/70 bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+              >
+                {/* 1. Order Top Header Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-muted/30 px-4 py-3 sm:px-6 sm:py-3.5">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-mono font-bold text-foreground">
+                        #{order.id}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Copy Order ID"
+                        onClick={() => handleCopyOrderId(order.id)}
+                        className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        title="Copy Order ID"
+                      >
+                        {copiedId === order.id ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span>Placed: {order.date}</span>
+                      {order.time && <span>· {order.time}</span>}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1",
+                        statusToneClass(order.statusTone)
+                      )}
+                    >
+                      {order.status === "Delivered" ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      ) : order.status === "In Transit" ? (
+                        <Truck className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      ) : (
+                        <Clock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      )}
+                      {order.status}
+                    </span>
+
+                    <span className="hidden sm:inline-block text-xs font-medium text-muted-foreground">
+                      {order.status === "Delivered" ? (
+                        <span className="text-emerald-700 font-semibold">{order.deliveredDate || "Delivered"}</span>
+                      ) : (
+                        <span>Est: {order.estimatedDelivery}</span>
+                      )}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-end gap-1 sm:col-span-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    aria-label="View order"
-                    className="h-8 w-8 rounded-full"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Download invoice"
-                    className="h-8 w-8 rounded-full"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+
+                {/* 2. Main Order Layout: Product Card on Left, Details & Tracking on Right */}
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col md:flex-row items-stretch gap-6">
+                    {/* LEFT: Same Home Page Product Card */}
+                    <div className="w-full md:w-[280px] lg:w-[310px] shrink-0 flex flex-col">
+                      <div className="relative rounded-2xl border border-border/60 bg-background/50 p-2 sm:p-2.5 flex-1 flex flex-col">
+                        <div className="flex items-center justify-between px-1 mb-2">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <Package className="h-3.5 w-3.5 text-blue-600" />
+                            Product Preview {order.items.length > 1 ? `(${selectedItemIndex + 1}/${order.items.length})` : ""}
+                          </span>
+                          {currentOrderItem.quantity > 1 && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-semibold bg-blue-50 text-blue-700 border-blue-200"
+                            >
+                              Ordered Qty: {currentOrderItem.quantity}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Exact ProductCard as on Home Page */}
+                        <div className="rounded-xl overflow-hidden shadow-sm flex-1">
+                          <ProductCard product={currentOrderItem.product} />
+                        </div>
+
+                        {/* Multi-item switcher if order has multiple products */}
+                        {order.items.length > 1 && (
+                          <div className="mt-3 pt-2.5 border-t border-border/60">
+                            <div className="flex items-center justify-between mb-1.5 px-0.5">
+                              <span className="text-[10px] font-semibold text-muted-foreground">
+                                Order Items ({order.items.length}):
+                              </span>
+                              <span className="text-[10px] text-blue-600 font-medium">Click to inspect</span>
+                            </div>
+                            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                              {order.items.map((item, idx) => (
+                                <button
+                                  key={item.product.id || idx}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedItemIndices((prev) => ({
+                                      ...prev,
+                                      [order.id]: idx,
+                                    }))
+                                  }
+                                  className={cn(
+                                    "relative h-12 w-12 rounded-xl border p-1 transition-all shrink-0 bg-background flex items-center justify-center",
+                                    selectedItemIndex === idx
+                                      ? "border-blue-600 ring-2 ring-blue-600/20 shadow-sm scale-105"
+                                      : "border-border/60 hover:border-border opacity-70 hover:opacity-100"
+                                  )}
+                                  title={`${item.product.name} (Qty: ${item.quantity})`}
+                                >
+                                  <img
+                                    src={item.product.images?.[0] || "/categories/embedded-boards.jpg"}
+                                    alt={item.product.name}
+                                    className="h-full w-full object-contain rounded-lg"
+                                  />
+                                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[9px] font-bold text-white shadow">
+                                    {item.quantity}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* RIGHT: Price, Status, Tracking & Actions */}
+                    <div className="flex-1 flex flex-col justify-between gap-5 min-w-0">
+                      {/* Top: Price and Payment details */}
+                      <div>
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                              Order Total
+                            </p>
+                            <div className="flex items-baseline gap-2 mt-0.5">
+                              <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                                ₹{order.total.toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                ({order.items.reduce((acc, i) => acc + i.quantity, 0)} items total)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className="text-xs py-1 px-2.5 bg-emerald-50 text-emerald-700 border-emerald-200 font-medium"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                              {order.paymentStatus} · {order.paymentMethod.split(" ")[0]}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-xs py-1 px-2.5 bg-slate-50 text-slate-700 border-slate-200 font-medium"
+                            >
+                              <ShieldCheck className="h-3.5 w-3.5 mr-1 text-blue-600" />
+                              GST ITC Claimable
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Items list overview summary */}
+                        <div className="mt-3 p-3 rounded-xl bg-muted/40 border border-border/50 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">Items in shipment: </span>
+                          {order.items
+                            .map((it) => `${it.product.name} (×${it.quantity})`)
+                            .join(", ")}
+                        </div>
+                      </div>
+
+                      {/* Middle: Shipment Tracking Quick Glance */}
+                      <div className="rounded-xl border border-border/60 bg-background/60 p-3.5 sm:p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className={cn(
+                                "flex h-9 w-9 items-center justify-center rounded-xl ring-1 shrink-0",
+                                order.status === "Delivered"
+                                  ? "bg-emerald-50 text-emerald-600 ring-emerald-200"
+                                  : order.status === "In Transit"
+                                  ? "bg-blue-50 text-blue-600 ring-blue-200"
+                                  : "bg-amber-50 text-amber-600 ring-amber-200"
+                              )}
+                            >
+                              {order.status === "Delivered" ? (
+                                <CheckCircle2 className="h-4.5 w-4.5" />
+                              ) : order.status === "In Transit" ? (
+                                <Truck className="h-4.5 w-4.5" />
+                              ) : (
+                                <Clock className="h-4.5 w-4.5" />
+                              )}
+                            </span>
+                            <div>
+                              <p className="text-xs font-semibold text-foreground">
+                                {order.courierName} ·{" "}
+                                <span className="font-mono text-muted-foreground">
+                                  {order.trackingNumber}
+                                </span>
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {order.status === "Delivered"
+                                  ? order.deliveredDate || "Delivered to recipient"
+                                  : `Expected delivery: ${order.estimatedDelivery}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <Link href={`/track-order`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-full text-xs gap-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Truck className="h-3.5 w-3.5" />
+                              Track Order
+                              <ArrowUpRight className="h-3 w-3 ml-0.5" />
+                            </Button>
+                          </Link>
+                        </div>
+
+                        {/* Visual 4-Stage Mini Progress Bar */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="relative flex items-center justify-between">
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 w-full bg-muted rounded-full" />
+                            <div
+                              className={cn(
+                                "absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full transition-all duration-500",
+                                order.status === "Delivered"
+                                  ? "bg-emerald-500 w-full"
+                                  : order.status === "In Transit"
+                                  ? "bg-blue-600 w-3/4"
+                                  : order.status === "Processing"
+                                  ? "bg-amber-500 w-1/2"
+                                  : "bg-blue-500 w-1/4"
+                              )}
+                            />
+                            {["Placed", "Packed", "In Transit", "Delivered"].map((stage, sIdx) => {
+                              const isDone =
+                                order.status === "Delivered" ||
+                                (order.status === "In Transit" && sIdx <= 2) ||
+                                (order.status === "Processing" && sIdx <= 1) ||
+                                sIdx === 0;
+                              return (
+                                <div key={stage} className="relative z-10 flex flex-col items-center">
+                                  <span
+                                    className={cn(
+                                      "h-3 w-3 rounded-full border-2 border-background ring-1 transition-colors",
+                                      isDone
+                                        ? order.status === "Delivered"
+                                          ? "bg-emerald-500 ring-emerald-500"
+                                          : "bg-blue-600 ring-blue-600"
+                                        : "bg-muted ring-border"
+                                    )}
+                                  />
+                                  <span className="mt-1 text-[10px] font-medium text-muted-foreground hidden sm:block">
+                                    {stage}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Row: Actions Bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/50">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Accordion Toggle: When clicked, the rest of the details are opened */}
+                          <Button
+                            type="button"
+                            variant={isExpanded ? "secondary" : "outline"}
+                            size="sm"
+                            className={cn(
+                              "h-9 rounded-full text-xs font-semibold px-4 transition-all gap-1.5",
+                              isExpanded
+                                ? "bg-blue-100 text-blue-800 border-blue-200"
+                                : "hover:bg-muted"
+                            )}
+                            onClick={() => toggleOrderExpanded(order.id)}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            {isExpanded ? "Hide Details" : "View Details"}
+                            {isExpanded ? (
+                              <ChevronUp className="h-3.5 w-3.5 ml-0.5" />
+                            ) : (
+                              <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
+                            )}
+                          </Button>
+
+                          {/* Invoice PDF Button */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-9 rounded-full text-xs font-medium px-3.5 hover:bg-muted gap-1.5"
+                            onClick={() => printInvoice(order)}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            Invoice (PDF)
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {/* Buy Again button */}
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 gap-1.5 shadow-sm"
+                            onClick={() => handleBuyAgain(order)}
+                          >
+                            <ShoppingBag className="h-3.5 w-3.5" />
+                            Buy Again
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </li>
+
+                {/* 3. Collapsible Accordion: The Rest of the Details */}
+                {isExpanded && (
+                  <div className="border-t border-border/70 bg-muted/20 px-4 py-5 sm:px-6 sm:py-6 space-y-6 animate-in fade-in-50 duration-300">
+                    <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-blue-600" />
+                        Complete Order Breakdown & Tracking Journey
+                      </h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleOrderExpanded(order.id)}
+                      >
+                        Hide Details
+                        <ChevronUp className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Left 7 Columns: Tracking Milestones Timeline + Order Items list */}
+                      <div className="lg:col-span-7 space-y-5">
+                        {/* Milestone Timeline */}
+                        <div className="rounded-xl border border-border/60 bg-background p-4 sm:p-5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
+                            <Truck className="h-3.5 w-3.5 text-blue-600" />
+                            Shipment Tracking Journey
+                          </h5>
+                          <div className="space-y-4 relative pl-4 border-l-2 border-blue-500/30 ml-2">
+                            {order.trackingSteps.map((step, idx) => (
+                              <div key={idx} className="relative">
+                                <span
+                                  className={cn(
+                                    "absolute -left-[23px] top-1 h-3.5 w-3.5 rounded-full border-2 border-background ring-2",
+                                    step.completed
+                                      ? "bg-emerald-500 ring-emerald-400"
+                                      : step.current
+                                      ? "bg-blue-600 ring-blue-400 animate-pulse"
+                                      : "bg-muted ring-border"
+                                  )}
+                                />
+                                <div className="flex flex-wrap items-baseline justify-between gap-1">
+                                  <p
+                                    className={cn(
+                                      "text-xs font-semibold",
+                                      step.current ? "text-blue-600 font-bold" : "text-foreground"
+                                    )}
+                                  >
+                                    {step.title}
+                                  </p>
+                                  {step.timestamp && (
+                                    <span className="text-[11px] font-mono text-muted-foreground">
+                                      {step.timestamp}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                  {step.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Detailed All Products List */}
+                        <div className="rounded-xl border border-border/60 bg-background p-4 sm:p-5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+                            <Package className="h-3.5 w-3.5 text-blue-600" />
+                            All Items In This Order ({order.items.length})
+                          </h5>
+                          <div className="divide-y divide-border/60">
+                            {order.items.map((item, iIdx) => (
+                              <div
+                                key={item.product.id || iIdx}
+                                className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <img
+                                    src={item.product.images?.[0] || "/categories/embedded-boards.jpg"}
+                                    alt={item.product.name}
+                                    className="h-12 w-12 rounded-lg object-contain border border-border/60 bg-muted/40 p-1 shrink-0"
+                                  />
+                                  <div className="min-w-0">
+                                    <Link
+                                      href={`/product/${item.product.slug}`}
+                                      className="text-xs font-semibold text-foreground hover:text-blue-600 line-clamp-1"
+                                    >
+                                      {item.product.name}
+                                    </Link>
+                                    <p className="text-[11px] text-muted-foreground">
+                                      SKU: {item.product.sku} · Qty: {item.quantity} × ₹
+                                      {item.unitPrice.toLocaleString("en-IN")}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <p className="text-xs font-bold text-foreground">
+                                    ₹{(item.unitPrice * item.quantity).toLocaleString("en-IN")}
+                                  </p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-[10px] text-blue-600 hover:text-blue-700 px-2 mt-0.5"
+                                    onClick={() => {
+                                      addToCart(item.product, item.quantity);
+                                      toast({
+                                        title: "Added to Cart",
+                                        description: `${item.product.name} added to cart.`,
+                                      });
+                                    }}
+                                  >
+                                    Buy again
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right 5 Columns: Delivery Address, Financial & Tax Breakdown, Invoice */}
+                      <div className="lg:col-span-5 space-y-5">
+                        {/* Shipping Destination */}
+                        <div className="rounded-xl border border-border/60 bg-background p-4 sm:p-5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 text-blue-600" />
+                            Shipping Destination
+                          </h5>
+                          <p className="text-xs font-bold text-foreground">
+                            {order.shippingAddress.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                            {order.shippingAddress.line1}
+                            {order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ""}
+                            <br />
+                            {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
+                            {order.shippingAddress.pincode}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {order.shippingAddress.phone}
+                          </p>
+                        </div>
+
+                        {/* Tax & Financial Breakdown */}
+                        <div className="rounded-xl border border-border/60 bg-background p-4 sm:p-5 space-y-2.5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                            <Receipt className="h-3.5 w-3.5 text-blue-600" />
+                            Tax & Payment Breakdown
+                          </h5>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Items Subtotal</span>
+                            <span>₹{order.subtotal.toLocaleString("en-IN")}</span>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Shipping & Handling</span>
+                            <span
+                              className={
+                                order.shippingCharge === 0 ? "text-emerald-600 font-semibold" : ""
+                              }
+                            >
+                              {order.shippingCharge === 0 ? "FREE" : `₹${order.shippingCharge}`}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>GST (18% ITC Eligible)</span>
+                            <span>₹{order.gst.toLocaleString("en-IN")}</span>
+                          </div>
+                          <div className="border-t border-border/60 pt-2 flex justify-between items-baseline">
+                            <span className="text-xs font-bold text-foreground">Total Paid</span>
+                            <span className="text-base font-extrabold text-foreground">
+                              ₹{order.total.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          <div className="pt-2 text-[11px] text-muted-foreground flex items-center justify-between border-t border-border/40">
+                            <span>Method: {order.paymentMethod}</span>
+                            <span className="text-emerald-600 font-semibold">
+                              Status: {order.paymentStatus}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Invoice & Actions Card */}
+                        <div className="rounded-xl border border-blue-200/80 bg-blue-50/50 p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-blue-600 shrink-0" />
+                            <div>
+                              <p className="text-xs font-semibold text-foreground">
+                                Official GST Tax Invoice
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                Valid GST invoice with HSN codes & ITC input tax credit
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            className="w-full h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5 shadow-sm"
+                            onClick={() => printInvoice(order)}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            Print / Save Tax Invoice (PDF)
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
-        </ul>
-      </div>
-    </SectionShell>
+
+          {/* After 4 orders, if hasMoreThan4 and !isViewAll: View All Orders Button */}
+          {!isViewAll && hasMoreThan4 && (
+            <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-blue-50/70 p-6 sm:p-8 text-center shadow-sm">
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100/80 text-blue-800 text-xs font-bold ring-1 ring-blue-200/60">
+                  <Package className="h-3.5 w-3.5" />
+                  <span>+{filteredOrders.length - 4} more orders in your history</span>
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-foreground">
+                  Looking for older hardware shipments?
+                </h4>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  You have {filteredOrders.length} orders on file. Open your complete order history to browse all previous items with multi-page navigation.
+                </p>
+                <div className="pt-1">
+                  <Button
+                    type="button"
+                    size="lg"
+                    onClick={() => {
+                      setIsViewAll(true);
+                      setCurrentPage(1);
+                      scrollToOrdersTop();
+                    }}
+                    className="h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-6 gap-2 shadow-md hover:shadow-lg transition-all"
+                  >
+                    <span>View All {filteredOrders.length} Orders</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paginated Navigation: 1, 2, 3, 4, 5... when isViewAll is true */}
+          {isViewAll && totalPages > 1 && (
+            <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+              {/* Left: Summary text */}
+              <div className="text-xs text-muted-foreground text-center sm:text-left">
+                Showing{" "}
+                <span className="font-bold text-foreground">
+                  {(currentPage - 1) * ordersPerPage + 1}–
+                  {Math.min(currentPage * ordersPerPage, filteredOrders.length)}
+                </span>{" "}
+                of <span className="font-bold text-foreground">{filteredOrders.length}</span> orders
+                <span className="mx-1.5 text-muted-foreground/60">•</span>
+                <span className="font-semibold text-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+
+              {/* Center / Right: Numbered Pagination Controls: [Prev] 1, 2, 3, 4, 5... [Next] */}
+              <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                {/* Previous Page Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="h-9 px-2.5 rounded-xl text-xs font-semibold gap-1 disabled:opacity-40 border-border/80"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+
+                {/* Numbered Page Buttons: 1, 2, 3, 4, 5... */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((pageNum, idx) => {
+                    if (typeof pageNum === "string") {
+                      return (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="h-9 w-7 flex items-center justify-center text-xs text-muted-foreground font-bold"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isActive = pageNum === currentPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => handlePageChange(pageNum)}
+                        aria-label={`Go to page ${pageNum}`}
+                        className={cn(
+                          "h-9 min-w-9 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center",
+                          isActive
+                            ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30 font-extrabold"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Page Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="h-9 px-2.5 rounded-xl text-xs font-semibold gap-1 disabled:opacity-40 border-border/80"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Quick switch back to 4 recent orders */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsViewAll(false);
+                  setCurrentPage(1);
+                  scrollToOrdersTop();
+                }}
+                className="h-8 rounded-full text-xs text-muted-foreground hover:text-foreground font-medium"
+              >
+                Show Recent 4
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1120,14 +3190,48 @@ function EditProfileModal({ profile, onClose, onSave }: EditProfileModalProps) {
 }
 
 export default function Account() {
-  const [active, setActive] = useState<SectionId>("profile");
+  const [active, setActive] = useState<SectionId>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as SectionId;
+      if (tabParam && ["profile", "orders", "addresses", "billing", "wishlist", "support", "settings", "notifications"].includes(tabParam)) {
+        return tabParam;
+      }
+      if (window.location.hash) {
+        const hash = window.location.hash.replace("#", "") as SectionId;
+        if (["profile", "orders", "addresses", "billing", "wishlist", "support", "settings", "notifications"].includes(hash)) {
+          return hash;
+        }
+      }
+    }
+    return "profile";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleUrlTab = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as SectionId;
+      if (tabParam && ["profile", "orders", "addresses", "billing", "wishlist", "support", "settings", "notifications"].includes(tabParam)) {
+        setActive(tabParam);
+      } else if (window.location.hash) {
+        const hash = window.location.hash.replace("#", "") as SectionId;
+        if (["profile", "orders", "addresses", "billing", "wishlist", "support", "settings", "notifications"].includes(hash)) {
+          setActive(hash);
+        }
+      }
+    };
+    handleUrlTab();
+    window.addEventListener("popstate", handleUrlTab);
+    return () => window.removeEventListener("popstate", handleUrlTab);
+  }, []);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | undefined>();
-  const { user, logout, wishlist, addToCart, removeFromWishlist } = useStore();
+  const { user, setUser, openAuth, logout, wishlist, addToCart, removeFromWishlist } = useStore();
   const [, setLocation] = useLocation();
 
   const activeItem = navItems.find((n) => n.id === active) ?? navItems[0];
@@ -1139,15 +3243,19 @@ export default function Account() {
     setIsEditing(false);
     setAddressModalOpen(false);
     logout();
-    setLocation("/");
   };
 
-  // Redirect to home page if user is not logged in or logs out
-  useEffect(() => {
-    if (!user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
+  const handleDemoLogin = () => {
+    const demoUser = {
+      userId: "mem_user_demo",
+      name: "Demo Engineer",
+      email: "demo@synergy.com",
+      emailVerified: true,
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+    };
+    setUser(demoUser);
+    localStorage.setItem("user", JSON.stringify(demoUser));
+  };
 
   // Fetch profile data
   useEffect(() => {
@@ -1158,22 +3266,46 @@ export default function Account() {
       return;
     }
 
+    const fallbackProfileData: ProfileData = {
+      name: user.name || "Demo Engineer",
+      email: user.email || "demo@synergy.com",
+      givenName: user.givenName || user.name?.split(" ")[0] || "Demo",
+      familyName: user.familyName || user.name?.split(" ")[1] || "Engineer",
+      avatar: user.avatar,
+      phone: "+91 91234 56780",
+      role: "Hardware & IoT Engineer",
+      company: "Synergy Tech Labs",
+      gstin: "33AAECS9821F1Z8",
+      accountType: "B2B Business",
+      totalOrdersValue: 37604,
+      savedItemsCount: wishlist.length,
+      buyerRating: 4.9,
+      totalOrdersCount: 4,
+      memberSince: new Date("2024-01-15"),
+      emailVerified: user.emailVerified ?? true,
+      language: "en-IN",
+      timezone: "Asia/Kolkata",
+    };
+
     const fetchProfile = async () => {
       setLoading(true);
       try {
         const response = await fetchApi<{ success: boolean; profile: ProfileData }>(`/users/profile/${user.userId}`);
         if (response.success && response.profile) {
           setProfile(response.profile);
+        } else {
+          setProfile(fallbackProfileData);
         }
       } catch (error) {
         console.error('Failed to fetch profile:', error);
+        setProfile(fallbackProfileData);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, wishlist.length]);
 
   // Fetch addresses
   useEffect(() => {
@@ -1322,8 +3454,37 @@ export default function Account() {
 
   if (!user || !profile) {
     return (
-      <div className="bg-background min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Please log in to view your profile page.</p>
+      <div className="bg-background min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl border border-border/80 bg-card p-6 sm:p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md mb-4">
+            <Package className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Sign in to Your Account
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            Track your shipments, inspect product cards, print official GST invoices, and manage hardware orders.
+          </p>
+          <div className="mt-6 flex flex-col gap-3">
+            <Button
+              className="h-11 w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md"
+              onClick={() => openAuth("signin")}
+            >
+              Sign In to Your Account
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 w-full rounded-full border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold text-sm"
+              onClick={handleDemoLogin}
+            >
+              <Sparkles className="h-4 w-4 mr-1.5 text-blue-600" />
+              Continue with Demo Account
+            </Button>
+            <Link href="/" className="mt-2 text-xs text-muted-foreground hover:text-foreground">
+              ← Return to Home Page
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
