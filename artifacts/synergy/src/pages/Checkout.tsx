@@ -179,7 +179,12 @@ export default function Checkout() {
         createdAt: new Date().toISOString(),
         itemsCount: cart.reduce((s, i) => s + i.quantity, 0),
         paymentMethod: formData.paymentMethod,
-        shippingAddress: payload.shippingAddress
+        shippingAddress: payload.shippingAddress,
+        items: cart.map((i) => ({
+          product: i.product,
+          quantity: i.quantity,
+          unitPrice: i.product.price,
+        })),
       };
 
       setPlacedOrder(orderResult);

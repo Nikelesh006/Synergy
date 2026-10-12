@@ -92,7 +92,7 @@ interface ProfileData {
 
 const navItems: NavItem[] = [
   { id: "profile", label: "Profile Details", icon: User, hint: "Personal info" },
-  { id: "orders", label: "My Orders", icon: Package, badge: "12", hint: "Track & invoices" },
+  { id: "orders", label: "My Orders", icon: Package, hint: "Track & invoices" },
   { id: "addresses", label: "Addresses", icon: MapPin, hint: "Shipping & sites" },
   { id: "billing", label: "GST & Billing", icon: CreditCard, hint: "Tax & payment" },
   { id: "wishlist", label: "Saved Items", icon: Heart, hint: "Wishlist" },
@@ -145,947 +145,7 @@ export interface DetailedOrder {
 }
 
 function getInitialRichOrders(): DetailedOrder[] {
-  const p0 = catalogProducts[0] || {
-    id: "1",
-    name: "ESP32 (Rex32)",
-    slug: "esp32-rex32",
-    sku: "DEV-ESP32-REX",
-    brand: "Espressif",
-    category: "IoT",
-    subcategory: "ESP32 (Rex32)",
-    shortDescription: "Versatile ESP32 development board (Rex32) with WiFi and Bluetooth.",
-    description: "The ESP32 Rex32 is a low-cost, low-power microcontroller with integrated Wi-Fi and Bluetooth.",
-    specifications: { "Processor": "Dual-core Xtensa 32-bit LX6" },
-    features: ["Low Power", "High Performance"],
-    applications: ["Smart Home", "IoT"],
-    images: ["/categories/iot-boards.jpg"],
-    price: 450,
-    compareAtPrice: 550,
-    currency: "INR",
-    stock: 145,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.8,
-    reviewCount: 124,
-    isFeatured: true,
-    isNewArrival: true,
-    isBestSeller: true,
-    warrantyInfo: "1 Year Manufacturer Warranty",
-    shippingInfo: "Ships within 24 hours.",
-  };
-
-  const p1 = catalogProducts[1] || {
-    id: "2",
-    name: "ESP32 AI Development Board (REX32 AI)",
-    slug: "esp32-ai-rex32-ai",
-    sku: "DEV-ESP32-AI",
-    brand: "Espressif",
-    category: "AI",
-    subcategory: "ESP32 (Rex32 AI)",
-    shortDescription: "Advanced ESP32 board tailored for Edge AI and computer vision.",
-    description: "Designed specifically for Edge AI computing.",
-    specifications: { "Processor": "Dual-core Xtensa LX7" },
-    features: ["Edge AI Support"],
-    applications: ["Voice Recognition"],
-    images: ["/categories/ai-boards.jpg"],
-    price: 1250,
-    compareAtPrice: 1500,
-    currency: "INR",
-    stock: 52,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.9,
-    reviewCount: 89,
-    isFeatured: true,
-    isNewArrival: true,
-    isBestSeller: true,
-    warrantyInfo: "1 Year Manufacturer Warranty",
-    shippingInfo: "Ships within 24-48 hours.",
-  };
-
-  const p2 = catalogProducts[2] || {
-    id: "3",
-    name: "Arduino Development Board",
-    slug: "arduino-development-board",
-    sku: "DEV-ARD-UNO",
-    brand: "Arduino",
-    category: "Embedded Systems Boards",
-    subcategory: "Arduino development",
-    shortDescription: "Classic Arduino development board for beginners and pros.",
-    description: "Perfect starting point for your electronics projects.",
-    specifications: { "Microcontroller": "ATmega328P" },
-    features: ["Easy to Program"],
-    applications: ["Prototyping"],
-    images: ["/categories/embedded-boards.jpg"],
-    price: 850,
-    currency: "INR",
-    stock: 300,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.8,
-    reviewCount: 412,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: true,
-    warrantyInfo: "1 Year Manufacturer Warranty",
-    shippingInfo: "Standard shipping applies.",
-  };
-
-  const p3 = catalogProducts[25] || {
-    id: "26",
-    name: "Raspberry Pi 4 Model B (4GB)",
-    slug: "raspberry-pi-4-model-b-4gb",
-    sku: "RPI-4-4GB",
-    brand: "Raspberry Pi",
-    category: "Development Boards",
-    subcategory: "Single Board Computers",
-    shortDescription: "High-performance quad-core 64-bit single board computer.",
-    description: "Powerful single board computer.",
-    specifications: { "Processor": "Broadcom BCM2711" },
-    features: ["Dual micro-HDMI"],
-    applications: ["IoT", "Edge Computing"],
-    images: ["/categories/embedded-boards.jpg"],
-    price: 5200,
-    currency: "INR",
-    stock: 45,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.8,
-    reviewCount: 340,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: true,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships immediately",
-  };
-
-  const p4 = catalogProducts[19] || {
-    id: "20",
-    name: "Fluke T6-1000 Electrical Tester",
-    slug: "fluke-t6-1000-electrical-tester",
-    sku: "FLU-T6-1000",
-    brand: "Fluke",
-    category: "Tools & Test Equipment",
-    subcategory: "Testers",
-    shortDescription: "Measure voltage and current without test leads.",
-    description: "Electrical tester with FieldSense technology.",
-    specifications: { "FieldSense AC Voltage": "1000 V" },
-    features: ["FieldSense Technology"],
-    applications: ["Industrial Maintenance"],
-    images: ["/categories/lab-equipments.jpg"],
-    price: 12500,
-    currency: "INR",
-    stock: 8,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.9,
-    reviewCount: 34,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: false,
-    warrantyInfo: "2 Years Manufacturer Warranty",
-    shippingInfo: "Premium Shipping Available.",
-  };
-
-  const p5 = catalogProducts[3] || {
-    id: "4",
-    name: "ESP32 Servo Driver",
-    slug: "esp32-servo-driver",
-    sku: "DRV-ESP32-SRV",
-    brand: "Synergy Tech Labs",
-    category: "Robotics",
-    subcategory: "ESP32 servo drivers",
-    shortDescription: "Multi-channel servo driver shield for ESP32.",
-    description: "Control multiple servo motors effortlessly.",
-    specifications: { "Channels": "16", "Interface": "I2C" },
-    features: ["Daisy-chainable", "High Precision"],
-    applications: ["Robotics", "RC Vehicles"],
-    images: ["/categories/robotics-boards.jpg"],
-    price: 650,
-    currency: "INR",
-    stock: 80,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.7,
-    reviewCount: 45,
-    isFeatured: true,
-    isNewArrival: true,
-    isBestSeller: false,
-    warrantyInfo: "6 Months Warranty",
-    shippingInfo: "Available for immediate dispatch.",
-  };
-
-  const p6 = catalogProducts[4] || {
-    id: "5",
-    name: "ESP32 DC Driver",
-    slug: "esp32-dc-driver",
-    sku: "DRV-ESP32-DC",
-    brand: "Synergy Tech Labs",
-    category: "Robotics",
-    subcategory: "ESP32 DC drivers",
-    shortDescription: "High-power dual DC motor driver for ESP32.",
-    description: "Robust and reliable control for up to two high-current DC motors.",
-    specifications: { "Motor Channels": "2", "Max Current": "3A per channel" },
-    features: ["Thermal Protection", "PWM Speed Control"],
-    applications: ["Mobile Robots", "Conveyor Belts"],
-    images: ["/categories/robotics-boards.jpg"],
-    price: 780,
-    currency: "INR",
-    stock: 65,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.6,
-    reviewCount: 32,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: true,
-    warrantyInfo: "6 Months Warranty",
-    shippingInfo: "Ships within 2-3 business days.",
-  };
-
-  const p7 = catalogProducts[29] || {
-    id: "30",
-    name: "STM32 Nucleo-F401RE",
-    slug: "stm32-nucleo-f401re",
-    sku: "STM-NUC-F401RE",
-    brand: "STMicroelectronics",
-    category: "Embedded Systems Boards",
-    subcategory: "Development Boards",
-    shortDescription: "Development board for STM32F401RE microcontroller.",
-    description: "Affordable and flexible way to try out new ideas and build prototypes.",
-    specifications: { "Microcontroller": "STM32F401RE", "Core": "ARM Cortex-M4" },
-    features: ["Arduino Uno V3 connectivity", "Integrated ST-LINK/V2-1"],
-    applications: ["Embedded Systems", "Motor Control"],
-    images: ["/categories/embedded-boards.jpg"],
-    price: 1800,
-    currency: "INR",
-    stock: 50,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.6,
-    reviewCount: 45,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: false,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships within 24hrs",
-  };
-
-  const p8 = catalogProducts[33] || {
-    id: "34",
-    name: "Teensy 4.1",
-    slug: "teensy-4-1",
-    sku: "TEENSY-41",
-    brand: "PJRC",
-    category: "Robotics",
-    subcategory: "Microcontrollers",
-    shortDescription: "High-performance microcontroller running at 600 MHz.",
-    description: "Fastest microcontroller with an expanded set of powerful peripherals.",
-    specifications: { "Processor": "ARM Cortex-M7 at 600 MHz", "Flash Memory": "8MB" },
-    features: ["Incredibly Fast", "Ethernet Mac", "Lots of I/O Pins"],
-    applications: ["Audio Synthesis", "Fast Control Loops"],
-    images: ["/categories/robotics-boards.jpg"],
-    price: 2800,
-    currency: "INR",
-    stock: 40,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.9,
-    reviewCount: 156,
-    isFeatured: false,
-    isNewArrival: false,
-    isBestSeller: true,
-    warrantyInfo: "No warranty",
-    shippingInfo: "Ships within 24hrs",
-  };
-
-  const p9 = catalogProducts[14] || {
-    id: "15",
-    name: "Siemens SENTRON MCCB 100A",
-    slug: "siemens-sentron-mccb-100a",
-    sku: "SIE-MCCB-100A-3P",
-    brand: "Siemens",
-    category: "Circuit Protection",
-    subcategory: "MCCB",
-    shortDescription: "100A 3-Pole Molded Case Circuit Breaker.",
-    description: "Heavy duty protection for industrial loads.",
-    specifications: { "Rating": "100A", "Poles": "3 Pole", "Breaking Capacity": "36kA" },
-    features: ["Adjustable Trip", "Compact Size"],
-    applications: ["Main Distribution Boards"],
-    images: ["/categories/embedded-boards.jpg"],
-    price: 8500,
-    currency: "INR",
-    stock: 15,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.9,
-    reviewCount: 33,
-    isFeatured: true,
-    isNewArrival: false,
-    isBestSeller: false,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships within 2-3 days",
-  };
-
-  const p10 = catalogProducts[32] || {
-    id: "33",
-    name: "Google Coral Dev Board Mini",
-    slug: "google-coral-dev-board-mini",
-    sku: "CORAL-MINI",
-    brand: "Google Coral",
-    category: "AI",
-    subcategory: "AI Computing",
-    shortDescription: "Single-board computer with an Edge TPU.",
-    description: "Fast machine learning inferencing in a small form factor.",
-    specifications: { "ML Accelerator": "Google Edge TPU coprocessor", "Memory": "2GB LPDDR3" },
-    features: ["On-device ML", "Small form-factor"],
-    applications: ["Vision AI", "Voice Recognition"],
-    images: ["/categories/ai-boards.jpg"],
-    price: 9500,
-    currency: "INR",
-    stock: 15,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.5,
-    reviewCount: 34,
-    isFeatured: false,
-    isNewArrival: false,
-    isBestSeller: false,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships in 2-3 days",
-  };
-
-  const p11 = catalogProducts[31] || {
-    id: "32",
-    name: "Raspberry Pi Pico W",
-    slug: "raspberry-pi-pico-w",
-    sku: "RPI-PICO-W",
-    brand: "Raspberry Pi",
-    category: "IoT",
-    subcategory: "Microcontrollers",
-    shortDescription: "Tiny, fast, and versatile microcontroller board with WiFi.",
-    description: "Adds on-board single-band 2.4GHz wireless interfaces.",
-    specifications: { "Microcontroller": "RP2040", "Wireless": "2.4GHz 802.11n wireless LAN" },
-    features: ["Dual-core Cortex-M0+", "Programmable I/O"],
-    applications: ["Smart Home", "Sensor Nodes"],
-    images: ["/categories/iot-boards.jpg"],
-    price: 650,
-    currency: "INR",
-    stock: 150,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.8,
-    reviewCount: 89,
-    isFeatured: true,
-    isNewArrival: true,
-    isBestSeller: true,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships immediately",
-  };
-
-  const p12 = catalogProducts[27] || {
-    id: "28",
-    name: "NVIDIA Jetson Nano Developer Kit",
-    slug: "nvidia-jetson-nano-developer-kit",
-    sku: "NV-JETSON-NANO",
-    brand: "NVIDIA",
-    category: "AI",
-    subcategory: "AI Computing",
-    shortDescription: "Small, powerful computer for AI development.",
-    description: "Run multiple neural networks in parallel.",
-    specifications: { "GPU": "128-core Maxwell", "CPU": "Quad-core ARM A57" },
-    features: ["High AI Performance", "Low Power Consumption"],
-    applications: ["AI Robotics", "Edge AI", "Computer Vision"],
-    images: ["/categories/ai-boards.jpg"],
-    price: 14500,
-    currency: "INR",
-    stock: 12,
-    inStock: true,
-    minOrderQty: 1,
-    rating: 4.9,
-    reviewCount: 89,
-    isFeatured: true,
-    isNewArrival: true,
-    isBestSeller: false,
-    warrantyInfo: "1 Year",
-    shippingInfo: "Ships in 2-3 days",
-  };
-
-  return [
-    {
-      id: "SYN-89241",
-      trackingId: "SYN-89241",
-      date: "Oct 24, 2024",
-      time: "02:45 PM",
-      status: "In Transit",
-      statusTone: "blue",
-      estimatedDelivery: "Thursday, Oct 28, 2024",
-      courierName: "Delhivery Express Logistics",
-      trackingNumber: "DLHV-89241-BLR",
-      paymentMethod: "UPI (Google Pay • Ref #92841029)",
-      paymentStatus: "Paid",
-      subtotal: 4300,
-      gst: 774,
-      shippingCharge: 0,
-      total: 5074,
-      shippingAddress: {
-        name: "Synergy Tech Labs R&D Hub",
-        phone: "+91 98765 43210",
-        line1: "Plot 42, Electronic City Phase 1",
-        line2: "Near Infosys Gate 4",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560100",
-      },
-      trackingSteps: [
-        {
-          title: "Order Placed & Verified",
-          description: "Order placed successfully and payment confirmed via UPI.",
-          timestamp: "Oct 24, 02:45 PM",
-          completed: true,
-        },
-        {
-          title: "Quality Check & Packed",
-          description: "Hardware items tested and packed with anti-static packaging.",
-          timestamp: "Oct 25, 10:15 AM",
-          completed: true,
-        },
-        {
-          title: "Dispatched from Hub",
-          description: "Handed over to Delhivery Express courier facility.",
-          timestamp: "Oct 25, 05:40 PM",
-          completed: true,
-        },
-        {
-          title: "In Transit (En Route)",
-          description: "Departed from Bangalore Air Sorting Hub towards destination center.",
-          timestamp: "Oct 26, 08:30 AM",
-          completed: true,
-          current: true,
-        },
-        {
-          title: "Out for Delivery",
-          description: "Courier executive will deliver with secure OTP verification.",
-          timestamp: "Expected Oct 28",
-          completed: false,
-        },
-        {
-          title: "Delivered",
-          description: "Package handed over to recipient.",
-          completed: false,
-        },
-      ],
-      items: [
-        {
-          product: p0,
-          quantity: 4,
-          unitPrice: 450,
-        },
-        {
-          product: p1,
-          quantity: 2,
-          unitPrice: 1250,
-        },
-      ],
-    },
-    {
-      id: "SYN-78105",
-      trackingId: "SYN-78105",
-      date: "Sep 15, 2024",
-      time: "11:10 AM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Sep 18, 2024 at 02:15 PM",
-      courierName: "Blue Dart Apex Air",
-      trackingNumber: "BLDT-78105-MAA",
-      paymentMethod: "HDFC Corporate Net Banking",
-      paymentStatus: "Paid",
-      subtotal: 12950,
-      gst: 2331,
-      shippingCharge: 0,
-      total: 15281,
-      shippingAddress: {
-        name: "Industrial Robotics Lab",
-        phone: "+91 94440 18273",
-        line1: "Synergy Innovation Park, Ambattur Industrial Estate",
-        line2: "Phase II, Tech Building 3B",
-        city: "Chennai",
-        state: "Tamil Nadu",
-        pincode: "600058",
-      },
-      trackingSteps: [
-        {
-          title: "Order Placed & Verified",
-          description: "Corporate order placed and payment received.",
-          timestamp: "Sep 15, 11:10 AM",
-          completed: true,
-        },
-        {
-          title: "Packed & Serial Numbers Logged",
-          description: "All boards scanned and sealed.",
-          timestamp: "Sep 16, 09:30 AM",
-          completed: true,
-        },
-        {
-          title: "Dispatched via Blue Dart Air",
-          description: "Dispatched from primary distribution center.",
-          timestamp: "Sep 16, 06:15 PM",
-          completed: true,
-        },
-        {
-          title: "Arrived at Destination Hub",
-          description: "Arrived at Chennai Delivery Center.",
-          timestamp: "Sep 17, 10:20 PM",
-          completed: true,
-        },
-        {
-          title: "Out for Delivery",
-          description: "Dispatched with Blue Dart Courier Agent.",
-          timestamp: "Sep 18, 08:45 AM",
-          completed: true,
-        },
-        {
-          title: "Delivered & Signed",
-          description: "Delivered to Mr. Rajesh (Lab In-charge). Signed with OTP.",
-          timestamp: "Sep 18, 02:15 PM",
-          completed: true,
-          current: true,
-        },
-      ],
-      items: [
-        {
-          product: p3,
-          quantity: 2,
-          unitPrice: 5200,
-        },
-        {
-          product: p2,
-          quantity: 3,
-          unitPrice: 850,
-        },
-      ],
-    },
-    {
-      id: "SYN-65420",
-      trackingId: "SYN-65420",
-      date: "Aug 02, 2024",
-      time: "04:20 PM",
-      status: "Processing",
-      statusTone: "amber",
-      estimatedDelivery: "Expected dispatch within 24 hours",
-      courierName: "DTDC Express Cargo",
-      trackingNumber: "DTDC-65420-HYD",
-      paymentMethod: "Corporate Credit Card (•••• 4521)",
-      paymentStatus: "Paid",
-      subtotal: 12500,
-      gst: 2250,
-      shippingCharge: 0,
-      total: 14750,
-      shippingAddress: {
-        name: "Embedded Automation Works",
-        phone: "+91 99887 76655",
-        line1: "HITEC City Phase 2, Madhapur",
-        line2: "Tech Zone Tower B, 4th Floor",
-        city: "Hyderabad",
-        state: "Telangana",
-        pincode: "500081",
-      },
-      trackingSteps: [
-        {
-          title: "Order Placed & Payment Verified",
-          description: "Payment confirmed via corporate card.",
-          timestamp: "Aug 02, 04:20 PM",
-          completed: true,
-        },
-        {
-          title: "Fulfillment & Calibration Inspection",
-          description: "Precision multimeter and boards under inspection.",
-          timestamp: "Aug 03, 09:30 AM",
-          completed: true,
-          current: true,
-        },
-        {
-          title: "Packaging & Dispatch",
-          description: "Will be dispatched once calibration certificate is printed.",
-          completed: false,
-        },
-        {
-          title: "In Transit",
-          description: "On way to Hyderabad hub.",
-          completed: false,
-        },
-        {
-          title: "Delivered",
-          description: "Delivery at site location.",
-          completed: false,
-        },
-      ],
-      items: [
-        {
-          product: p4,
-          quantity: 1,
-          unitPrice: 12500,
-        },
-      ],
-    },
-    {
-      id: "SYN-54219",
-      trackingId: "SYN-54219",
-      date: "Jul 12, 2024",
-      time: "01:15 PM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Jul 15, 2024 at 11:30 AM",
-      courierName: "Delhivery Express",
-      trackingNumber: "DLHV-54219-BLR",
-      paymentMethod: "UPI (PhonePe • Ref #48291034)",
-      paymentStatus: "Paid",
-      subtotal: 3940,
-      gst: 709,
-      shippingCharge: 150,
-      total: 4799,
-      shippingAddress: {
-        name: "Synergy Site Office",
-        phone: "+91 91234 56789",
-        line1: "Rajiv Gandhi Salai (OMR Road)",
-        line2: "Sholinganallur Junction",
-        city: "Chennai",
-        state: "Tamil Nadu",
-        pincode: "600119",
-      },
-      trackingSteps: [
-        {
-          title: "Order Placed",
-          description: "Order received and approved.",
-          timestamp: "Jul 12, 01:15 PM",
-          completed: true,
-        },
-        {
-          title: "Packed & Dispatched",
-          description: "Handed over to Delhivery logistics.",
-          timestamp: "Jul 13, 10:00 AM",
-          completed: true,
-        },
-        {
-          title: "In Transit",
-          description: "Arrived at central delivery station.",
-          timestamp: "Jul 14, 04:30 PM",
-          completed: true,
-        },
-        {
-          title: "Delivered & Signed",
-          description: "Delivered securely at site reception.",
-          timestamp: "Jul 15, 11:30 AM",
-          completed: true,
-          current: true,
-        },
-      ],
-      items: [
-        {
-          product: p0,
-          quantity: 2,
-          unitPrice: 450,
-        },
-        {
-          product: p1,
-          quantity: 1,
-          unitPrice: 1250,
-        },
-        {
-          product: p2,
-          quantity: 2,
-          unitPrice: 850,
-        },
-      ],
-    },
-    {
-      id: "SYN-49120",
-      trackingId: "SYN-49120",
-      date: "Jun 28, 2024",
-      time: "03:10 PM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Jul 01, 2024 at 04:00 PM",
-      courierName: "Blue Dart Apex Logistics",
-      trackingNumber: "BLDT-49120-BLR",
-      paymentMethod: "UPI (Google Pay)",
-      paymentStatus: "Paid",
-      subtotal: 3510,
-      gst: 632,
-      shippingCharge: 0,
-      total: 4142,
-      shippingAddress: {
-        name: "Robotics Prototyping Cell",
-        phone: "+91 98844 55667",
-        line1: "Peenya Industrial Area Phase 3",
-        line2: "Sector 4, Plot 18",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560058",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Payment approved.", timestamp: "Jun 28, 03:10 PM", completed: true },
-        { title: "Packed", description: "Drivers tested and sealed.", timestamp: "Jun 29, 11:00 AM", completed: true },
-        { title: "In Transit", description: "Arrived at local hub.", timestamp: "Jun 30, 08:15 PM", completed: true },
-        { title: "Delivered", description: "Delivered to security desk.", timestamp: "Jul 01, 04:00 PM", completed: true, current: true },
-      ],
-      items: [
-        { product: p5, quantity: 3, unitPrice: 650 },
-        { product: p6, quantity: 2, unitPrice: 780 },
-      ],
-    },
-    {
-      id: "SYN-42095",
-      trackingId: "SYN-42095",
-      date: "Jun 10, 2024",
-      time: "09:45 AM",
-      status: "In Transit",
-      statusTone: "blue",
-      estimatedDelivery: "Friday, Jun 14, 2024",
-      courierName: "Delhivery Logistics Air",
-      trackingNumber: "DLHV-42095-DEL",
-      paymentMethod: "HDFC Corporate Card",
-      paymentStatus: "Paid",
-      subtotal: 9200,
-      gst: 1656,
-      shippingCharge: 0,
-      total: 10856,
-      shippingAddress: {
-        name: "Advanced Embedded Lab",
-        phone: "+91 98110 22334",
-        line1: "Okhla Industrial Area Phase 2",
-        line2: "Block C, Building 14",
-        city: "New Delhi",
-        state: "Delhi",
-        pincode: "110020",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Order confirmed.", timestamp: "Jun 10, 09:45 AM", completed: true },
-        { title: "Dispatched", description: "Handed over to courier.", timestamp: "Jun 11, 02:00 PM", completed: true },
-        { title: "In Transit", description: "Package en route to Delhi hub.", timestamp: "Jun 12, 06:30 AM", completed: true, current: true },
-        { title: "Out for Delivery", description: "Scheduled for Jun 14.", completed: false },
-        { title: "Delivered", description: "Awaiting delivery.", completed: false },
-      ],
-      items: [
-        { product: p7, quantity: 2, unitPrice: 1800 },
-        { product: p8, quantity: 2, unitPrice: 2800 },
-      ],
-    },
-    {
-      id: "SYN-38501",
-      trackingId: "SYN-38501",
-      date: "May 22, 2024",
-      time: "05:30 PM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on May 25, 2024 at 01:20 PM",
-      courierName: "DTDC Heavy Cargo",
-      trackingNumber: "DTDC-38501-PUN",
-      paymentMethod: "Net Banking",
-      paymentStatus: "Paid",
-      subtotal: 8500,
-      gst: 1530,
-      shippingCharge: 0,
-      total: 10030,
-      shippingAddress: {
-        name: "Synergy Power Panel Division",
-        phone: "+91 97654 32109",
-        line1: "Bhosari MIDC Industrial Estate",
-        line2: "Plot W-45, Near Landewadi Chowk",
-        city: "Pune",
-        state: "Maharashtra",
-        pincode: "411026",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Order created.", timestamp: "May 22, 05:30 PM", completed: true },
-        { title: "Inspection Passed", description: "Breaker trip mechanism calibrated.", timestamp: "May 23, 10:00 AM", completed: true },
-        { title: "Dispatched", description: "Dispatched via DTDC Surface.", timestamp: "May 23, 04:00 PM", completed: true },
-        { title: "Delivered", description: "Delivered to warehouse receiving.", timestamp: "May 25, 01:20 PM", completed: true, current: true },
-      ],
-      items: [
-        { product: p9, quantity: 1, unitPrice: 8500 },
-      ],
-    },
-    {
-      id: "SYN-33214",
-      trackingId: "SYN-33214",
-      date: "May 05, 2024",
-      time: "10:15 AM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on May 08, 2024 at 12:45 PM",
-      courierName: "Blue Dart Apex",
-      trackingNumber: "BLDT-33214-HYD",
-      paymentMethod: "UPI (Paytm)",
-      paymentStatus: "Paid",
-      subtotal: 11450,
-      gst: 2061,
-      shippingCharge: 0,
-      total: 13511,
-      shippingAddress: {
-        name: "Edge AI Research Center",
-        phone: "+91 98490 12345",
-        line1: "Gachibowli Financial District",
-        line2: "Tech Park II, 8th Floor",
-        city: "Hyderabad",
-        state: "Telangana",
-        pincode: "500032",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Verified by billing.", timestamp: "May 05, 10:15 AM", completed: true },
-        { title: "Dispatched", description: "Sent via Air Cargo.", timestamp: "May 06, 03:30 PM", completed: true },
-        { title: "Delivered", description: "Signed by lab director.", timestamp: "May 08, 12:45 PM", completed: true, current: true },
-      ],
-      items: [
-        { product: p10, quantity: 1, unitPrice: 9500 },
-        { product: p11, quantity: 3, unitPrice: 650 },
-      ],
-    },
-    {
-      id: "SYN-29108",
-      trackingId: "SYN-29108",
-      date: "Apr 18, 2024",
-      time: "02:00 PM",
-      status: "Processing",
-      statusTone: "amber",
-      estimatedDelivery: "Expected in 2 business days",
-      courierName: "Delhivery Surface",
-      trackingNumber: "DLHV-29108-COI",
-      paymentMethod: "Credit Card (•••• 8812)",
-      paymentStatus: "Paid",
-      subtotal: 3860,
-      gst: 695,
-      shippingCharge: 0,
-      total: 4555,
-      shippingAddress: {
-        name: "Mechatronics Testing Center",
-        phone: "+91 94880 77665",
-        line1: "Civil Aerodrome Post, Avinashi Road",
-        line2: "Near SITRA Junction",
-        city: "Coimbatore",
-        state: "Tamil Nadu",
-        pincode: "641014",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Order validated.", timestamp: "Apr 18, 02:00 PM", completed: true },
-        { title: "Processing", description: "Components queued for assembly check.", timestamp: "Apr 19, 09:30 AM", completed: true, current: true },
-        { title: "Dispatched", description: "Pending courier pickup.", completed: false },
-        { title: "Delivered", description: "Awaiting dispatch.", completed: false },
-      ],
-      items: [
-        { product: p6, quantity: 2, unitPrice: 780 },
-        { product: p2, quantity: 2, unitPrice: 850 },
-        { product: p5, quantity: 1, unitPrice: 650 },
-      ],
-    },
-    {
-      id: "SYN-25490",
-      trackingId: "SYN-25490",
-      date: "Apr 02, 2024",
-      time: "11:20 AM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Apr 05, 2024 at 03:10 PM",
-      courierName: "DTDC Express Cargo",
-      trackingNumber: "DTDC-25490-BLR",
-      paymentMethod: "Corporate Net Banking",
-      paymentStatus: "Paid",
-      subtotal: 11700,
-      gst: 2106,
-      shippingCharge: 0,
-      total: 13806,
-      shippingAddress: {
-        name: "Synergy Tech Labs R&D Hub",
-        phone: "+91 98765 43210",
-        line1: "Plot 42, Electronic City Phase 1",
-        line2: "Near Infosys Gate 4",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560100",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Payment approved.", timestamp: "Apr 02, 11:20 AM", completed: true },
-        { title: "Dispatched", description: "Dispatched from central warehouse.", timestamp: "Apr 03, 04:00 PM", completed: true },
-        { title: "Delivered", description: "Received at central intake.", timestamp: "Apr 05, 03:10 PM", completed: true, current: true },
-      ],
-      items: [
-        { product: p3, quantity: 1, unitPrice: 5200 },
-        { product: p0, quantity: 10, unitPrice: 450 },
-        { product: p1, quantity: 1, unitPrice: 1250 },
-      ],
-    },
-    {
-      id: "SYN-21870",
-      trackingId: "SYN-21870",
-      date: "Mar 15, 2024",
-      time: "04:40 PM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Mar 18, 2024 at 10:15 AM",
-      courierName: "Delhivery Express",
-      trackingNumber: "DLHV-21870-KOC",
-      paymentMethod: "UPI (Google Pay)",
-      paymentStatus: "Paid",
-      subtotal: 5800,
-      gst: 1044,
-      shippingCharge: 0,
-      total: 6844,
-      shippingAddress: {
-        name: "Smart Grid Instrumentation Wing",
-        phone: "+91 94470 33445",
-        line1: "Infopark Phase 2, Kakkanad",
-        line2: "SEZ Building 4",
-        city: "Kochi",
-        state: "Kerala",
-        pincode: "682042",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "Order confirmed.", timestamp: "Mar 15, 04:40 PM", completed: true },
-        { title: "Dispatched", description: "Shipped with Delhivery.", timestamp: "Mar 16, 01:00 PM", completed: true },
-        { title: "Delivered", description: "Delivered to site manager.", timestamp: "Mar 18, 10:15 AM", completed: true, current: true },
-      ],
-      items: [
-        { product: p7, quantity: 2, unitPrice: 1800 },
-        { product: p11, quantity: 2, unitPrice: 650 },
-        { product: p0, quantity: 2, unitPrice: 450 },
-      ],
-    },
-    {
-      id: "SYN-18450",
-      trackingId: "SYN-18450",
-      date: "Feb 28, 2024",
-      time: "01:00 PM",
-      status: "Delivered",
-      statusTone: "emerald",
-      deliveredDate: "Delivered on Mar 02, 2024 at 02:30 PM",
-      courierName: "Blue Dart Apex Air",
-      trackingNumber: "BLDT-18450-AHM",
-      paymentMethod: "Corporate Net Banking",
-      paymentStatus: "Paid",
-      subtotal: 14500,
-      gst: 2610,
-      shippingCharge: 0,
-      total: 17110,
-      shippingAddress: {
-        name: "Gujarat Industrial Automation Center",
-        phone: "+91 98250 99887",
-        line1: "GIDC Industrial Estate, Vatva",
-        line2: "Phase IV, Road No. 12",
-        city: "Ahmedabad",
-        state: "Gujarat",
-        pincode: "382445",
-      },
-      trackingSteps: [
-        { title: "Order Placed", description: "High-value computing order placed.", timestamp: "Feb 28, 01:00 PM", completed: true },
-        { title: "Packed", description: "ESD packaging verified.", timestamp: "Feb 29, 10:00 AM", completed: true },
-        { title: "Dispatched via Air", description: "Blue Dart flight transit.", timestamp: "Mar 01, 09:00 AM", completed: true },
-        { title: "Delivered", description: "Delivered and verified.", timestamp: "Mar 02, 02:30 PM", completed: true, current: true },
-      ],
-      items: [
-        { product: p12, quantity: 1, unitPrice: 14500 },
-      ],
-    },
-  ];
+  return [];
 }
 
 interface Address {
@@ -1512,7 +572,7 @@ function printInvoice(order: DetailedOrder) {
 function OrdersSection() {
   const { user, addToCart } = useStore();
   const { toast } = useToast();
-  const [ordersList, setOrdersList] = useState<DetailedOrder[]>(getInitialRichOrders());
+  const [ordersList, setOrdersList] = useState<DetailedOrder[]>([]);
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
   const [selectedItemIndices, setSelectedItemIndices] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -1532,206 +592,251 @@ function OrdersSection() {
 
   // Attempt to fetch any orders created by the user from API and merge, as well as local orders
   useEffect(() => {
-    // 1. Check local orders placed in current browser session
-    try {
-      const localSaved = localStorage.getItem("synergy_local_orders");
-      if (localSaved) {
-        const localList = JSON.parse(localSaved);
-        if (Array.isArray(localList) && localList.length > 0) {
-          const localOrders: DetailedOrder[] = localList.map((lo: any) => {
-            const defaultItem = getInitialRichOrders()[0].items[0];
-            return {
-              id: lo.trackingId || lo.id,
-              trackingId: lo.trackingId || lo.id,
-              date: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-              time: new Date(lo.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-              status: "Processing",
-              statusTone: "amber",
-              estimatedDelivery: "3-5 business days",
-              courierName: "Delhivery Logistics Air",
-              trackingNumber: lo.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
-              paymentMethod: lo.paymentMethod ? lo.paymentMethod.toUpperCase() : "UPI",
-              paymentStatus: "Paid",
-              subtotal: lo.subtotal || lo.total || 0,
-              gst: lo.gst || Math.round((lo.total || 0) * 0.18),
-              shippingCharge: lo.shippingCharge || 0,
-              total: lo.total || 0,
-              shippingAddress: {
-                name: lo.shippingAddress?.fullName || user?.name || "Customer",
-                phone: lo.shippingAddress?.phone || "+91 9876543210",
-                line1: lo.shippingAddress?.addressLine1 || "Corporate Hub",
-                line2: lo.shippingAddress?.addressLine2 || "",
-                city: lo.shippingAddress?.city || "Bengaluru",
-                state: lo.shippingAddress?.state || "Karnataka",
-                pincode: lo.shippingAddress?.pincode || "560100",
-              },
-              trackingSteps: [
-                {
-                  title: "Order Placed & Verified",
-                  description: "Order placed successfully.",
-                  timestamp: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                  completed: true,
-                },
-                {
-                  title: "Order Confirmed & Processing",
-                  description: "Allocated hardware and verifying serial codes.",
-                  completed: true,
-                  current: true,
-                },
-                {
-                  title: "In Transit",
-                  description: "Express dispatch with Delhivery courier.",
-                  completed: false,
-                },
-                {
-                  title: "Delivered",
-                  description: "Delivered to destination.",
-                  completed: false,
-                },
-              ],
-              items: lo.items && lo.items.length > 0 ? lo.items : [defaultItem],
-            };
-          });
+    let isMounted = true;
 
-          setOrdersList((prev) => {
-            const existingIds = new Set(localOrders.map((o) => o.id));
-            const filteredPrev = prev.filter((o) => !existingIds.has(o.id));
-            return [...localOrders, ...filteredPrev];
-          });
+    const loadOrders = async () => {
+      const ordersMap = new Map<string, DetailedOrder>();
+
+      // 1. Fetch from API if user is authenticated or has email
+      if (user?.userId || user?.email) {
+        try {
+          const params = new URLSearchParams();
+          if (user.userId) params.append("userId", user.userId);
+          if (user.email) params.append("email", user.email);
+
+          const response = await fetchApi<{ success: boolean; orders: any[] }>(`/orders?${params.toString()}`);
+          if (response?.success && Array.isArray(response.orders)) {
+            response.orders.forEach((o: any) => {
+              const mappedItems: OrderItem[] = (o.items || []).map((it: any) => {
+                const matchedCatalog = catalogProducts.find(
+                  (cp) => cp.id === it.productId || cp.sku === it.sku || cp.name?.toLowerCase() === (it.name || "").toLowerCase()
+                );
+                const fallbackProduct: Product = {
+                  id: it.productId || `prod_${Date.now()}`,
+                  name: it.name || "Hardware Component",
+                  slug: it.slug || (it.name ? it.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "component"),
+                  sku: it.sku || "SYN-HW",
+                  brand: it.brand || "Synergy",
+                  category: it.category || "Components",
+                  subcategory: it.subcategory || "General",
+                  shortDescription: it.name || "Hardware component",
+                  description: it.description || "",
+                  specifications: {},
+                  features: ["Authentic Component", "GST Billed"],
+                  applications: ["Prototyping", "Industrial"],
+                  images: it.image ? [it.image] : ["/categories/embedded-boards.jpg"],
+                  price: it.price || 999,
+                  currency: "INR",
+                  stock: 50,
+                  inStock: true,
+                  minOrderQty: 1,
+                  rating: 4.8,
+                  reviewCount: 30,
+                  isFeatured: true,
+                  isNewArrival: false,
+                  isBestSeller: true,
+                  warrantyInfo: "1 Year",
+                  shippingInfo: "Ships within 24 hours",
+                };
+                return {
+                  product: matchedCatalog || fallbackProduct,
+                  quantity: it.quantity || 1,
+                  unitPrice: it.price || 999,
+                };
+              });
+
+              const statusNormalized = (o.status || "confirmed").toLowerCase();
+              let status: DetailedOrder["status"] = "Processing";
+              let statusTone: DetailedOrder["statusTone"] = "amber";
+
+              if (statusNormalized === "delivered") {
+                status = "Delivered";
+                statusTone = "emerald";
+              } else if (statusNormalized === "shipped" || statusNormalized === "in transit") {
+                status = "In Transit";
+                statusTone = "blue";
+              } else if (statusNormalized === "cancelled") {
+                status = "Cancelled";
+                statusTone = "rose";
+              }
+
+              const orderId = o.trackingId || `SYN-${String(o._id || o.id || "").slice(-5).toUpperCase() || "ORD"}`;
+
+              ordersMap.set(orderId, {
+                id: orderId,
+                trackingId: o.trackingId || orderId,
+                date: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                time: new Date(o.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+                status,
+                statusTone,
+                estimatedDelivery: "3-5 business days",
+                courierName: "Delhivery Logistics Air",
+                trackingNumber: o.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
+                paymentMethod: o.paymentMethod ? o.paymentMethod.toUpperCase() : "UPI",
+                paymentStatus: o.paymentStatus === "paid" ? "Paid" : "Pending",
+                subtotal: o.subtotal || o.total || 0,
+                gst: o.gst || Math.round((o.total || 0) * 0.18),
+                shippingCharge: o.shippingCharge || 0,
+                total: o.total || 0,
+                shippingAddress: {
+                  name: o.shippingAddress?.fullName || o.customer?.name || user?.name || "Customer",
+                  phone: o.shippingAddress?.phone || o.customer?.phone || "+91 9876543210",
+                  line1: o.shippingAddress?.addressLine1 || "Corporate Hub",
+                  line2: o.shippingAddress?.addressLine2 || "",
+                  city: o.shippingAddress?.city || "Bengaluru",
+                  state: o.shippingAddress?.state || "Karnataka",
+                  pincode: o.shippingAddress?.pincode || "560100",
+                },
+                trackingSteps: [
+                  {
+                    title: "Order Placed",
+                    description: "Order placed successfully.",
+                    timestamp: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                    completed: true,
+                  },
+                  {
+                    title: "Order Confirmed & Processing",
+                    description: "Order verified by fulfillment team.",
+                    completed: true,
+                    current: status === "Processing",
+                  },
+                  {
+                    title: "In Transit",
+                    description: "Dispatched with Delhivery courier.",
+                    completed: status === "In Transit" || status === "Delivered",
+                    current: status === "In Transit",
+                  },
+                  {
+                    title: "Delivered",
+                    description: "Delivered to shipping destination.",
+                    completed: status === "Delivered",
+                    current: status === "Delivered",
+                  },
+                ],
+                items: mappedItems,
+              });
+            });
+          }
+        } catch (e) {
+          console.warn("Failed to fetch API orders:", e);
         }
       }
-    } catch (e) {
-      // ignore
-    }
 
-    if (!user?.userId) return;
-
-    const fetchUserOrders = async () => {
+      // 2. Check local orders placed in browser session
       try {
-        const response = await fetchApi<{ success: boolean; orders: any[] }>(`/orders/user/${user.userId}`);
-        if (response?.success && Array.isArray(response.orders) && response.orders.length > 0) {
-          const apiOrders: DetailedOrder[] = response.orders.map((o: any) => {
-            const mappedItems: OrderItem[] = (o.items || []).map((it: any) => {
-              const matchedCatalog = catalogProducts.find(
-                (cp) => cp.id === it.productId || cp.sku === it.sku || cp.name.toLowerCase() === (it.name || "").toLowerCase()
-              );
-              const fallbackProduct: Product = {
-                id: it.productId || `prod_${Date.now()}`,
-                name: it.name || "Hardware Component",
-                slug: it.slug || (it.name ? it.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "component"),
-                sku: it.sku || "SYN-HW",
-                brand: it.brand || "Synergy",
-                category: it.category || "Development Boards",
-                subcategory: it.subcategory || "General",
-                shortDescription: it.name || "Hardware component",
-                description: it.description || "Synergy component",
-                specifications: {},
-                features: ["Authentic Component", "GST Billed"],
-                applications: ["Prototyping", "Industrial"],
-                images: it.image ? [it.image] : ["/categories/embedded-boards.jpg"],
-                price: it.price || 999,
-                currency: "INR",
-                stock: 50,
-                inStock: true,
-                minOrderQty: 1,
-                rating: 4.8,
-                reviewCount: 30,
-                isFeatured: true,
-                isNewArrival: false,
-                isBestSeller: true,
-                warrantyInfo: "1 Year",
-                shippingInfo: "Ships within 24 hours",
-              };
-              return {
-                product: matchedCatalog || fallbackProduct,
-                quantity: it.quantity || 1,
-                unitPrice: it.price || 999,
-              };
+        const localSaved = localStorage.getItem("synergy_local_orders");
+        if (localSaved) {
+          const localList = JSON.parse(localSaved);
+          if (Array.isArray(localList)) {
+            localList.forEach((lo: any) => {
+              const localId = lo.trackingId || lo.id;
+              if (localId && !ordersMap.has(localId)) {
+                const localItems: OrderItem[] = Array.isArray(lo.items) && lo.items.length > 0
+                  ? lo.items.map((it: any) => {
+                      const prod = it.product || {
+                        id: it.productId || "p-local",
+                        name: it.name || "Hardware Component",
+                        slug: "component",
+                        sku: it.sku || "SYN-HW",
+                        brand: "Synergy",
+                        category: "Components",
+                        subcategory: "Hardware",
+                        shortDescription: it.name || "Component",
+                        description: "",
+                        specifications: {},
+                        features: [],
+                        applications: [],
+                        images: it.image ? [it.image] : ["/categories/embedded-boards.jpg"],
+                        price: it.price || 999,
+                        currency: "INR",
+                        stock: 10,
+                        inStock: true,
+                        minOrderQty: 1,
+                        rating: 5,
+                        reviewCount: 1,
+                        isFeatured: false,
+                        isNewArrival: false,
+                        isBestSeller: false,
+                        warrantyInfo: "1 Year",
+                        shippingInfo: "Standard",
+                      };
+                      return {
+                        product: prod,
+                        quantity: it.quantity || 1,
+                        unitPrice: it.unitPrice || it.price || prod.price || 999,
+                      };
+                    })
+                  : [];
+
+                ordersMap.set(localId, {
+                  id: localId,
+                  trackingId: lo.trackingId || localId,
+                  date: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                  time: new Date(lo.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+                  status: "Processing",
+                  statusTone: "amber",
+                  estimatedDelivery: "3-5 business days",
+                  courierName: "Delhivery Logistics Air",
+                  trackingNumber: lo.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
+                  paymentMethod: lo.paymentMethod ? lo.paymentMethod.toUpperCase() : "UPI",
+                  paymentStatus: "Paid",
+                  subtotal: lo.subtotal || lo.total || 0,
+                  gst: lo.gst || Math.round((lo.total || 0) * 0.18),
+                  shippingCharge: lo.shippingCharge || 0,
+                  total: lo.total || 0,
+                  shippingAddress: {
+                    name: lo.shippingAddress?.fullName || user?.name || "Customer",
+                    phone: lo.shippingAddress?.phone || "+91 9876543210",
+                    line1: lo.shippingAddress?.addressLine1 || "Corporate Hub",
+                    line2: lo.shippingAddress?.addressLine2 || "",
+                    city: lo.shippingAddress?.city || "Bengaluru",
+                    state: lo.shippingAddress?.state || "Karnataka",
+                    pincode: lo.shippingAddress?.pincode || "560100",
+                  },
+                  trackingSteps: [
+                    {
+                      title: "Order Placed & Verified",
+                      description: "Order placed successfully.",
+                      timestamp: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                      completed: true,
+                    },
+                    {
+                      title: "Order Confirmed & Processing",
+                      description: "Allocated hardware and verifying serial codes.",
+                      completed: true,
+                      current: true,
+                    },
+                    {
+                      title: "In Transit",
+                      description: "Express dispatch with Delhivery courier.",
+                      completed: false,
+                    },
+                    {
+                      title: "Delivered",
+                      description: "Delivered to destination.",
+                      completed: false,
+                    },
+                  ],
+                  items: localItems,
+                });
+              }
             });
-
-            const statusNormalized = (o.status || "confirmed").toLowerCase();
-            let status: DetailedOrder["status"] = "Processing";
-            let statusTone: DetailedOrder["statusTone"] = "amber";
-
-            if (statusNormalized === "delivered") {
-              status = "Delivered";
-              statusTone = "emerald";
-            } else if (statusNormalized === "shipped" || statusNormalized === "in transit") {
-              status = "In Transit";
-              statusTone = "blue";
-            } else if (statusNormalized === "cancelled") {
-              status = "Cancelled";
-              statusTone = "rose";
-            }
-
-            return {
-              id: o.trackingId || `SYN-${o._id?.toString().slice(-5).toUpperCase() || "NEW"}`,
-              trackingId: o.trackingId || `SYN-${o._id?.toString().slice(-5).toUpperCase()}`,
-              date: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-              time: new Date(o.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-              status,
-              statusTone,
-              estimatedDelivery: "3-5 business days",
-              courierName: "Delhivery Logistics Air",
-              trackingNumber: o.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
-              paymentMethod: o.paymentMethod ? o.paymentMethod.toUpperCase() : "UPI",
-              paymentStatus: o.paymentStatus === "paid" ? "Paid" : "Pending",
-              subtotal: o.subtotal || o.total || 0,
-              gst: o.gst || Math.round((o.total || 0) * 0.18),
-              shippingCharge: o.shippingCharge || 0,
-              total: o.total || 0,
-              shippingAddress: {
-                name: o.shippingAddress?.fullName || o.customer?.name || user.name || "Customer",
-                phone: o.shippingAddress?.phone || o.customer?.phone || "+91 9876543210",
-                line1: o.shippingAddress?.addressLine1 || "Corporate Hub",
-                line2: o.shippingAddress?.addressLine2 || "",
-                city: o.shippingAddress?.city || "Bengaluru",
-                state: o.shippingAddress?.state || "Karnataka",
-                pincode: o.shippingAddress?.pincode || "560100",
-              },
-              trackingSteps: [
-                {
-                  title: "Order Placed",
-                  description: "Order placed successfully.",
-                  timestamp: new Date(o.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                  completed: true,
-                },
-                {
-                  title: "Order Confirmed & Processing",
-                  description: "Order verified by fulfillment team.",
-                  completed: true,
-                  current: status === "Processing",
-                },
-                {
-                  title: "In Transit",
-                  description: "Dispatched with Delhivery courier.",
-                  completed: status === "In Transit" || status === "Delivered",
-                  current: status === "In Transit",
-                },
-                {
-                  title: "Delivered",
-                  description: "Delivered to shipping destination.",
-                  completed: status === "Delivered",
-                  current: status === "Delivered",
-                },
-              ],
-              items: mappedItems.length > 0 ? mappedItems : getInitialRichOrders()[0].items,
-            };
-          });
-
-          // Merge without duplicates
-          setOrdersList((prev) => {
-            const existingIds = new Set(apiOrders.map((o) => o.id));
-            const filteredPrev = prev.filter((o) => !existingIds.has(o.id));
-            return [...apiOrders, ...filteredPrev];
-          });
+          }
         }
       } catch (e) {
-        // Fallback to rich seed orders gracefully
+        // ignore
+      }
+
+      if (isMounted) {
+        setOrdersList(Array.from(ordersMap.values()));
       }
     };
 
-    fetchUserOrders();
+    loadOrders();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   const toggleOrderExpanded = (orderId: string) => {
@@ -3349,10 +2454,10 @@ export default function Account() {
       company: "Synergy Tech Labs",
       gstin: "33AAECS9821F1Z8",
       accountType: "B2B Business",
-      totalOrdersValue: 37604,
+      totalOrdersValue: 0,
       savedItemsCount: wishlist.length,
       buyerRating: 4.9,
-      totalOrdersCount: 4,
+      totalOrdersCount: 0,
       memberSince: new Date("2024-01-15"),
       emailVerified: user.emailVerified ?? true,
       language: "en-IN",

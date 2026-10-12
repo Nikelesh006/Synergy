@@ -125508,8 +125508,10 @@ router7.get("/user/:userId", async (req, res) => {
 });
 router7.get("/:trackingId", async (req, res) => {
   try {
+    const trackingId = String(req.params.trackingId);
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(trackingId);
     const raw = await Order2.findOne({
-      $or: [{ trackingId: req.params["trackingId"] }, { _id: req.params["trackingId"].match(/^[0-9a-fA-F]{24}$/) ? req.params["trackingId"] : null }]
+      $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }]
     }).lean();
     if (!raw) {
       res.status(404).json({ error: "Order not found" });
@@ -125523,9 +125525,9 @@ router7.get("/:trackingId", async (req, res) => {
 });
 router7.put("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const updateData = req.body;
-    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { trackingId: id };
+    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
     const updated = await Order2.findOneAndUpdate(query, updateData, { new: true }).lean();
     if (!updated) {
       res.status(404).json({ error: "Order not found" });
@@ -125539,8 +125541,8 @@ router7.put("/:id", async (req, res) => {
 });
 router7.delete("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { trackingId: id };
+    const id = String(req.params.id);
+    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
     const deleted = await Order2.findOneAndDelete(query).lean();
     if (!deleted) {
       res.status(404).json({ error: "Order not found" });

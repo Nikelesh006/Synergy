@@ -200,18 +200,13 @@ export default function AdminOrders() {
     try {
       const res = await fetchApi<{ success: boolean; orders: any[] }>("/orders");
       if (res && res.success && Array.isArray(res.orders)) {
-        if (res.orders.length > 0) {
-          setOrders(res.orders);
-        } else {
-          // If fresh DB, load fallback seed for immediate preview
-          setOrders(fallbackSeedOrders);
-        }
+        setOrders(res.orders);
       } else {
-        setOrders(fallbackSeedOrders);
+        setOrders([]);
       }
     } catch (err) {
-      console.warn("Failed to fetch API orders, loading demo order flow:", err);
-      setOrders(fallbackSeedOrders);
+      console.warn("Failed to fetch API orders:", err);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -245,7 +240,7 @@ export default function AdminOrders() {
 
       toast({
         title: "Order Status Updated",
-        description: `Order ${order.trackingId || order.id} is now ${newStatus.toUpperCase()}`,
+        description: `Order ${order.trackingId || order.id} is now ${(newStatus || "").toUpperCase()}`,
         duration: 3000,
       });
     } catch (err) {
@@ -291,7 +286,7 @@ export default function AdminOrders() {
 
       toast({
         title: "Payment Status Updated",
-        description: `Payment marked as ${newPaymentStatus.toUpperCase()}`,
+        description: `Payment marked as ${(newPaymentStatus || "").toUpperCase()}`,
       });
     } catch (err) {
       setOrders((prev) =>
@@ -613,8 +608,8 @@ export default function AdminOrders() {
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Payment Status</span>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-semibold capitalize text-slate-800">{selectedOrder.paymentStatus}</span>
-                      <span className="text-xs text-slate-400">via {selectedOrder.paymentMethod.toUpperCase()}</span>
+                      <span className="text-sm font-semibold capitalize text-slate-800">{selectedOrder.paymentStatus || "pending"}</span>
+                      <span className="text-xs text-slate-400">via {(selectedOrder.paymentMethod || "COD").toUpperCase()}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

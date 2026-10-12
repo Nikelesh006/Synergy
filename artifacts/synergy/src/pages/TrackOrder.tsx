@@ -307,7 +307,7 @@ export default function TrackOrder() {
                       <p className="text-xs text-slate-500 mt-0.5">
                         Your order has been verified and registered with Synergy Tech Labs.
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-1">Payment via {orderData.paymentMethod?.toUpperCase()}</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Payment via {orderData.paymentMethod ? orderData.paymentMethod.toUpperCase() : "ONLINE"}</p>
                     </div>
                   </div>
 
