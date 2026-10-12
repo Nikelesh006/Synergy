@@ -22,6 +22,7 @@ interface StoreContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   cartTotal: number;
   cartCount: number;
+  clearCart: () => void;
 
   wishlist: WishlistItem[];
   addToWishlist: (product: Product) => void;
@@ -254,6 +255,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const clearCart = useCallback(async () => {
+    setCart([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cart');
+    }
+    if (user) {
+      try {
+        await fetchApi('/cart', {
+          method: 'DELETE',
+          headers: {
+            'x-user-id': user.userId,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to clear cart in database:', error);
+      }
+    }
+  }, [user]);
+
   const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.product.price * item.quantity), 0), [cart]);
   const cartCount = useMemo(() => cart.reduce((count, item) => count + item.quantity, 0), [cart]);
 
@@ -323,7 +343,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   return (
     <StoreContext.Provider value={{
-      cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
+      cart, addToCart, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount,
       wishlist, addToWishlist, removeFromWishlist, isInWishlist,
       compare, addToCompare, removeFromCompare, isInCompare,
       authOpen, authInitialMode, openAuth, closeAuth,

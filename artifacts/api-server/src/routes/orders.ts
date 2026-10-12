@@ -51,7 +51,11 @@ router.get("/user/:userId", async (req: Request, res: Response) => {
 // GET /api/orders/:trackingId
 router.get("/:trackingId", async (req: Request, res: Response) => {
   try {
-    const raw = await Order.findOne({ trackingId: req.params["trackingId"] }).lean();
+    const trackingId = String(req.params.trackingId);
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(trackingId);
+    const raw = await Order.findOne({
+      $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }],
+    }).lean();
     if (!raw) {
       res.status(404).json({ error: "Order not found" });
       return;
@@ -60,6 +64,41 @@ router.get("/:trackingId", async (req: Request, res: Response) => {
     res.json({ ...order, id: String(order["_id"]) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch order", details: String(err) });
+  }
+});
+
+// PUT /api/orders/:id (Update status, paymentStatus, etc.)
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id);
+    const updateData = req.body;
+    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
+    
+    const updated = await Order.findOneAndUpdate(query, updateData, { new: true }).lean();
+    if (!updated) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    const order = updated as Record<string, unknown>;
+    res.json({ success: true, order: { ...order, id: String(order["_id"]) } });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update order", details: String(err) });
+  }
+});
+
+// DELETE /api/orders/:id
+router.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id);
+    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
+    const deleted = await Order.findOneAndDelete(query).lean();
+    if (!deleted) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    res.json({ success: true, message: "Order deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete order", details: String(err) });
   }
 });
 

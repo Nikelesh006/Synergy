@@ -62,9 +62,7 @@ import Policies from "@/pages/Policies";
 
 const queryClient = new QueryClient();
 
-function AdminOrders() {
-  return <AdminSection title="Orders" />;
-}
+import AdminOrders from "@/pages/AdminOrders";
 
 function Router() {
   return (

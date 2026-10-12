@@ -1530,8 +1530,80 @@ function OrdersSection() {
     setCurrentPage(1);
   }, [searchQuery, statusFilter]);
 
-  // Attempt to fetch any orders created by the user from API and merge
+  // Attempt to fetch any orders created by the user from API and merge, as well as local orders
   useEffect(() => {
+    // 1. Check local orders placed in current browser session
+    try {
+      const localSaved = localStorage.getItem("synergy_local_orders");
+      if (localSaved) {
+        const localList = JSON.parse(localSaved);
+        if (Array.isArray(localList) && localList.length > 0) {
+          const localOrders: DetailedOrder[] = localList.map((lo: any) => {
+            const defaultItem = getInitialRichOrders()[0].items[0];
+            return {
+              id: lo.trackingId || lo.id,
+              trackingId: lo.trackingId || lo.id,
+              date: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              time: new Date(lo.createdAt || Date.now()).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+              status: "Processing",
+              statusTone: "amber",
+              estimatedDelivery: "3-5 business days",
+              courierName: "Delhivery Logistics Air",
+              trackingNumber: lo.trackingId || `DLHV-${Date.now().toString().slice(-6)}`,
+              paymentMethod: lo.paymentMethod ? lo.paymentMethod.toUpperCase() : "UPI",
+              paymentStatus: "Paid",
+              subtotal: lo.subtotal || lo.total || 0,
+              gst: lo.gst || Math.round((lo.total || 0) * 0.18),
+              shippingCharge: lo.shippingCharge || 0,
+              total: lo.total || 0,
+              shippingAddress: {
+                name: lo.shippingAddress?.fullName || user?.name || "Customer",
+                phone: lo.shippingAddress?.phone || "+91 9876543210",
+                line1: lo.shippingAddress?.addressLine1 || "Corporate Hub",
+                line2: lo.shippingAddress?.addressLine2 || "",
+                city: lo.shippingAddress?.city || "Bengaluru",
+                state: lo.shippingAddress?.state || "Karnataka",
+                pincode: lo.shippingAddress?.pincode || "560100",
+              },
+              trackingSteps: [
+                {
+                  title: "Order Placed & Verified",
+                  description: "Order placed successfully.",
+                  timestamp: new Date(lo.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                  completed: true,
+                },
+                {
+                  title: "Order Confirmed & Processing",
+                  description: "Allocated hardware and verifying serial codes.",
+                  completed: true,
+                  current: true,
+                },
+                {
+                  title: "In Transit",
+                  description: "Express dispatch with Delhivery courier.",
+                  completed: false,
+                },
+                {
+                  title: "Delivered",
+                  description: "Delivered to destination.",
+                  completed: false,
+                },
+              ],
+              items: lo.items && lo.items.length > 0 ? lo.items : [defaultItem],
+            };
+          });
+
+          setOrdersList((prev) => {
+            const existingIds = new Set(localOrders.map((o) => o.id));
+            const filteredPrev = prev.filter((o) => !existingIds.has(o.id));
+            return [...localOrders, ...filteredPrev];
+          });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
     if (!user?.userId) return;
 
     const fetchUserOrders = async () => {
