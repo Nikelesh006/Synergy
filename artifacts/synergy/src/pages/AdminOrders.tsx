@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ClipboardList,
@@ -21,7 +21,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Check,
-  X
+  X,
+  Copy
 } from "lucide-react";
 import AdminNav from "@/components/admin/AdminNav";
 import { Button } from "@/components/ui/button";
@@ -282,6 +283,19 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(text);
+      setTimeout(() => setCopiedId(null), 2000);
+      toast({
+        title: "Copied to clipboard",
+        description: text,
+      });
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -593,16 +607,16 @@ export default function AdminOrders() {
         {/* Orders Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
+            <table className="w-full text-left text-sm text-slate-600 border-collapse">
               <thead className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-4">Order / Tracking ID</th>
-                  <th className="px-6 py-4">Customer Details</th>
-                  <th className="px-6 py-4">Items</th>
-                  <th className="px-6 py-4">Total Amount</th>
-                  <th className="px-6 py-4">Payment</th>
-                  <th className="px-6 py-4">Fulfillment Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-5 py-3.5 w-[230px] min-w-[210px] text-left">Order / Tracking ID</th>
+                  <th className="px-5 py-3.5 min-w-[190px] text-left">Customer Details</th>
+                  <th className="px-5 py-3.5 min-w-[230px] text-left">Items</th>
+                  <th className="px-5 py-3.5 text-left whitespace-nowrap">Total Amount</th>
+                  <th className="px-5 py-3.5 text-left whitespace-nowrap">Payment</th>
+                  <th className="px-5 py-3.5 text-left whitespace-nowrap">Fulfillment Status</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -634,14 +648,16 @@ export default function AdminOrders() {
                     }) : "Recently";
 
                     return (
-                      <tbody key={orderKey} className="border-b border-slate-100 last:border-b-0">
-                        <tr className={`hover:bg-slate-50/80 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
+                      <Fragment key={orderKey}>
+                        <tr className={`hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-b-0 ${isExpanded ? "bg-blue-50/20" : ""}`}>
+                          {/* Column 1: Order / Tracking ID */}
+                          <td className="px-5 py-4 align-top">
+                            <div className="flex items-start gap-2.5">
                               <button
                                 onClick={() => setExpandedOrderId(isExpanded ? null : orderKey)}
-                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                className="p-1 mt-0.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
                                 title={isExpanded ? "Collapse products" : "Expand products"}
+                                aria-label={isExpanded ? "Collapse products" : "Expand products"}
                               >
                                 {isExpanded ? (
                                   <ChevronDown className="h-4 w-4 text-blue-600" />
@@ -649,23 +665,48 @@ export default function AdminOrders() {
                                   <ChevronRight className="h-4 w-4" />
                                 )}
                               </button>
-                              <div>
-                                <div className="font-bold text-slate-900 font-mono">{displayId}</div>
-                                <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" /> {orderDate}
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-slate-900 font-mono text-xs tracking-tight bg-slate-100 px-2 py-0.5 rounded border border-slate-200/80">
+                                    {displayId}
+                                  </span>
+                                  <button
+                                    onClick={() => copyToClipboard(displayId)}
+                                    className="text-slate-400 hover:text-blue-600 transition-colors p-0.5 rounded"
+                                    title="Copy tracking ID"
+                                  >
+                                    {copiedId === displayId ? (
+                                      <Check className="h-3 w-3 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                </div>
+                                {order.id && order.trackingId && order.id !== order.trackingId && (
+                                  <div className="text-[11px] font-mono text-slate-400">
+                                    Ref: {order.id.length > 16 ? `${order.id.slice(0, 8)}...${order.id.slice(-4)}` : order.id}
+                                  </div>
+                                )}
+                                <div className="text-xs text-slate-400 flex items-center gap-1 pt-0.5">
+                                  <Calendar className="h-3 w-3 shrink-0 text-slate-400" />
+                                  <span>{orderDate}</span>
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+
+                          {/* Column 2: Customer Details */}
+                          <td className="px-5 py-4 align-top">
                             <div className="font-semibold text-slate-900">{order.customer?.name || "Customer"}</div>
-                            <div className="text-xs text-slate-500">{order.customer?.email}</div>
-                            <div className="text-xs text-slate-400">{order.customer?.phone}</div>
+                            <div className="text-xs text-slate-500 mt-0.5 break-all">{order.customer?.email}</div>
+                            <div className="text-xs text-slate-400 mt-0.5">{order.customer?.phone}</div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
+
+                          {/* Column 3: Items */}
+                          <td className="px-5 py-4 align-top">
+                            <div className="flex items-start gap-3">
                               {/* Stacked Product Thumbnails */}
-                              <div className="flex -space-x-2 shrink-0">
+                              <div className="flex -space-x-2 shrink-0 mt-0.5">
                                 {order.items?.slice(0, 3).map((item, idx) => (
                                   <img
                                     key={idx}
@@ -703,19 +744,27 @@ export default function AdminOrders() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 font-bold text-slate-900">
-                            ₹{(order.total || 0).toLocaleString("en-IN")}
-                            <div className="text-[11px] font-normal text-slate-400 uppercase">
+
+                          {/* Column 4: Total Amount */}
+                          <td className="px-5 py-4 align-top font-bold text-slate-900 whitespace-nowrap">
+                            <div>₹{(order.total || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[11px] font-normal text-slate-400 uppercase mt-0.5">
                               {order.paymentMethod || "COD"}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+
+                          {/* Column 5: Payment */}
+                          <td className="px-5 py-4 align-top whitespace-nowrap">
                             {getPaymentBadge(order.paymentStatus)}
                           </td>
-                          <td className="px-6 py-4">
+
+                          {/* Column 6: Fulfillment Status */}
+                          <td className="px-5 py-4 align-top whitespace-nowrap">
                             {getStatusBadge(order.status)}
                           </td>
-                          <td className="px-6 py-4 text-right">
+
+                          {/* Column 7: Actions */}
+                          <td className="px-5 py-4 align-top text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 variant="outline"
@@ -788,7 +837,7 @@ export default function AdminOrders() {
                             </td>
                           </tr>
                         )}
-                      </tbody>
+                      </Fragment>
                     );
                   })
                 )}

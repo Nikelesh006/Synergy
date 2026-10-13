@@ -17,26 +17,16 @@ export default function AdminRoute({ component: Component, ...rest }: AdminRoute
   const { user, isAdmin } = useStore();
 
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Administrator Authentication Required",
-        description: "Please sign in with an authorized administrator account.",
-        variant: "destructive",
-      });
-    } else if (!isAdmin) {
+    if (!user || !isAdmin) {
       toast({
         title: "Access Denied",
-        description: "Administrator privileges required. Your account does not have admin permissions.",
+        description: "Administrator privileges required. Redirecting to home page.",
         variant: "destructive",
       });
     }
   }, [user, isAdmin]);
 
-  if (!user) {
-    return <Redirect to="/login?admin=1" />;
-  }
-
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
     return <Redirect to="/" />;
   }
 
