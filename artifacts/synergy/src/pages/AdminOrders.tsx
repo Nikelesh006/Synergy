@@ -305,17 +305,20 @@ export default function AdminOrders() {
       // 2. Merge recently placed orders from browser session (localStorage)
       if (typeof window !== "undefined") {
         try {
-          const localSaved = localStorage.getItem("synergy_local_orders");
-          if (localSaved) {
-            const localList = JSON.parse(localSaved);
-            if (Array.isArray(localList)) {
-              localList.forEach((lo: any) => {
-                const normalized = normalizeOrder(lo);
-                const key = normalized.trackingId || normalized.id;
-                if (key && !ordersMap.has(key)) {
-                  ordersMap.set(key, normalized);
-                }
-              });
+          const keys = Object.keys(localStorage).filter((k) => k.startsWith("synergy_local_orders"));
+          for (const k of keys) {
+            const localSaved = localStorage.getItem(k);
+            if (localSaved) {
+              const localList = JSON.parse(localSaved);
+              if (Array.isArray(localList)) {
+                localList.forEach((lo: any) => {
+                  const normalized = normalizeOrder(lo);
+                  const key = normalized.trackingId || normalized.id;
+                  if (key && !ordersMap.has(key)) {
+                    ordersMap.set(key, normalized);
+                  }
+                });
+              }
             }
           }
         } catch (e) {

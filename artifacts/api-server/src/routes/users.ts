@@ -1,7 +1,22 @@
 import { Router, type IRouter } from "express";
 import { User, Order } from "../models/index.js";
+import { isEmailAdmin, requireAdmin } from "../middlewares/admin.js";
 
 const router: IRouter = Router();
+
+function requireUserAccess(req: any, res: any, next: any) {
+  const targetUserId = req.params.userId || req.params.id;
+  const authEmail = (req.isAuthenticated?.() && req.user?.email) || req.headers["x-user-email"];
+  if (authEmail && isEmailAdmin(String(authEmail))) {
+    return next();
+  }
+  const authUserId = (req.isAuthenticated?.() && req.user?._id) || req.headers["x-user-id"];
+  if (!authUserId || String(authUserId) !== String(targetUserId)) {
+    res.status(403).json({ error: "Access denied. You can only access your own account." });
+    return;
+  }
+  next();
+}
 
 // Create a new user
 router.post("/", async (req, res): Promise<void> => {
@@ -27,7 +42,7 @@ router.post("/", async (req, res): Promise<void> => {
 });
 
 // Get user profile with stats
-router.get("/profile/:userId", async (req, res): Promise<void> => {
+router.get("/profile/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const user = await User.findById(req.params.userId);
     
@@ -81,7 +96,7 @@ router.get("/profile/:userId", async (req, res): Promise<void> => {
 });
 
 // Update user profile
-router.put("/profile/:userId", async (req, res): Promise<void> => {
+router.put("/profile/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { name, phone, role, company, gstin } = req.body;
     
@@ -110,7 +125,7 @@ router.put("/profile/:userId", async (req, res): Promise<void> => {
 });
 
 // Update account settings
-router.put("/settings/:userId", async (req, res): Promise<void> => {
+router.put("/settings/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { language, timezone } = req.body;
     
@@ -136,7 +151,7 @@ router.put("/settings/:userId", async (req, res): Promise<void> => {
 });
 
 // Change password
-router.put("/password/:userId", async (req, res): Promise<void> => {
+router.put("/password/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
     
@@ -169,8 +184,8 @@ router.put("/password/:userId", async (req, res): Promise<void> => {
   }
 });
 
-// Get all users
-router.get("/", async (_req, res): Promise<void> => {
+// Get all users (Admin only)
+router.get("/", requireAdmin, async (_req, res): Promise<void> => {
   try {
     const users = await User.find();
     res.json(users);
@@ -180,7 +195,7 @@ router.get("/", async (_req, res): Promise<void> => {
 });
 
 // Get a single user by ID
-router.get("/:id", async (req, res): Promise<void> => {
+router.get("/:id", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
     
@@ -196,7 +211,7 @@ router.get("/:id", async (req, res): Promise<void> => {
 });
 
 // Update a user
-router.put("/:id", async (req, res): Promise<void> => {
+router.put("/:id", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { name, email } = req.body;
     
@@ -221,8 +236,8 @@ router.put("/:id", async (req, res): Promise<void> => {
   }
 });
 
-// Delete a user
-router.delete("/:id", async (req, res): Promise<void> => {
+// Delete a user (Admin only)
+router.delete("/:id", requireAdmin, async (req, res): Promise<void> => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     

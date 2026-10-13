@@ -7,12 +7,16 @@ import { seedData } from "../data/seed.js";
 
 const router = Router();
 
+import { isEmailAdmin } from "../middlewares/admin.js";
+
 // POST /api/seed — one-time endpoint to load mock data into MongoDB
-// Requires header: Authorization: Bearer synergy-seed-secret
 router.post("/", async (req: Request, res: Response) => {
   const authHeader = req.headers["authorization"];
-  if (authHeader !== "Bearer synergy-seed-secret") {
-    res.status(401).json({ error: "Unauthorized. Pass Authorization: Bearer synergy-seed-secret" });
+  const seedSecret = process.env.SEED_SECRET || "synergy-seed-secret";
+  const userEmail = (req.isAuthenticated?.() && (req.user as any)?.email) || req.headers["x-user-email"];
+  const isAuthorized = authHeader === `Bearer ${seedSecret}` || isEmailAdmin(String(userEmail));
+  if (!isAuthorized) {
+    res.status(401).json({ error: "Unauthorized. Administrator credentials or seed secret required." });
     return;
   }
 

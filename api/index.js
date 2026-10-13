@@ -124351,6 +124351,7 @@ var InMemoryStore = class {
         provider: "local",
         emailVerified: true,
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+        role: "admin",
         createdAt: /* @__PURE__ */ new Date()
       },
       {
@@ -124361,7 +124362,122 @@ var InMemoryStore = class {
         password: bcryptjs_default.hashSync("Demo@123", salt),
         provider: "local",
         emailVerified: true,
+        role: "user",
         createdAt: /* @__PURE__ */ new Date()
+      }
+    ];
+    this.orders = [
+      {
+        id: "mem_ord_89241",
+        _id: "mem_ord_89241",
+        trackingId: "SYN89241A1",
+        customer: {
+          name: "Ramesh Kannan",
+          email: "ramesh.k@synergylabs.io",
+          phone: "+91 98401 23456"
+        },
+        items: [
+          {
+            name: "ESP32-S3 AI Development Board",
+            sku: "DEV-ESP32-S3",
+            price: 1250,
+            quantity: 2,
+            image: "/categories/ai-boards.jpg"
+          },
+          {
+            name: "Raspberry Pi 4 Model B (4GB)",
+            sku: "RPI-4-4GB",
+            price: 5200,
+            quantity: 1,
+            image: "/categories/embedded-boards.jpg"
+          }
+        ],
+        shippingAddress: {
+          fullName: "Ramesh Kannan",
+          phone: "+91 98401 23456",
+          addressLine1: "Flat 4B, Silicon Heights, OMR",
+          city: "Chennai",
+          state: "Tamil Nadu",
+          pincode: "600096"
+        },
+        subtotal: 7700,
+        gst: 1386,
+        shippingCharge: 0,
+        total: 9086,
+        status: "processing",
+        paymentMethod: "upi",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1e3 * 60 * 60 * 4).toISOString()
+      },
+      {
+        id: "mem_ord_89240",
+        _id: "mem_ord_89240",
+        trackingId: "SYN89240B2",
+        customer: {
+          name: "Priya Sharma",
+          email: "priya.sharma@techcraft.in",
+          phone: "+91 97110 54321"
+        },
+        items: [
+          {
+            name: "STM32 Nucleo-64 Development Board",
+            sku: "DEV-STM32-N64",
+            price: 1850,
+            quantity: 3,
+            image: "/categories/embedded-boards.jpg"
+          }
+        ],
+        shippingAddress: {
+          fullName: "Priya Sharma",
+          phone: "+91 97110 54321",
+          addressLine1: "Tower C, Cyber City, DLF Phase 2",
+          city: "Gurugram",
+          state: "Haryana",
+          pincode: "122002"
+        },
+        subtotal: 5550,
+        gst: 999,
+        shippingCharge: 0,
+        total: 6549,
+        status: "shipped",
+        paymentMethod: "card",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1e3 * 60 * 60 * 18).toISOString()
+      },
+      {
+        id: "mem_ord_89239",
+        _id: "mem_ord_89239",
+        trackingId: "SYN89239C3",
+        customer: {
+          name: "Dr. Anirudh Sen",
+          email: "anirudh.sen@iitkgp.ac.in",
+          phone: "+91 94340 98765"
+        },
+        items: [
+          {
+            name: "Digital Storage Oscilloscope 100MHz",
+            sku: "LAB-DSO-100",
+            price: 24500,
+            quantity: 1,
+            image: "/categories/lab-equipments.jpg"
+          }
+        ],
+        shippingAddress: {
+          fullName: "Dr. Anirudh Sen",
+          phone: "+91 94340 98765",
+          addressLine1: "Department of Electronics Engineering, IIT Kharagpur",
+          city: "Kharagpur",
+          state: "West Bengal",
+          pincode: "721302"
+        },
+        subtotal: 24500,
+        gst: 4410,
+        shippingCharge: 0,
+        total: 28910,
+        status: "delivered",
+        paymentMethod: "netbanking",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1e3 * 60 * 60 * 72).toISOString()
       }
     ];
   }
@@ -124548,10 +124664,63 @@ var InMemoryStore = class {
       password: userData.password,
       provider: userData.provider || "local",
       emailVerified: false,
+      role: userData.role || "user",
       createdAt: /* @__PURE__ */ new Date()
     };
     this.users.push(newUser);
     return newUser;
+  }
+  // Order helpers
+  addOrder(data) {
+    const trackingId = data.trackingId || "SYN" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+    const id = data.id || data._id || `mem_ord_${Date.now()}`;
+    const newOrder = {
+      ...data,
+      id,
+      _id: id,
+      trackingId,
+      status: data.status || "pending",
+      paymentStatus: data.paymentStatus || "pending",
+      createdAt: data.createdAt || (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    this.orders.unshift(newOrder);
+    return newOrder;
+  }
+  getOrders(filter) {
+    if (!filter || !filter.userId && !filter.email) {
+      return [...this.orders];
+    }
+    return this.orders.filter((o) => {
+      if (filter.userId && o.userId !== filter.userId) return false;
+      if (filter.email && o.customer?.email !== filter.email) return false;
+      return true;
+    });
+  }
+  findOrder(idOrTracking) {
+    return this.orders.find(
+      (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+    ) || null;
+  }
+  updateOrder(idOrTracking, data) {
+    const idx = this.orders.findIndex(
+      (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+    );
+    if (idx === -1) return null;
+    this.orders[idx] = {
+      ...this.orders[idx],
+      ...data,
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    return this.orders[idx];
+  }
+  deleteOrder(idOrTracking) {
+    const idx = this.orders.findIndex(
+      (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+    );
+    if (idx === -1) return false;
+    this.orders.splice(idx, 1);
+    return true;
   }
 };
 var inMemoryStore = new InMemoryStore();
@@ -124622,6 +124791,62 @@ var uploadToCloudinary = async (file, options = {}) => {
 
 // src/routes/products.ts
 var import_mongoose6 = __toESM(require_mongoose2(), 1);
+
+// src/middlewares/admin.ts
+function getAdminEmails() {
+  const envVal = process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "";
+  return envVal.split(",").map((e2) => e2.trim().toLowerCase()).filter(Boolean);
+}
+function isEmailAdmin(email) {
+  if (!email || typeof email !== "string") return false;
+  const adminEmails = getAdminEmails();
+  return adminEmails.includes(email.trim().toLowerCase());
+}
+async function requireAdmin(req, res, next) {
+  try {
+    let email = null;
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      const sessionUser = req.user;
+      if (sessionUser?.email) {
+        email = sessionUser.email;
+      }
+    }
+    if (!email && req.headers["x-user-email"]) {
+      email = String(req.headers["x-user-email"]);
+    }
+    const userId = req.headers["x-user-id"];
+    if (!email && userId) {
+      const uId = String(userId);
+      if (isDbConnected()) {
+        try {
+          const dbUser = await User.findById(uId).lean();
+          if (dbUser?.email) {
+            email = dbUser.email;
+          }
+        } catch {
+        }
+      }
+      if (!email) {
+        const memUser = inMemoryStore.findUserById(uId);
+        if (memUser?.email) {
+          email = memUser.email;
+        }
+      }
+    }
+    if (email && isEmailAdmin(email)) {
+      next();
+      return;
+    }
+    res.status(403).json({
+      error: "Access denied. Administrator privileges required.",
+      code: "FORBIDDEN_ADMIN_ONLY"
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to verify administrator privileges" });
+  }
+}
+
+// src/routes/products.ts
 var router2 = (0, import_express2.Router)();
 var allowedCategories = /* @__PURE__ */ new Set([
   "IoT",
@@ -124797,7 +125022,7 @@ router2.get("/:slug", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product", details: String(err) });
   }
 });
-router2.post("/", async (req, res) => {
+router2.post("/", requireAdmin, async (req, res) => {
   try {
     const body = req.body;
     const requiredFields = ["name", "sku", "brand", "category", "subcategory"];
@@ -124863,7 +125088,7 @@ router2.post("/", async (req, res) => {
     res.status(400).json({ error: "Failed to create product", details: String(err) });
   }
 });
-router2.put("/:id", async (req, res) => {
+router2.put("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params["id"];
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -124929,7 +125154,7 @@ router2.put("/:id", async (req, res) => {
     res.status(400).json({ error: "Failed to update product", details: String(err) });
   }
 });
-router2.delete("/:id", async (req, res) => {
+router2.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params["id"];
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -124952,7 +125177,7 @@ router2.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete product", details: String(err) });
   }
 });
-router2.delete("/", async (req, res) => {
+router2.delete("/", requireAdmin, async (req, res) => {
   try {
     const result = await Product.deleteMany({});
     res.json({ message: `Deleted ${result.deletedCount} products` });
@@ -125076,7 +125301,7 @@ var ensureCloudinaryCover = async (coverImage) => {
   }
   return coverImage;
 };
-router5.post("/", async (req, res) => {
+router5.post("/", requireAdmin, async (req, res) => {
   try {
     const {
       title,
@@ -125220,7 +125445,7 @@ router5.get("/:idOrSlug", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch blog" });
   }
 });
-router5.put("/:id", async (req, res) => {
+router5.put("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -125252,7 +125477,7 @@ router5.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update blog", details: error.message });
   }
 });
-router5.delete("/:id", async (req, res) => {
+router5.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -125282,7 +125507,7 @@ var blogs_default = router5;
 var import_express6 = __toESM(require_express2(), 1);
 var import_mongoose9 = __toESM(require_mongoose2(), 1);
 var router6 = (0, import_express6.Router)();
-router6.post("/", async (req, res) => {
+router6.post("/", requireAdmin, async (req, res) => {
   try {
     const {
       title,
@@ -125464,7 +125689,7 @@ router6.get("/:idOrSlug", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch tutorial" });
   }
 });
-router6.put("/:id", async (req, res) => {
+router6.put("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -125493,7 +125718,7 @@ router6.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update tutorial", details: error.message });
   }
 });
-router6.delete("/:id", async (req, res) => {
+router6.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -125583,39 +125808,153 @@ var Order2 = import_mongoose10.default.models["Order"] ?? import_mongoose10.defa
 // src/routes/orders.ts
 import crypto2 from "node:crypto";
 var router7 = (0, import_express7.Router)();
+function getRequesterIdentity(req) {
+  let email = null;
+  let userId = null;
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const sessionUser = req.user;
+    if (sessionUser?.email) email = sessionUser.email;
+    if (sessionUser?._id) userId = String(sessionUser._id);
+  }
+  if (!email && req.headers["x-user-email"]) {
+    email = String(req.headers["x-user-email"]).trim().toLowerCase();
+  }
+  if (!userId && req.headers["x-user-id"]) {
+    userId = String(req.headers["x-user-id"]).trim();
+  }
+  const isAdmin = isEmailAdmin(email);
+  return { email, userId, isAdmin };
+}
 function generateTrackingId() {
   return "SYN" + Date.now().toString(36).toUpperCase() + crypto2.randomBytes(3).toString("hex").toUpperCase();
 }
+function normalizeItem(item) {
+  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1 };
+  const prod = typeof item.product === "object" && item.product !== null ? item.product : {};
+  const productId = String(item.productId || prod.id || prod._id || (typeof item.product === "string" ? item.product : ""));
+  const name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
+  const sku = String(item.sku || prod.sku || "SYN-SKU");
+  const image = String(
+    item.image || (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) || "/categories/embedded-boards.jpg"
+  );
+  const price = Number(item.price ?? item.unitPrice ?? prod.price ?? 0) || 0;
+  const quantity = Number(item.quantity ?? 1) || 1;
+  return {
+    productId,
+    name,
+    sku,
+    image,
+    price,
+    quantity
+  };
+}
+function formatOrder(order) {
+  if (!order) return order;
+  const rawItems = Array.isArray(order.items) ? order.items : [];
+  const items = rawItems.map(normalizeItem);
+  return {
+    ...order,
+    id: String(order._id || order.id),
+    items
+  };
+}
 router7.post("/", async (req, res) => {
   try {
+    const trackingId = generateTrackingId();
+    const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
+    const items = rawItems.map(normalizeItem);
     const orderData = {
       ...req.body,
-      trackingId: generateTrackingId(),
-      status: "pending",
-      paymentStatus: "pending"
+      items,
+      trackingId,
+      status: req.body.status || "pending",
+      paymentStatus: req.body.paymentStatus || "pending",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
     };
-    const order = await Order2.create(orderData);
-    res.status(201).json({ ...order.toObject(), id: String(order._id) });
+    if (isDbConnected()) {
+      try {
+        const order = await Order2.create(orderData);
+        const formatted = formatOrder(order.toObject());
+        inMemoryStore.addOrder(formatted);
+        res.status(201).json(formatted);
+        return;
+      } catch (dbErr) {
+        console.warn("MongoDB order creation failed, falling back to in-memory store:", dbErr);
+      }
+    }
+    const saved = inMemoryStore.addOrder(orderData);
+    res.status(201).json(formatOrder(saved));
   } catch (err) {
     res.status(400).json({ error: "Failed to create order", details: String(err) });
   }
 });
 router7.get("/", async (req, res) => {
   try {
-    const { userId, email } = req.query;
-    const filter = {};
-    if (userId) filter.userId = userId;
-    if (email) filter["customer.email"] = email;
-    const orders = await Order2.find(filter).sort({ createdAt: -1 }).lean();
-    res.json({ success: true, orders: orders.map((o) => ({ ...o, id: String(o._id) })) });
+    const { email: authEmail, userId: authUserId, isAdmin } = getRequesterIdentity(req);
+    const queryUserId = req.query.userId ? String(req.query.userId) : null;
+    const queryEmail = req.query.email ? String(req.query.email).trim().toLowerCase() : null;
+    let filter = {};
+    if (isAdmin) {
+      if (queryUserId) filter.userId = queryUserId;
+      if (queryEmail) filter["customer.email"] = queryEmail;
+    } else {
+      const targetUserId = authUserId || queryUserId;
+      const targetEmail = authEmail || queryEmail;
+      if (!targetUserId && !targetEmail) {
+        res.json({ success: true, orders: [] });
+        return;
+      }
+      const orConditions = [];
+      if (authUserId) orConditions.push({ userId: authUserId });
+      if (authEmail) orConditions.push({ "customer.email": authEmail });
+      if (orConditions.length === 0) {
+        if (targetUserId) orConditions.push({ userId: targetUserId });
+        if (targetEmail) orConditions.push({ "customer.email": targetEmail });
+      }
+      filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
+    }
+    if (isDbConnected()) {
+      try {
+        const orders = await Order2.find(filter).sort({ createdAt: -1 }).lean();
+        if (orders && orders.length > 0) {
+          res.json({ success: true, orders: orders.map(formatOrder) });
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB orders query failed, checking in-memory store:", dbErr);
+      }
+    }
+    const memOrders = inMemoryStore.getOrders(
+      isAdmin ? { userId: queryUserId || void 0, email: queryEmail || void 0 } : { userId: authUserId || queryUserId || void 0, email: authEmail || queryEmail || void 0 }
+    );
+    res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
   }
 });
 router7.get("/user/:userId", async (req, res) => {
   try {
-    const orders = await Order2.find({ userId: req.params.userId }).sort({ createdAt: -1 }).lean();
-    res.json({ success: true, orders: orders.map((o) => ({ ...o, id: String(o._id) })) });
+    const targetUserId = String(req.params.userId);
+    const { email: authEmail, userId: authUserId, isAdmin } = getRequesterIdentity(req);
+    if (!isAdmin && authUserId && authUserId !== targetUserId) {
+      res.status(403).json({ error: "Access denied. You can only view your own orders." });
+      return;
+    }
+    const filter = { userId: targetUserId };
+    if (isDbConnected()) {
+      try {
+        const orders = await Order2.find(filter).sort({ createdAt: -1 }).lean();
+        if (orders && orders.length > 0) {
+          res.json({ success: true, orders: orders.map(formatOrder) });
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB user orders query failed:", dbErr);
+      }
+    }
+    const memOrders = inMemoryStore.getOrders({ userId: targetUserId });
+    res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user orders", details: String(err) });
   }
@@ -125624,41 +125963,70 @@ router7.get("/:trackingId", async (req, res) => {
   try {
     const trackingId = String(req.params.trackingId);
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(trackingId);
-    const raw = await Order2.findOne({
-      $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }]
-    }).lean();
-    if (!raw) {
+    if (isDbConnected()) {
+      try {
+        const raw = await Order2.findOne({
+          $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }]
+        }).lean();
+        if (raw) {
+          res.json(formatOrder(raw));
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB order lookup failed:", dbErr);
+      }
+    }
+    const memOrder = inMemoryStore.findOrder(trackingId);
+    if (!memOrder) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
-    const order = raw;
-    res.json({ ...order, id: String(order["_id"]) });
+    res.json(formatOrder(memOrder));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch order", details: String(err) });
   }
 });
-router7.put("/:id", async (req, res) => {
+router7.put("/:id", requireAdmin, async (req, res) => {
   try {
     const id = String(req.params.id);
     const updateData = req.body;
-    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
-    const updated = await Order2.findOneAndUpdate(query, updateData, { new: true }).lean();
-    if (!updated) {
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { trackingId: id };
+    let updatedOrder = null;
+    if (isDbConnected()) {
+      try {
+        updatedOrder = await Order2.findOneAndUpdate(query, updateData, { new: true }).lean();
+      } catch (dbErr) {
+        console.warn("MongoDB update order failed:", dbErr);
+      }
+    }
+    const memUpdated = inMemoryStore.updateOrder(id, updateData);
+    const result = updatedOrder || memUpdated;
+    if (!result) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
-    const order = updated;
-    res.json({ success: true, order: { ...order, id: String(order["_id"]) } });
+    res.json({ success: true, order: formatOrder(result) });
   } catch (err) {
     res.status(500).json({ error: "Failed to update order", details: String(err) });
   }
 });
-router7.delete("/:id", async (req, res) => {
+router7.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const id = String(req.params.id);
-    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
-    const deleted = await Order2.findOneAndDelete(query).lean();
-    if (!deleted) {
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { trackingId: id };
+    let deleted = false;
+    if (isDbConnected()) {
+      try {
+        const resDb = await Order2.findOneAndDelete(query).lean();
+        if (resDb) deleted = true;
+      } catch (dbErr) {
+        console.warn("MongoDB delete order failed:", dbErr);
+      }
+    }
+    const memDeleted = inMemoryStore.deleteOrder(id);
+    if (!deleted && !memDeleted) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
@@ -125674,8 +126042,11 @@ var import_express8 = __toESM(require_express2(), 1);
 var router8 = (0, import_express8.Router)();
 router8.post("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
-  if (authHeader !== "Bearer synergy-seed-secret") {
-    res.status(401).json({ error: "Unauthorized. Pass Authorization: Bearer synergy-seed-secret" });
+  const seedSecret = process.env.SEED_SECRET || "synergy-seed-secret";
+  const userEmail = req.isAuthenticated?.() && req.user?.email || req.headers["x-user-email"];
+  const isAuthorized = authHeader === `Bearer ${seedSecret}` || isEmailAdmin(String(userEmail));
+  if (!isAuthorized) {
+    res.status(401).json({ error: "Unauthorized. Administrator credentials or seed secret required." });
     return;
   }
   try {
@@ -125949,14 +126320,6 @@ function csrfProtection(req, res, next) {
 
 // src/routes/auth.ts
 var router9 = (0, import_express9.Router)();
-function getAdminEmails() {
-  const envVal = process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "";
-  return envVal.split(",").map((e2) => e2.trim().toLowerCase()).filter(Boolean);
-}
-function isAdminEmail(email) {
-  if (!email) return false;
-  return getAdminEmails().includes(email.trim().toLowerCase());
-}
 router9.get("/google", (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     res.status(503).json({ error: "Google OAuth is not configured on this server." });
@@ -125975,7 +126338,7 @@ router9.get(
   },
   (req, res) => {
     const user = req.user;
-    const isUserAdmin = isAdminEmail(user.email);
+    const isUserAdmin = isEmailAdmin(user.email);
     const userData = {
       userId: user._id,
       email: user.email,
@@ -126017,12 +126380,15 @@ router9.post("/signup", async (req, res) => {
           provider: "local",
           emailVerified: false
         });
+        const isUserAdmin = isEmailAdmin(user.email);
         const userData2 = {
           userId: user._id,
           email: user.email,
           name: user.name,
           provider: user.provider,
-          emailVerified: user.emailVerified
+          emailVerified: user.emailVerified,
+          role: isUserAdmin ? "admin" : "user",
+          isAdmin: isUserAdmin
         };
         const csrfToken2 = issueCsrfToken(res, String(userData2.userId));
         res.status(201).json({ success: true, user: userData2, csrfToken: csrfToken2 });
@@ -126044,12 +126410,15 @@ router9.post("/signup", async (req, res) => {
       password: hashedPassword,
       provider: "local"
     });
+    const isMemAdmin = isEmailAdmin(newUser.email);
     const userData = {
       userId: newUser._id,
       email: newUser.email,
       name: newUser.name,
       provider: newUser.provider,
-      emailVerified: newUser.emailVerified
+      emailVerified: newUser.emailVerified,
+      role: isMemAdmin ? "admin" : "user",
+      isAdmin: isMemAdmin
     };
     const csrfToken = issueCsrfToken(res, String(userData.userId));
     res.status(201).json({ success: true, user: userData, csrfToken });
@@ -126076,7 +126445,7 @@ router9.post("/signin", async (req, res) => {
           }
           const isPasswordValid = await bcryptjs_default.compare(password, user.password);
           if (isPasswordValid) {
-            const isUserAdmin = isAdminEmail(user.email);
+            const isUserAdmin = isEmailAdmin(user.email);
             const userData = {
               userId: user._id,
               email: user.email,
@@ -126100,26 +126469,32 @@ router9.post("/signin", async (req, res) => {
     if (memUser && memUser.password) {
       const isPasswordValid = await bcryptjs_default.compare(password, memUser.password) || password === "Admin@123" || password === "Demo@123" || password === "Password123";
       if (isPasswordValid) {
+        const isUserAdmin = isEmailAdmin(memUser.email);
         const userData = {
           userId: memUser._id,
           email: memUser.email,
           name: memUser.name,
           avatar: memUser.avatar,
           provider: memUser.provider,
-          emailVerified: memUser.emailVerified
+          emailVerified: memUser.emailVerified,
+          role: isUserAdmin ? "admin" : memUser.role || "user",
+          isAdmin: isUserAdmin
         };
         const csrfToken = issueCsrfToken(res, String(userData.userId));
         res.json({ success: true, user: userData, csrfToken });
         return;
       }
     }
-    if ((normalizedEmail === "demo@synergy.com" || normalizedEmail === "admin@synergy.com" || normalizedEmail === "test@synergy.com") && password.length >= 6) {
+    if ((normalizedEmail === "demo@synergy.com" || normalizedEmail === "test@synergy.com" || isEmailAdmin(normalizedEmail)) && password.length >= 6) {
+      const isUserAdmin = isEmailAdmin(normalizedEmail);
       const demoUser = {
         userId: `mem_user_${Date.now()}`,
         email: normalizedEmail,
-        name: normalizedEmail.startsWith("admin") ? "Synergy Administrator" : "Demo Engineer",
+        name: isUserAdmin ? "Synergy Administrator" : "Demo Engineer",
         provider: "local",
-        emailVerified: true
+        emailVerified: true,
+        role: isUserAdmin ? "admin" : "user",
+        isAdmin: isUserAdmin
       };
       const csrfToken = issueCsrfToken(res, String(demoUser.userId));
       res.json({ success: true, user: demoUser, csrfToken });
@@ -126134,7 +126509,7 @@ router9.post("/signin", async (req, res) => {
 router9.get("/me", (req, res) => {
   if (req.isAuthenticated()) {
     const user = req.user;
-    const isUserAdmin = isAdminEmail(user.email);
+    const isUserAdmin = isEmailAdmin(user.email);
     res.json({
       success: true,
       user: {
@@ -126399,6 +126774,19 @@ var wishlist_default = router11;
 // src/routes/users.ts
 var import_express12 = __toESM(require_express2(), 1);
 var router12 = (0, import_express12.Router)();
+function requireUserAccess(req, res, next) {
+  const targetUserId = req.params.userId || req.params.id;
+  const authEmail = req.isAuthenticated?.() && req.user?.email || req.headers["x-user-email"];
+  if (authEmail && isEmailAdmin(String(authEmail))) {
+    return next();
+  }
+  const authUserId = req.isAuthenticated?.() && req.user?._id || req.headers["x-user-id"];
+  if (!authUserId || String(authUserId) !== String(targetUserId)) {
+    res.status(403).json({ error: "Access denied. You can only access your own account." });
+    return;
+  }
+  next();
+}
 router12.post("/", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -126417,7 +126805,7 @@ router12.post("/", async (req, res) => {
     res.status(500).json({ error: "Failed to create user" });
   }
 });
-router12.get("/profile/:userId", async (req, res) => {
+router12.get("/profile/:userId", requireUserAccess, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
@@ -126460,7 +126848,7 @@ router12.get("/profile/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user profile" });
   }
 });
-router12.put("/profile/:userId", async (req, res) => {
+router12.put("/profile/:userId", requireUserAccess, async (req, res) => {
   try {
     const { name, phone, role, company, gstin } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -126484,7 +126872,7 @@ router12.put("/profile/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to update user profile" });
   }
 });
-router12.put("/settings/:userId", async (req, res) => {
+router12.put("/settings/:userId", requireUserAccess, async (req, res) => {
   try {
     const { language, timezone } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -126505,7 +126893,7 @@ router12.put("/settings/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to update account settings" });
   }
 });
-router12.put("/password/:userId", async (req, res) => {
+router12.put("/password/:userId", requireUserAccess, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
@@ -126529,7 +126917,7 @@ router12.put("/password/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to change password" });
   }
 });
-router12.get("/", async (_req, res) => {
+router12.get("/", requireAdmin, async (_req, res) => {
   try {
     const users = await User.find();
     res.json(users);
@@ -126537,7 +126925,7 @@ router12.get("/", async (_req, res) => {
     res.status(500).json({ error: "Failed to fetch users" });
   }
 });
-router12.get("/:id", async (req, res) => {
+router12.get("/:id", requireUserAccess, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -126549,7 +126937,7 @@ router12.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user" });
   }
 });
-router12.put("/:id", async (req, res) => {
+router12.put("/:id", requireUserAccess, async (req, res) => {
   try {
     const { name, email } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -126570,7 +126958,7 @@ router12.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update user" });
   }
 });
-router12.delete("/:id", async (req, res) => {
+router12.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
@@ -126629,7 +127017,20 @@ var Address = import_mongoose11.default.model("Address", addressSchema);
 
 // src/routes/addresses.ts
 var router13 = (0, import_express13.Router)();
-router13.get("/:userId", async (req, res) => {
+function requireUserAccess2(req, res, next) {
+  const targetUserId = req.params.userId;
+  const authEmail = req.isAuthenticated?.() && req.user?.email || req.headers["x-user-email"];
+  if (authEmail && isEmailAdmin(String(authEmail))) {
+    return next();
+  }
+  const authUserId = req.isAuthenticated?.() && req.user?._id || req.headers["x-user-id"];
+  if (!authUserId || String(authUserId) !== String(targetUserId)) {
+    res.status(403).json({ error: "Access denied. You can only access your own addresses." });
+    return;
+  }
+  next();
+}
+router13.get("/:userId", requireUserAccess2, async (req, res) => {
   try {
     const addresses = await Address.find({ userId: req.params.userId }).sort({ isDefault: -1, createdAt: -1 });
     res.json({ success: true, addresses });
@@ -126638,7 +127039,7 @@ router13.get("/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch addresses" });
   }
 });
-router13.post("/:userId", async (req, res) => {
+router13.post("/:userId", requireUserAccess2, async (req, res) => {
   try {
     const { type, name, line1, line2, phone, isDefault } = req.body;
     if (!name || !line1 || !line2 || !phone) {
@@ -126667,7 +127068,7 @@ router13.post("/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to create address" });
   }
 });
-router13.put("/:userId/:addressId", async (req, res) => {
+router13.put("/:userId/:addressId", requireUserAccess2, async (req, res) => {
   try {
     const { type, name, line1, line2, phone, isDefault } = req.body;
     if (isDefault) {
@@ -126691,7 +127092,7 @@ router13.put("/:userId/:addressId", async (req, res) => {
     res.status(500).json({ error: "Failed to update address" });
   }
 });
-router13.patch("/:userId/:addressId/default", async (req, res) => {
+router13.patch("/:userId/:addressId/default", requireUserAccess2, async (req, res) => {
   try {
     await Address.updateMany(
       { userId: req.params.userId },
@@ -126712,7 +127113,7 @@ router13.patch("/:userId/:addressId/default", async (req, res) => {
     res.status(500).json({ error: "Failed to set default address" });
   }
 });
-router13.delete("/:userId/:addressId", async (req, res) => {
+router13.delete("/:userId/:addressId", requireUserAccess2, async (req, res) => {
   try {
     const address = await Address.findOneAndDelete({
       _id: req.params.addressId,
@@ -126744,7 +127145,7 @@ router14.get("/status", (_req, res) => {
     configured: isCloudinaryConfigured()
   });
 });
-router14.post("/", async (req, res) => {
+router14.post("/", requireAdmin, async (req, res) => {
   try {
     const { image, images, folder = "synergy" } = req.body ?? {};
     if (!isCloudinaryConfigured()) {
@@ -126911,7 +127312,10 @@ app.use(
       "x-csrf-token",
       "X-XSRF-Token",
       "x-xsrf-token",
-      "x-user-id"
+      "x-user-id",
+      "X-User-Id",
+      "x-user-email",
+      "X-User-Email"
     ],
     exposedHeaders: ["X-CSRF-Token"]
   })

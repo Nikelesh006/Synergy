@@ -3,11 +3,12 @@ import mongoose from "mongoose";
 import { Tutorial } from "../models/index.js";
 import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
+import { requireAdmin } from "../middlewares/admin.js";
 
 const router: IRouter = Router();
 
 // Create a new tutorial
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { 
       title, 
@@ -222,7 +223,7 @@ router.get("/:idOrSlug", async (req: Request, res: Response): Promise<void> => {
 });
 
 // Update a tutorial
-router.put("/:id", async (req: Request, res: Response): Promise<void> => {
+router.put("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -256,7 +257,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
 });
 
 // Delete a tutorial
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;

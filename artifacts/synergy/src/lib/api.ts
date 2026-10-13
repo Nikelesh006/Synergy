@@ -122,6 +122,24 @@ export async function fetchApi<T>(
     }
   }
 
+  // Attach authenticated user identity headers for internal endpoints
+  if (isInternal && typeof window !== "undefined") {
+    try {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.userId && !headers.has("x-user-id")) {
+          headers.set("x-user-id", String(parsed.userId));
+        }
+        if (parsed?.email && !headers.has("x-user-email")) {
+          headers.set("x-user-email", String(parsed.email));
+        }
+      }
+    } catch {
+      // ignore parsing errors
+    }
+  }
+
   // Ensure cookies (session & _csrf) are consistently included
   const credentials = options?.credentials || "include";
 

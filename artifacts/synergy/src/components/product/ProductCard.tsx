@@ -14,12 +14,21 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
+  const { user, openAuth, addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      openAuth("signin");
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to add items to your cart.",
+        variant: "destructive",
+      });
+      return;
+    }
     addToCart(product, 1);
     toast({
       title: "Added to Cart",
@@ -40,6 +49,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      openAuth("signin");
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save products to your wishlist.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
       toast({

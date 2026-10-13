@@ -4,6 +4,7 @@ import { BlogPost } from "../models/BlogPost.js";
 import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
 import { uploadToCloudinary } from "../lib/cloudinary.js";
+import { requireAdmin } from "../middlewares/admin.js";
 
 const router: IRouter = Router();
 
@@ -22,7 +23,7 @@ const ensureCloudinaryCover = async (coverImage: string): Promise<string> => {
 };
 
 // POST /api/blogs - Create a new blog
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { 
       title, 
@@ -190,7 +191,7 @@ router.get("/:idOrSlug", async (req: Request, res: Response): Promise<void> => {
 });
 
 // PUT /api/blogs/:id - Update a blog
-router.put("/:id", async (req: Request, res: Response): Promise<void> => {
+router.put("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -228,7 +229,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
 });
 
 // DELETE /api/blogs/:id - Delete a blog
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params.id;
     const id = Array.isArray(rawId) ? rawId[0] : rawId;

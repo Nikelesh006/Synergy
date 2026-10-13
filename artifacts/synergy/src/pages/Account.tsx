@@ -722,9 +722,10 @@ function OrdersSection() {
         }
       }
 
-      // 2. Check local orders placed in browser session
+      // 2. Check local orders placed in browser session (strictly scoped to current user)
       try {
-        const localSaved = localStorage.getItem("synergy_local_orders");
+        const orderKey = user?.userId ? `synergy_local_orders_${user.userId}` : null;
+        const localSaved = orderKey ? localStorage.getItem(orderKey) : null;
         if (localSaved) {
           const localList = JSON.parse(localSaved);
           if (Array.isArray(localList)) {

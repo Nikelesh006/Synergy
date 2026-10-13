@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { uploadToCloudinary, isCloudinaryConfigured } from "../lib/cloudinary.js";
+import { requireAdmin } from "../middlewares/admin.js";
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.get("/status", (_req: Request, res: Response): void => {
 });
 
 // POST /api/upload
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { image, images, folder = "synergy" } = req.body ?? {};
 

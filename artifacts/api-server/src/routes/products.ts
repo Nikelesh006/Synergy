@@ -4,6 +4,7 @@ import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
 import { uploadToCloudinary } from "../lib/cloudinary.js";
 import mongoose from "mongoose";
+import { requireAdmin } from "../middlewares/admin.js";
 
 const router = Router();
 
@@ -211,7 +212,7 @@ router.get("/:slug", async (req: Request, res: Response): Promise<void> => {
 
 
 // POST /api/products
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const body = req.body as Record<string, unknown>;
     const requiredFields = ["name", "sku", "brand", "category", "subcategory"] as const;
@@ -286,7 +287,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 
 
 // PUT /api/products/:id
-router.put("/:id", async (req: Request, res: Response): Promise<void> => {
+router.put("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params["id"];
     const id = (Array.isArray(rawId) ? rawId[0] : rawId) as string;
@@ -359,7 +360,7 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
 });
 
 // DELETE /api/products/:id
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const rawId = req.params["id"];
     const id = (Array.isArray(rawId) ? rawId[0] : rawId) as string;
@@ -386,7 +387,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 
 
 // DELETE /api/products (delete all products)
-router.delete("/", async (req: Request, res: Response): Promise<void> => {
+router.delete("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await Product.deleteMany({});
     res.json({ message: `Deleted ${result.deletedCount} products` });

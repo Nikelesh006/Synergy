@@ -23,7 +23,7 @@ import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productI
 import { cn } from "@/lib/utils";
 
 export default function Cart() {
-  const { cart, updateQuantity, removeFromCart, cartTotal } = useStore();
+  const { user, openAuth, cart, updateQuantity, removeFromCart, cartTotal } = useStore();
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -40,6 +40,51 @@ export default function Cart() {
 
   const freeShippingRemaining = Math.max(0, 5000 - subtotal);
   const freeShippingProgress = Math.min(100, (subtotal / 5000) * 100);
+
+  if (!user) {
+    return (
+      <div className="bg-background min-h-screen">
+        <div className="container mx-auto px-4 py-20">
+          <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl border border-border/70 bg-card shadow-sm">
+              <ShoppingBag className="h-10 w-10 text-blue-600" strokeWidth={1.5} />
+            </div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="h-px w-6 bg-foreground/30" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Personal Cart
+              </span>
+              <span className="h-px w-6 bg-foreground/30" />
+            </div>
+            <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Sign in to view your cart
+            </h1>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+              Your cart is strictly private and synchronized to your account. Please sign in to view your items and checkout.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3 justify-center">
+              <Button
+                onClick={() => openAuth("signin")}
+                className="h-11 rounded-full bg-blue-600 px-6 text-white border-blue-700 hover:bg-blue-700"
+              >
+                Sign In to Account
+                <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 rounded-full px-6"
+              >
+                <Link href="/shop">
+                  Continue Shopping
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (cart.length === 0) {
     return (

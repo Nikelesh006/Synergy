@@ -14,6 +14,7 @@ interface User {
 }
 
 import { isEmailAdmin } from '../lib/admin';
+import { toast } from '@/hooks/use-toast';
 
 interface StoreContextType {
   cart: CartItem[];
@@ -64,37 +65,52 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  // Load cart from localStorage on mount (for guest users)
+  // User isolation: load user-scoped cart and wishlist on mount and user changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedCart = localStorage.getItem('cart');
+    if (typeof window === 'undefined') return;
+
+    // Purge legacy unisolated storage keys to prevent data leaking
+    localStorage.removeItem('cart');
+    localStorage.removeItem('wishlist');
+
+    if (user?.userId) {
+      const userCartKey = `cart_${user.userId}`;
+      const userWishlistKey = `wishlist_${user.userId}`;
+
+      const savedCart = localStorage.getItem(userCartKey);
       if (savedCart) {
-        setCart(JSON.parse(savedCart));
+        try {
+          setCart(JSON.parse(savedCart));
+        } catch {
+          setCart([]);
+        }
+      } else {
+        setCart([]);
       }
-    }
-  }, []);
 
-  // Load wishlist from localStorage on mount (for guest users)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedWishlist = localStorage.getItem('wishlist');
+      const savedWishlist = localStorage.getItem(userWishlistKey);
       if (savedWishlist) {
-        setWishlist(JSON.parse(savedWishlist));
+        try {
+          setWishlist(JSON.parse(savedWishlist));
+        } catch {
+          setWishlist([]);
+        }
+      } else {
+        setWishlist([]);
       }
+    } else {
+      // Guest state: strictly zero cart and zero wishlist items
+      setCart([]);
+      setWishlist([]);
     }
-  }, []);
+  }, [user?.userId]);
 
-  // Sync cart with database when user logs in
+  // Sync cart with backend database when authenticated user is active
   useEffect(() => {
     const syncCart = async () => {
-      if (user) {
+      if (user?.userId) {
         try {
-          // Fetch cart from database
-          const response = await fetchApi('/cart', {
-            headers: {
-              'x-user-id': user.userId,
-            },
-          });
+          const response = await fetchApi('/cart');
           if (response && typeof response === 'object' && 'cart' in response) {
             const dbCart = (response as any).cart.map((item: any) => ({
               product: {
@@ -113,19 +129,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     };
     syncCart();
-  }, [user]);
+  }, [user?.userId]);
 
-  // Sync wishlist with database when user logs in
+  // Sync wishlist with backend database when authenticated user is active
   useEffect(() => {
     const syncWishlist = async () => {
-      if (user) {
+      if (user?.userId) {
         try {
-          // Fetch wishlist from database
-          const response = await fetchApi('/wishlist', {
-            headers: {
-              'x-user-id': user.userId,
-            },
-          });
+          const response = await fetchApi('/wishlist');
           if (response && typeof response === 'object' && 'wishlist' in response) {
             const dbWishlist = (response as any).wishlist.map((item: any) => ({
               product: {
@@ -143,21 +154,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     };
     syncWishlist();
-  }, [user]);
+  }, [user?.userId]);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to user-scoped localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cart', JSON.stringify(cart));
+    if (typeof window !== 'undefined' && user?.userId) {
+      localStorage.setItem(`cart_${user.userId}`, JSON.stringify(cart));
     }
-  }, [cart]);
+  }, [cart, user?.userId]);
 
-  // Save wishlist to localStorage whenever it changes
+  // Save wishlist to user-scoped localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    if (typeof window !== 'undefined' && user?.userId) {
+      localStorage.setItem(`wishlist_${user.userId}`, JSON.stringify(wishlist));
     }
-  }, [wishlist]);
+  }, [wishlist, user?.userId]);
 
   const openAuth = useCallback((mode: "signin" | "signup" = "signin") => {
     setAuthInitialMode(mode);
@@ -171,23 +182,35 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       // Proceed even if network request fails
     }
+    if (user?.userId) {
+      localStorage.removeItem(`cart_${user.userId}`);
+      localStorage.removeItem(`wishlist_${user.userId}`);
+    }
     setUser(null);
     localStorage.removeItem('user');
-    // Clear cart and wishlist when logging out
-    setCart([]);
-    setWishlist([]);
     localStorage.removeItem('cart');
     localStorage.removeItem('wishlist');
+    setCart([]);
+    setWishlist([]);
     refreshCsrfToken().catch(() => {});
-    // Redirect to home page if not already there
     if (typeof window !== 'undefined' && window.location.pathname !== '/') {
       window.location.href = '/';
     }
-  }, []);
+  }, [user?.userId]);
 
 
   // Cart actions
   const addToCart = useCallback(async (product: Product, quantity: number) => {
+    if (!user) {
+      openAuth("signin");
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to add items to your cart.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -200,39 +223,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return [...prev, { product, quantity }];
     });
 
-    // Sync with database if user is logged in
-    if (user) {
-      try {
-        await fetchApi('/cart', {
-          method: 'POST',
-          headers: {
-            'x-user-id': user.userId,
-          },
-          body: JSON.stringify({
-            productId: product.id,
-            quantity,
-            name: product.name,
-            price: product.price,
-            image: product.images[0] || '',
-          }),
-        });
-      } catch (error) {
-        console.error('Failed to add to cart in database:', error);
-      }
+    try {
+      await fetchApi('/cart', {
+        method: 'POST',
+        body: JSON.stringify({
+          productId: product.id,
+          quantity,
+          name: product.name,
+          price: product.price,
+          image: product.images[0] || '',
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to add to cart in database:', error);
     }
-  }, [user]);
+  }, [user, openAuth]);
 
   const removeFromCart = useCallback(async (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
 
-    // Sync with database if user is logged in
     if (user) {
       try {
         await fetchApi(`/cart/${productId}`, {
           method: 'DELETE',
-          headers: {
-            'x-user-id': user.userId,
-          },
         });
       } catch (error) {
         console.error('Failed to remove from cart in database:', error);
@@ -245,14 +258,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       item.product.id === productId ? { ...item, quantity } : item
     ));
 
-    // Sync with database if user is logged in
     if (user) {
       try {
         await fetchApi(`/cart/${productId}`, {
           method: 'PUT',
-          headers: {
-            'x-user-id': user.userId,
-          },
           body: JSON.stringify({ quantity }),
         });
       } catch (error) {
@@ -263,16 +272,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(async () => {
     setCart([]);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('cart');
+    if (typeof window !== 'undefined' && user?.userId) {
+      localStorage.removeItem(`cart_${user.userId}`);
     }
     if (user) {
       try {
         await fetchApi('/cart', {
           method: 'DELETE',
-          headers: {
-            'x-user-id': user.userId,
-          },
         });
       } catch (error) {
         console.error('Failed to clear cart in database:', error);
@@ -285,42 +291,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Wishlist actions
   const addToWishlist = useCallback(async (product: Product) => {
+    if (!user) {
+      openAuth("signin");
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save items to your wishlist.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!wishlist.find(item => item.product.id === product.id)) {
       setWishlist(prev => [...prev, { product }]);
 
-      // Sync with database if user is logged in
-      if (user) {
-        try {
-          await fetchApi('/wishlist', {
-            method: 'POST',
-            headers: {
-              'x-user-id': user.userId,
-            },
-            body: JSON.stringify({
-              productId: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.images[0] || '',
-            }),
-          });
-        } catch (error) {
-          console.error('Failed to add to wishlist in database:', error);
-        }
+      try {
+        await fetchApi('/wishlist', {
+          method: 'POST',
+          body: JSON.stringify({
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.images[0] || '',
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to add to wishlist in database:', error);
       }
     }
-  }, [wishlist, user]);
+  }, [wishlist, user, openAuth]);
 
   const removeFromWishlist = useCallback(async (productId: string) => {
     setWishlist(prev => prev.filter(item => item.product.id !== productId));
 
-    // Sync with database if user is logged in
     if (user) {
       try {
         await fetchApi(`/wishlist/${productId}`, {
           method: 'DELETE',
-          headers: {
-            'x-user-id': user.userId,
-          },
         });
       } catch (error) {
         console.error('Failed to remove from wishlist in database:', error);

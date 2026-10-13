@@ -18,6 +18,7 @@ export interface InMemoryUser {
   provider: string;
   emailVerified: boolean;
   avatar?: string;
+  role?: string;
   createdAt: Date;
 }
 
@@ -97,6 +98,7 @@ class InMemoryStore {
         provider: "local",
         emailVerified: true,
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+        role: "admin",
         createdAt: new Date(),
       },
       {
@@ -107,6 +109,7 @@ class InMemoryStore {
         password: bcrypt.hashSync("Demo@123", salt),
         provider: "local",
         emailVerified: true,
+        role: "user",
         createdAt: new Date(),
       },
     ];
@@ -423,7 +426,7 @@ class InMemoryStore {
     return this.users.find((u) => u._id === id) || null;
   }
 
-  createUser(userData: { name: string; email: string; phone?: string; password?: string; provider?: string }) {
+  createUser(userData: { name: string; email: string; phone?: string; password?: string; provider?: string; role?: string }) {
     const newUser: InMemoryUser = {
       _id: `mem_user_${Date.now()}`,
       name: userData.name,
@@ -432,6 +435,7 @@ class InMemoryStore {
       password: userData.password,
       provider: userData.provider || "local",
       emailVerified: false,
+      role: userData.role || "user",
       createdAt: new Date(),
     };
     this.users.push(newUser);

@@ -3,8 +3,30 @@ import { Order } from "../models/Order.js";
 import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
 import crypto from "node:crypto";
+import { isEmailAdmin, requireAdmin } from "../middlewares/admin.js";
 
 const router = Router();
+
+function getRequesterIdentity(req: Request) {
+  let email: string | null = null;
+  let userId: string | null = null;
+
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const sessionUser = req.user as any;
+    if (sessionUser?.email) email = sessionUser.email;
+    if (sessionUser?._id) userId = String(sessionUser._id);
+  }
+
+  if (!email && req.headers["x-user-email"]) {
+    email = String(req.headers["x-user-email"]).trim().toLowerCase();
+  }
+  if (!userId && req.headers["x-user-id"]) {
+    userId = String(req.headers["x-user-id"]).trim();
+  }
+
+  const isAdmin = isEmailAdmin(email);
+  return { email, userId, isAdmin };
+}
 
 function generateTrackingId(): string {
   return "SYN" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
@@ -83,10 +105,36 @@ router.post("/", async (req: Request, res: Response) => {
 // GET /api/orders
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { userId, email } = req.query;
-    const filter: Record<string, any> = {};
-    if (userId) filter.userId = String(userId);
-    if (email) filter["customer.email"] = String(email);
+    const { email: authEmail, userId: authUserId, isAdmin } = getRequesterIdentity(req);
+    const queryUserId = req.query.userId ? String(req.query.userId) : null;
+    const queryEmail = req.query.email ? String(req.query.email).trim().toLowerCase() : null;
+
+    let filter: Record<string, any> = {};
+
+    if (isAdmin) {
+      // Administrator can view all orders, or optionally filter by query params
+      if (queryUserId) filter.userId = queryUserId;
+      if (queryEmail) filter["customer.email"] = queryEmail;
+    } else {
+      // Non-administrators can strictly ONLY view their own orders
+      const targetUserId = authUserId || queryUserId;
+      const targetEmail = authEmail || queryEmail;
+
+      if (!targetUserId && !targetEmail) {
+        res.json({ success: true, orders: [] });
+        return;
+      }
+
+      const orConditions: any[] = [];
+      if (authUserId) orConditions.push({ userId: authUserId });
+      if (authEmail) orConditions.push({ "customer.email": authEmail });
+      if (orConditions.length === 0) {
+        if (targetUserId) orConditions.push({ userId: targetUserId });
+        if (targetEmail) orConditions.push({ "customer.email": targetEmail });
+      }
+
+      filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
+    }
 
     if (isDbConnected()) {
       try {
@@ -100,10 +148,11 @@ router.get("/", async (req: Request, res: Response) => {
       }
     }
 
-    const memOrders = inMemoryStore.getOrders({
-      userId: userId ? String(userId) : undefined,
-      email: email ? String(email) : undefined,
-    });
+    const memOrders = inMemoryStore.getOrders(
+      isAdmin
+        ? { userId: queryUserId || undefined, email: queryEmail || undefined }
+        : { userId: authUserId || queryUserId || undefined, email: authEmail || queryEmail || undefined }
+    );
     res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
@@ -113,10 +162,19 @@ router.get("/", async (req: Request, res: Response) => {
 // GET /api/orders/user/:userId
 router.get("/user/:userId", async (req: Request, res: Response) => {
   try {
-    const userId = String(req.params.userId);
+    const targetUserId = String(req.params.userId);
+    const { email: authEmail, userId: authUserId, isAdmin } = getRequesterIdentity(req);
+
+    // User isolation: Requester must be admin OR target user themselves
+    if (!isAdmin && authUserId && authUserId !== targetUserId) {
+      res.status(403).json({ error: "Access denied. You can only view your own orders." });
+      return;
+    }
+
+    const filter = { userId: targetUserId };
     if (isDbConnected()) {
       try {
-        const orders = await Order.find({ userId }).sort({ createdAt: -1 }).lean();
+        const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
         if (orders && orders.length > 0) {
           res.json({ success: true, orders: orders.map(formatOrder) });
           return;
@@ -126,7 +184,7 @@ router.get("/user/:userId", async (req: Request, res: Response) => {
       }
     }
 
-    const memOrders = inMemoryStore.getOrders({ userId });
+    const memOrders = inMemoryStore.getOrders({ userId: targetUserId });
     res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user orders", details: String(err) });
@@ -164,8 +222,8 @@ router.get("/:trackingId", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/orders/:id (Update status, paymentStatus, etc.)
-router.put("/:id", async (req: Request, res: Response) => {
+// PUT /api/orders/:id (Admin-only: update status, paymentStatus, etc.)
+router.put("/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
     const updateData = req.body;
@@ -197,8 +255,8 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/orders/:id
-router.delete("/:id", async (req: Request, res: Response) => {
+// DELETE /api/orders/:id (Admin-only)
+router.delete("/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);

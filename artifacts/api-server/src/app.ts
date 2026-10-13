@@ -86,6 +86,9 @@ app.use(
       "X-XSRF-Token",
       "x-xsrf-token",
       "x-user-id",
+      "X-User-Id",
+      "x-user-email",
+      "X-User-Email",
     ],
     exposedHeaders: ["X-CSRF-Token"],
   })

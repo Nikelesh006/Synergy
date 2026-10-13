@@ -1,7 +1,6 @@
 /**
  * Admin check utility.
- * The allowed admin email addresses are kept ONLY in the environment variable VITE_ADMIN_EMAILS.
- * Example in .env: VITE_ADMIN_EMAILS=synergytechlabs.help@gmail.com,codecraft2k@gmail.com
+ * Example in .env: VITE_ADMIN_EMAILS=admin@yourdomain.com
  */
 export function getAdminEmails(): string[] {
   const envVal = (import.meta.env.VITE_ADMIN_EMAILS as string | undefined) || "";

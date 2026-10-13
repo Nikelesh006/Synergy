@@ -15,7 +15,7 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const { data: product, isLoading, isError } = useProduct(slug || "");
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
+  const { user, openAuth, addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
@@ -161,6 +161,15 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                   <button
                     onClick={() => {
+                      if (!user) {
+                        openAuth("signin");
+                        toast({
+                          title: "Sign In Required",
+                          description: "Please sign in to save products to your wishlist.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
                       if (isInWishlist(product.id)) {
                         removeFromWishlist(product.id);
                         toast({
@@ -260,6 +269,15 @@ export default function ProductDetail() {
                 {/* Add to Cart */}
                 <Button
                   onClick={() => {
+                    if (!user) {
+                      openAuth("signin");
+                      toast({
+                        title: "Sign In Required",
+                        description: "Please sign in to add items to your cart.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
                     addToCart(product, qty);
                     toast({
                       title: "Added to Cart",
@@ -288,6 +306,15 @@ export default function ProductDetail() {
               {/* Buy Now */}
               <Button 
                 onClick={() => {
+                  if (!user) {
+                    openAuth("signin");
+                    toast({
+                      title: "Sign In Required",
+                      description: "Please sign in to proceed with checkout.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                   addToCart(product, qty);
                   setLocation('/checkout');
                 }}

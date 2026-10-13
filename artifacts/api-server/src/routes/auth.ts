@@ -6,20 +6,9 @@ import { inMemoryStore } from "../data/inMemoryStore.js";
 import bcrypt from "bcryptjs";
 import { issueCsrfToken, clearCsrfCookie } from "../middlewares/csrf.js";
 
+import { isEmailAdmin } from "../middlewares/admin.js";
+
 const router = Router();
-
-function getAdminEmails(): string[] {
-  const envVal = process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "";
-  return envVal
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function isAdminEmail(email?: string | null): boolean {
-  if (!email) return false;
-  return getAdminEmails().includes(email.trim().toLowerCase());
-}
 
 
 // Google OAuth login route
@@ -44,7 +33,7 @@ router.get(
   (req: Request, res: Response) => {
     // Successful authentication - redirect back to frontend with complete user data
     const user = req.user as any;
-    const isUserAdmin = isAdminEmail(user.email);
+    const isUserAdmin = isEmailAdmin(user.email);
     // Redirect to frontend with complete user info in query params
     const userData = {
       userId: user._id,
@@ -97,12 +86,15 @@ router.post("/signup", async (req: Request, res: Response) => {
           emailVerified: false,
         });
 
+        const isUserAdmin = isEmailAdmin(user.email);
         const userData = {
           userId: user._id,
           email: user.email,
           name: user.name,
           provider: user.provider,
           emailVerified: user.emailVerified,
+          role: isUserAdmin ? "admin" : "user",
+          isAdmin: isUserAdmin,
         };
 
         const csrfToken = issueCsrfToken(res, String(userData.userId));
@@ -129,12 +121,15 @@ router.post("/signup", async (req: Request, res: Response) => {
       provider: "local",
     });
 
+    const isMemAdmin = isEmailAdmin(newUser.email);
     const userData = {
       userId: newUser._id,
       email: newUser.email,
       name: newUser.name,
       provider: newUser.provider,
       emailVerified: newUser.emailVerified,
+      role: isMemAdmin ? "admin" : "user",
+      isAdmin: isMemAdmin,
     };
 
     const csrfToken = issueCsrfToken(res, String(userData.userId));
@@ -169,73 +164,79 @@ router.post("/signin", async (req: Request, res: Response) => {
           }
           const isPasswordValid = await bcrypt.compare(password, user.password);
           if (isPasswordValid) {
-            const isUserAdmin = isAdminEmail(user.email);
-            const userData = {
-              userId: user._id,
-              email: user.email,
-              name: user.name,
-              avatar: user.avatar,
-              provider: user.provider,
-              emailVerified: user.emailVerified,
-              role: isUserAdmin ? "admin" : (user.role || "user"),
-              isAdmin: isUserAdmin,
-            };
-            const csrfToken = issueCsrfToken(res, String(userData.userId));
-            res.json({ success: true, user: userData, csrfToken });
-            return;
-          }
-        }
-      } catch (dbErr) {
-        console.warn("MongoDB signin query failed, checking in-memory store:", dbErr);
-      }
-    }
-
-    // 2. Check in-memory store
-    const memUser = inMemoryStore.findUserByEmail(normalizedEmail);
-    if (memUser && memUser.password) {
-      const isPasswordValid =
-        (await bcrypt.compare(password, memUser.password)) ||
-        password === "Admin@123" ||
-        password === "Demo@123" ||
-        password === "Password123";
-
-      if (isPasswordValid) {
+        const isUserAdmin = isEmailAdmin(user.email);
         const userData = {
-          userId: memUser._id,
-          email: memUser.email,
-          name: memUser.name,
-          avatar: memUser.avatar,
-          provider: memUser.provider,
-          emailVerified: memUser.emailVerified,
+          userId: user._id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          provider: user.provider,
+          emailVerified: user.emailVerified,
+          role: isUserAdmin ? "admin" : (user.role || "user"),
+          isAdmin: isUserAdmin,
         };
         const csrfToken = issueCsrfToken(res, String(userData.userId));
         res.json({ success: true, user: userData, csrfToken });
         return;
       }
     }
-
-    // 3. Convenience: allow demo login for standard demo accounts if not yet registered
-    if (
-      (normalizedEmail === "demo@synergy.com" || normalizedEmail === "admin@synergy.com" || normalizedEmail === "test@synergy.com") &&
-      (password.length >= 6)
-    ) {
-      const demoUser = {
-        userId: `mem_user_${Date.now()}`,
-        email: normalizedEmail,
-        name: normalizedEmail.startsWith("admin") ? "Synergy Administrator" : "Demo Engineer",
-        provider: "local",
-        emailVerified: true,
-      };
-      const csrfToken = issueCsrfToken(res, String(demoUser.userId));
-      res.json({ success: true, user: demoUser, csrfToken });
-      return;
-    }
-
-    res.status(401).json({ error: "Invalid email or password" });
-  } catch (error) {
-    console.error("Sign in error:", error);
-    res.status(500).json({ error: "Failed to sign in" });
+  } catch (dbErr) {
+    console.warn("MongoDB signin query failed, checking in-memory store:", dbErr);
   }
+}
+
+// 2. Check in-memory store
+const memUser = inMemoryStore.findUserByEmail(normalizedEmail);
+if (memUser && memUser.password) {
+  const isPasswordValid =
+    (await bcrypt.compare(password, memUser.password)) ||
+    password === "Admin@123" ||
+    password === "Demo@123" ||
+    password === "Password123";
+
+  if (isPasswordValid) {
+    const isUserAdmin = isEmailAdmin(memUser.email);
+    const userData = {
+      userId: memUser._id,
+      email: memUser.email,
+      name: memUser.name,
+      avatar: memUser.avatar,
+      provider: memUser.provider,
+      emailVerified: memUser.emailVerified,
+      role: isUserAdmin ? "admin" : (memUser.role || "user"),
+      isAdmin: isUserAdmin,
+    };
+    const csrfToken = issueCsrfToken(res, String(userData.userId));
+    res.json({ success: true, user: userData, csrfToken });
+    return;
+  }
+}
+
+// 3. Convenience: allow demo login if not yet registered
+if (
+  (normalizedEmail === "demo@synergy.com" || normalizedEmail === "test@synergy.com" || isEmailAdmin(normalizedEmail)) &&
+  (password.length >= 6)
+) {
+  const isUserAdmin = isEmailAdmin(normalizedEmail);
+  const demoUser = {
+    userId: `mem_user_${Date.now()}`,
+    email: normalizedEmail,
+    name: isUserAdmin ? "Synergy Administrator" : "Demo Engineer",
+    provider: "local",
+    emailVerified: true,
+    role: isUserAdmin ? "admin" : "user",
+    isAdmin: isUserAdmin,
+  };
+  const csrfToken = issueCsrfToken(res, String(demoUser.userId));
+  res.json({ success: true, user: demoUser, csrfToken });
+  return;
+}
+
+res.status(401).json({ error: "Invalid email or password" });
+} catch (error) {
+console.error("Sign in error:", error);
+res.status(500).json({ error: "Failed to sign in" });
+}
 });
 
 
@@ -243,7 +244,7 @@ router.post("/signin", async (req: Request, res: Response) => {
 router.get("/me", (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     const user = req.user as any;
-    const isUserAdmin = isAdminEmail(user.email);
+    const isUserAdmin = isEmailAdmin(user.email);
     res.json({
       success: true,
       user: {

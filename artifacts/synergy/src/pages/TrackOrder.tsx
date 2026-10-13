@@ -69,16 +69,22 @@ export default function TrackOrder() {
       // 2. If not found in API, check recently placed local orders in localStorage
       if (!fetched && typeof window !== "undefined") {
         try {
-          const localSaved = localStorage.getItem("synergy_local_orders");
-          if (localSaved) {
-            const list = JSON.parse(localSaved);
-            const found = list.find(
-              (o: any) =>
-                o.trackingId?.toLowerCase() === idToSearch.trim().toLowerCase() ||
-                o.id?.toLowerCase() === idToSearch.trim().toLowerCase()
-            );
-            if (found) {
-              fetched = found;
+          const keys = Object.keys(localStorage).filter((k) => k.startsWith("synergy_local_orders"));
+          for (const k of keys) {
+            const localSaved = localStorage.getItem(k);
+            if (localSaved) {
+              const list = JSON.parse(localSaved);
+              if (Array.isArray(list)) {
+                const found = list.find(
+                  (o: any) =>
+                    o.trackingId?.toLowerCase() === idToSearch.trim().toLowerCase() ||
+                    o.id?.toLowerCase() === idToSearch.trim().toLowerCase()
+                );
+                if (found) {
+                  fetched = found;
+                  break;
+                }
+              }
             }
           }
         } catch (e) {

@@ -189,12 +189,13 @@ export default function Checkout() {
 
       setPlacedOrder(orderResult);
 
-      // Save to localStorage so recent orders are immediately visible in Account & Track Order
+      // Save to localStorage scoped by user so recent orders are strictly isolated
       try {
-        const localSaved = localStorage.getItem("synergy_local_orders");
+        const orderKey = user?.userId ? `synergy_local_orders_${user.userId}` : "synergy_local_orders";
+        const localSaved = localStorage.getItem(orderKey);
         const list = localSaved ? JSON.parse(localSaved) : [];
         list.unshift(orderResult);
-        localStorage.setItem("synergy_local_orders", JSON.stringify(list.slice(0, 20)));
+        localStorage.setItem(orderKey, JSON.stringify(list.slice(0, 20)));
       } catch (e) {
         // ignore storage error
       }

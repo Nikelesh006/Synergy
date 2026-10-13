@@ -1,10 +1,25 @@
 import { Router, type IRouter } from "express";
 import { Address } from "../models/Address.js";
+import { isEmailAdmin } from "../middlewares/admin.js";
 
 const router: IRouter = Router();
 
+function requireUserAccess(req: any, res: any, next: any) {
+  const targetUserId = req.params.userId;
+  const authEmail = (req.isAuthenticated?.() && req.user?.email) || req.headers["x-user-email"];
+  if (authEmail && isEmailAdmin(String(authEmail))) {
+    return next();
+  }
+  const authUserId = (req.isAuthenticated?.() && req.user?._id) || req.headers["x-user-id"];
+  if (!authUserId || String(authUserId) !== String(targetUserId)) {
+    res.status(403).json({ error: "Access denied. You can only access your own addresses." });
+    return;
+  }
+  next();
+}
+
 // Get all addresses for a user
-router.get("/:userId", async (req, res): Promise<void> => {
+router.get("/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const addresses = await Address.find({ userId: req.params.userId }).sort({ isDefault: -1, createdAt: -1 });
     res.json({ success: true, addresses });
@@ -15,7 +30,7 @@ router.get("/:userId", async (req, res): Promise<void> => {
 });
 
 // Create a new address
-router.post("/:userId", async (req, res): Promise<void> => {
+router.post("/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { type, name, line1, line2, phone, isDefault } = req.body;
     
@@ -51,7 +66,7 @@ router.post("/:userId", async (req, res): Promise<void> => {
 });
 
 // Update an address
-router.put("/:userId/:addressId", async (req, res): Promise<void> => {
+router.put("/:userId/:addressId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { type, name, line1, line2, phone, isDefault } = req.body;
     
@@ -82,7 +97,7 @@ router.put("/:userId/:addressId", async (req, res): Promise<void> => {
 });
 
 // Set address as default
-router.patch("/:userId/:addressId/default", async (req, res): Promise<void> => {
+router.patch("/:userId/:addressId/default", requireUserAccess, async (req, res): Promise<void> => {
   try {
     // Unset all other default addresses for this user
     await Address.updateMany(
@@ -110,7 +125,7 @@ router.patch("/:userId/:addressId/default", async (req, res): Promise<void> => {
 });
 
 // Delete an address
-router.delete("/:userId/:addressId", async (req, res): Promise<void> => {
+router.delete("/:userId/:addressId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const address = await Address.findOneAndDelete({
       _id: req.params.addressId,
