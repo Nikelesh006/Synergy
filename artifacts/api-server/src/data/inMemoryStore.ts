@@ -110,6 +110,122 @@ class InMemoryStore {
         createdAt: new Date(),
       },
     ];
+
+    // Pre-seed sample orders for admin preview & demo
+    this.orders = [
+      {
+        id: "mem_ord_89241",
+        _id: "mem_ord_89241",
+        trackingId: "SYN89241A1",
+        customer: {
+          name: "Ramesh Kannan",
+          email: "ramesh.k@synergylabs.io",
+          phone: "+91 98401 23456",
+        },
+        items: [
+          {
+            name: "ESP32-S3 AI Development Board",
+            sku: "DEV-ESP32-S3",
+            price: 1250,
+            quantity: 2,
+            image: "/categories/ai-boards.jpg",
+          },
+          {
+            name: "Raspberry Pi 4 Model B (4GB)",
+            sku: "RPI-4-4GB",
+            price: 5200,
+            quantity: 1,
+            image: "/categories/embedded-boards.jpg",
+          },
+        ],
+        shippingAddress: {
+          fullName: "Ramesh Kannan",
+          phone: "+91 98401 23456",
+          addressLine1: "Flat 4B, Silicon Heights, OMR",
+          city: "Chennai",
+          state: "Tamil Nadu",
+          pincode: "600096",
+        },
+        subtotal: 7700,
+        gst: 1386,
+        shippingCharge: 0,
+        total: 9086,
+        status: "processing",
+        paymentMethod: "upi",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+      },
+      {
+        id: "mem_ord_89240",
+        _id: "mem_ord_89240",
+        trackingId: "SYN89240B2",
+        customer: {
+          name: "Priya Sharma",
+          email: "priya.sharma@techcraft.in",
+          phone: "+91 97110 54321",
+        },
+        items: [
+          {
+            name: "STM32 Nucleo-64 Development Board",
+            sku: "DEV-STM32-N64",
+            price: 1850,
+            quantity: 3,
+            image: "/categories/embedded-boards.jpg",
+          },
+        ],
+        shippingAddress: {
+          fullName: "Priya Sharma",
+          phone: "+91 97110 54321",
+          addressLine1: "Tower C, Cyber City, DLF Phase 2",
+          city: "Gurugram",
+          state: "Haryana",
+          pincode: "122002",
+        },
+        subtotal: 5550,
+        gst: 999,
+        shippingCharge: 0,
+        total: 6549,
+        status: "shipped",
+        paymentMethod: "card",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+      },
+      {
+        id: "mem_ord_89239",
+        _id: "mem_ord_89239",
+        trackingId: "SYN89239C3",
+        customer: {
+          name: "Dr. Anirudh Sen",
+          email: "anirudh.sen@iitkgp.ac.in",
+          phone: "+91 94340 98765",
+        },
+        items: [
+          {
+            name: "Digital Storage Oscilloscope 100MHz",
+            sku: "LAB-DSO-100",
+            price: 24500,
+            quantity: 1,
+            image: "/categories/lab-equipments.jpg",
+          },
+        ],
+        shippingAddress: {
+          fullName: "Dr. Anirudh Sen",
+          phone: "+91 94340 98765",
+          addressLine1: "Department of Electronics Engineering, IIT Kharagpur",
+          city: "Kharagpur",
+          state: "West Bengal",
+          pincode: "721302",
+        },
+        subtotal: 24500,
+        gst: 4410,
+        shippingCharge: 0,
+        total: 28910,
+        status: "delivered",
+        paymentMethod: "netbanking",
+        paymentStatus: "paid",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+      },
+    ];
   }
 
   // Product helpers
@@ -320,6 +436,67 @@ class InMemoryStore {
     };
     this.users.push(newUser);
     return newUser;
+  }
+
+  // Order helpers
+  addOrder(data: any) {
+    const trackingId =
+      data.trackingId ||
+      ("SYN" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase());
+    const id = data.id || data._id || `mem_ord_${Date.now()}`;
+    const newOrder = {
+      ...data,
+      id,
+      _id: id,
+      trackingId,
+      status: data.status || "pending",
+      paymentStatus: data.paymentStatus || "pending",
+      createdAt: data.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.orders.unshift(newOrder);
+    return newOrder;
+  }
+
+  getOrders(filter?: { userId?: string; email?: string }) {
+    if (!filter || (!filter.userId && !filter.email)) {
+      return [...this.orders];
+    }
+    return this.orders.filter((o) => {
+      if (filter.userId && o.userId !== filter.userId) return false;
+      if (filter.email && o.customer?.email !== filter.email) return false;
+      return true;
+    });
+  }
+
+  findOrder(idOrTracking: string) {
+    return (
+      this.orders.find(
+        (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+      ) || null
+    );
+  }
+
+  updateOrder(idOrTracking: string, data: any) {
+    const idx = this.orders.findIndex(
+      (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+    );
+    if (idx === -1) return null;
+    this.orders[idx] = {
+      ...this.orders[idx],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    return this.orders[idx];
+  }
+
+  deleteOrder(idOrTracking: string) {
+    const idx = this.orders.findIndex(
+      (o) => o.id === idOrTracking || o._id === idOrTracking || o.trackingId === idOrTracking
+    );
+    if (idx === -1) return false;
+    this.orders.splice(idx, 1);
+    return true;
   }
 }
 

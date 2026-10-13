@@ -29,6 +29,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { fetchApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { products as fallbackProducts } from "@/data/products";
+import { getProductDisplayImage } from "@/lib/productImage";
 
 interface OrderItem {
   productId?: string;
@@ -166,7 +168,7 @@ const fallbackSeedOrders: AdminOrder[] = [
       }
     ],
     shippingAddress: {
-      fullName: "Siddharth Vrma",
+      fullName: "Siddharth Verma",
       phone: "+91 97110 98765",
       addressLine1: "B-204, Tech Residency",
       city: "Hyderabad",
@@ -184,6 +186,91 @@ const fallbackSeedOrders: AdminOrder[] = [
   }
 ];
 
+export function normalizeOrderItem(item: any): OrderItem {
+  if (!item) {
+    return { name: "Product", price: 0, quantity: 1, image: "/categories/embedded-boards.jpg" };
+  }
+  const prod = typeof item.product === "object" && item.product !== null ? item.product : {};
+  const productId = item.productId || (typeof item.product === "string" ? item.product : (prod.id || prod._id));
+
+  let name = item.name || prod.name || item.title || prod.title || "";
+  let sku = item.sku || prod.sku || "";
+  let image =
+    item.image ||
+    (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) ||
+    "";
+  let price = Number(item.price ?? item.unitPrice ?? prod.price ?? 0) || 0;
+  const quantity = Number(item.quantity ?? 1) || 1;
+
+  // Catalog match fallback
+  const catalogMatch = fallbackProducts.find(
+    (p) =>
+      (productId && (p.id === productId || (p as any)._id === productId)) ||
+      (sku && sku !== "SYN-SKU" && p.sku?.toLowerCase() === sku.toLowerCase()) ||
+      (name && name !== "Hardware Item" && p.name?.toLowerCase() === name.toLowerCase())
+  );
+
+  if (catalogMatch) {
+    if (!name || name === "Hardware Item") name = catalogMatch.name;
+    if (!sku || sku === "SYN-SKU") sku = catalogMatch.sku;
+    if (!image) image = catalogMatch.images?.[0] || "";
+    if (!price) price = catalogMatch.price;
+  }
+
+  name = name || "Hardware Component";
+  sku = sku || "SYN-SKU";
+  image = getProductDisplayImage(image, catalogMatch?.category || prod.category, catalogMatch?.subcategory || prod.subcategory);
+
+  return {
+    productId,
+    name,
+    sku,
+    image,
+    price,
+    quantity,
+  };
+}
+
+export function normalizeOrder(order: any): AdminOrder {
+  const rawItems = Array.isArray(order.items) ? order.items : [];
+  const items: OrderItem[] = rawItems.map(normalizeOrderItem);
+  const rawTotal = Number(order.total ?? order.subtotal ?? 0);
+  const calculatedTotal = items.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+  const total = rawTotal > 0 ? rawTotal : calculatedTotal;
+
+  return {
+    id: String(order.id || order._id || order.trackingId || `ORD-${Date.now()}`),
+    _id: order._id,
+    trackingId: order.trackingId || order.id || `SYN-${Date.now()}`,
+    userId: order.userId,
+    customer: {
+      name: order.customer?.name || order.shippingAddress?.fullName || "Valued Customer",
+      email: order.customer?.email || "customer@example.com",
+      phone: order.customer?.phone || order.shippingAddress?.phone || "+91 98000 00000",
+    },
+    items,
+    shippingAddress: {
+      fullName: order.shippingAddress?.fullName || order.customer?.name || "Valued Customer",
+      phone: order.shippingAddress?.phone || order.customer?.phone || "",
+      addressLine1: order.shippingAddress?.addressLine1 || "Delivery Address",
+      addressLine2: order.shippingAddress?.addressLine2 || "",
+      city: order.shippingAddress?.city || "Bengaluru",
+      state: order.shippingAddress?.state || "Karnataka",
+      pincode: order.shippingAddress?.pincode || "560001",
+    },
+    subtotal: Number(order.subtotal ?? total),
+    gst: Number(order.gst ?? 0),
+    shippingCharge: Number(order.shippingCharge ?? 0),
+    total,
+    status: (order.status || "pending").toLowerCase() as any,
+    paymentMethod: order.paymentMethod || "cod",
+    paymentStatus: (order.paymentStatus || "pending").toLowerCase() as any,
+    notes: order.notes,
+    createdAt: order.createdAt || new Date().toISOString(),
+    updatedAt: order.updatedAt || new Date().toISOString(),
+  };
+}
+
 export default function AdminOrders() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -193,20 +280,61 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetchApi<{ success: boolean; orders: any[] }>("/orders");
-      if (res && res.success && Array.isArray(res.orders)) {
-        setOrders(res.orders);
-      } else {
-        setOrders([]);
+      const ordersMap = new Map<string, AdminOrder>();
+
+      // 1. Fetch from backend API
+      try {
+        const res = await fetchApi<{ success: boolean; orders: any[] }>("/orders");
+        if (res && res.success && Array.isArray(res.orders)) {
+          res.orders.forEach((o) => {
+            const normalized = normalizeOrder(o);
+            const key = normalized.trackingId || normalized.id;
+            if (key) ordersMap.set(key, normalized);
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to fetch API orders:", err);
       }
+
+      // 2. Merge recently placed orders from browser session (localStorage)
+      if (typeof window !== "undefined") {
+        try {
+          const localSaved = localStorage.getItem("synergy_local_orders");
+          if (localSaved) {
+            const localList = JSON.parse(localSaved);
+            if (Array.isArray(localList)) {
+              localList.forEach((lo: any) => {
+                const normalized = normalizeOrder(lo);
+                const key = normalized.trackingId || normalized.id;
+                if (key && !ordersMap.has(key)) {
+                  ordersMap.set(key, normalized);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to load local orders:", e);
+        }
+      }
+
+      // 3. Fallback to pre-seeded demo orders if no orders exist anywhere
+      if (ordersMap.size === 0) {
+        fallbackSeedOrders.forEach((so) => {
+          const normalized = normalizeOrder(so);
+          ordersMap.set(normalized.trackingId || normalized.id, normalized);
+        });
+      }
+
+      setOrders(Array.from(ordersMap.values()));
     } catch (err) {
-      console.warn("Failed to fetch API orders:", err);
-      setOrders([]);
+      console.warn("Error processing orders:", err);
+      setOrders(fallbackSeedOrders.map(normalizeOrder));
     } finally {
       setLoading(false);
     }
@@ -300,13 +428,18 @@ export default function AdminOrders() {
   };
 
   const filteredOrders = orders.filter((o) => {
+    const term = searchTerm.trim().toLowerCase();
     const matchesSearch =
-      !searchTerm.trim() ||
-      (o.trackingId && o.trackingId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (o.id && o.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (o.customer?.name && o.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (o.customer?.email && o.customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (o.customer?.phone && o.customer.phone.includes(searchTerm));
+      !term ||
+      (o.trackingId && o.trackingId.toLowerCase().includes(term)) ||
+      (o.id && o.id.toLowerCase().includes(term)) ||
+      (o.customer?.name && o.customer.name.toLowerCase().includes(term)) ||
+      (o.customer?.email && o.customer.email.toLowerCase().includes(term)) ||
+      (o.customer?.phone && o.customer.phone.includes(term)) ||
+      (Array.isArray(o.items) && o.items.some((it) =>
+        (it.name && it.name.toLowerCase().includes(term)) ||
+        (it.sku && it.sku.toLowerCase().includes(term))
+      ));
 
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
     const matchesPayment = paymentFilter === "all" || o.paymentStatus === paymentFilter;
@@ -485,7 +618,9 @@ export default function AdminOrders() {
                   </tr>
                 ) : (
                   filteredOrders.map((order) => {
+                    const orderKey = order.trackingId || order.id;
                     const displayId = order.trackingId || order.id;
+                    const isExpanded = expandedOrderId === orderKey;
                     const itemsSummary = order.items && order.items.length > 0
                       ? `${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1} more` : ""}`
                       : "Items";
@@ -496,62 +631,161 @@ export default function AdminOrders() {
                     }) : "Recently";
 
                     return (
-                      <tr key={order.trackingId || order.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-slate-900 font-mono">{displayId}</div>
-                          <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                            <Calendar className="h-3 w-3" /> {orderDate}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-900">{order.customer?.name || "Customer"}</div>
-                          <div className="text-xs text-slate-500">{order.customer?.email}</div>
-                          <div className="text-xs text-slate-400">{order.customer?.phone}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-xs font-medium text-slate-800 line-clamp-1 max-w-xs" title={itemsSummary}>
-                            {itemsSummary}
-                          </div>
-                          <div className="text-xs text-slate-400 mt-0.5">
-                            {order.items?.reduce((c, i) => c + (i.quantity || 1), 0) || 1} units
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 font-bold text-slate-900">
-                          ₹{order.total?.toLocaleString("en-IN")}
-                          <div className="text-[11px] font-normal text-slate-400 uppercase">
-                            {order.paymentMethod || "COD"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {getPaymentBadge(order.paymentStatus)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(order.status)}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedOrder(order)}
-                              className="h-8 gap-1 border-slate-200 text-xs font-medium hover:bg-slate-100"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              View & Manage
-                            </Button>
-                            <Link href={`/track-order?trackingId=${order.trackingId || order.id}`}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Open customer tracking page"
-                                className="h-8 w-8 p-0 text-slate-500 hover:text-blue-600"
+                      <tbody key={orderKey} className="border-b border-slate-100 last:border-b-0">
+                        <tr className={`hover:bg-slate-50/80 transition-colors ${isExpanded ? "bg-blue-50/20" : ""}`}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setExpandedOrderId(isExpanded ? null : orderKey)}
+                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                title={isExpanded ? "Collapse products" : "Expand products"}
                               >
-                                <ExternalLink className="h-3.5 w-3.5" />
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-blue-600" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </button>
+                              <div>
+                                <div className="font-bold text-slate-900 font-mono">{displayId}</div>
+                                <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" /> {orderDate}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-slate-900">{order.customer?.name || "Customer"}</div>
+                            <div className="text-xs text-slate-500">{order.customer?.email}</div>
+                            <div className="text-xs text-slate-400">{order.customer?.phone}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {/* Stacked Product Thumbnails */}
+                              <div className="flex -space-x-2 shrink-0">
+                                {order.items?.slice(0, 3).map((item, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={item.image || "/categories/embedded-boards.jpg"}
+                                    alt={item.name}
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "/categories/embedded-boards.jpg";
+                                    }}
+                                    className="h-10 w-10 rounded-lg object-cover border-2 border-white bg-slate-100 shadow-xs"
+                                    title={`${item.name} (Qty: ${item.quantity})`}
+                                  />
+                                ))}
+                                {order.items && order.items.length > 3 && (
+                                  <div className="h-10 w-10 rounded-lg border-2 border-white bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shadow-xs">
+                                    +{order.items.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Product Title & Quantity Details */}
+                              <div className="min-w-0 max-w-xs">
+                                <div className="text-xs font-semibold text-slate-900 truncate" title={itemsSummary}>
+                                  {itemsSummary}
+                                </div>
+                                <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                                  <span className="font-medium text-slate-700">
+                                    {order.items?.reduce((c, i) => c + (Number(i.quantity) || 1), 0) || 1} units
+                                  </span>
+                                  <button
+                                    onClick={() => setExpandedOrderId(isExpanded ? null : orderKey)}
+                                    className="text-blue-600 hover:text-blue-700 hover:underline font-medium text-[11px]"
+                                  >
+                                    {isExpanded ? "Hide products" : "View products"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 font-bold text-slate-900">
+                            ₹{(order.total || 0).toLocaleString("en-IN")}
+                            <div className="text-[11px] font-normal text-slate-400 uppercase">
+                              {order.paymentMethod || "COD"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {getPaymentBadge(order.paymentStatus)}
+                          </td>
+                          <td className="px-6 py-4">
+                            {getStatusBadge(order.status)}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedOrder(order)}
+                                className="h-8 gap-1 border-slate-200 text-xs font-medium hover:bg-slate-100"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                View & Manage
                               </Button>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
+                              <Link href={`/track-order?trackingId=${order.trackingId || order.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Open customer tracking page"
+                                  className="h-8 w-8 p-0 text-slate-500 hover:text-blue-600"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Expandable Order Products Sub-row */}
+                        {isExpanded && (
+                          <tr className="bg-slate-50/80 border-t border-slate-100">
+                            <td colSpan={7} className="px-8 py-4">
+                              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
+                                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                                  <div className="flex items-center gap-2">
+                                    <PackageCheck className="h-4 w-4 text-blue-600" />
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                      Ordered Products Breakdown ({order.items?.length || 0} unique items)
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-slate-400 font-mono">Tracking: {displayId}</span>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                  {order.items?.map((it, pIdx) => (
+                                    <div key={pIdx} className="py-2.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+                                      <div className="flex items-center gap-3">
+                                        <img
+                                          src={it.image || "/categories/embedded-boards.jpg"}
+                                          alt={it.name}
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "/categories/embedded-boards.jpg";
+                                          }}
+                                          className="w-12 h-12 object-cover rounded-lg border border-slate-200 bg-slate-50 shrink-0"
+                                        />
+                                        <div>
+                                          <p className="text-xs font-bold text-slate-900">{it.name}</p>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[11px] text-slate-400 font-mono">SKU: {it.sku || "N/A"}</span>
+                                            <span className="text-slate-300">•</span>
+                                            <span className="text-[11px] font-semibold text-slate-600">Qty: {it.quantity}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <p className="text-xs font-bold text-slate-900">
+                                          ₹{((it.price || 0) * (it.quantity || 1)).toLocaleString("en-IN")}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400">₹{(it.price || 0).toLocaleString("en-IN")} each</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
                     );
                   })
                 )}
@@ -654,28 +888,34 @@ export default function AdminOrders() {
 
                 {/* Ordered Items */}
                 <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 font-semibold text-xs text-slate-700 uppercase tracking-wider">
-                    Order Items ({selectedOrder.items?.length || 0})
+                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 font-semibold text-xs text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span>Order Items ({selectedOrder.items?.length || 0})</span>
+                    <span className="text-slate-400 font-normal">
+                      {selectedOrder.items?.reduce((s, i) => s + (Number(i.quantity) || 1), 0) || 0} total units
+                    </span>
                   </div>
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                     {selectedOrder.items?.map((item, idx) => (
                       <div key={idx} className="p-4 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg border border-slate-200" />
-                          ) : (
-                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 font-bold text-xs">
-                              HW
-                            </div>
-                          )}
+                          <img
+                            src={item.image || "/categories/embedded-boards.jpg"}
+                            alt={item.name}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/categories/embedded-boards.jpg";
+                            }}
+                            className="w-12 h-12 object-cover rounded-lg border border-slate-200 bg-slate-50 shrink-0"
+                          />
                           <div>
                             <p className="text-sm font-semibold text-slate-900">{item.name}</p>
                             <p className="text-xs text-slate-400">SKU: {item.sku || "N/A"} • Qty: {item.quantity}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-slate-900">₹{(item.price * item.quantity).toLocaleString("en-IN")}</p>
-                          <p className="text-xs text-slate-400">₹{item.price.toLocaleString("en-IN")} each</p>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-slate-900">
+                            ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-IN")}
+                          </p>
+                          <p className="text-xs text-slate-400">₹{(item.price || 0).toLocaleString("en-IN")} each</p>
                         </div>
                       </div>
                     ))}
@@ -684,11 +924,11 @@ export default function AdminOrders() {
                   <div className="bg-slate-50/80 p-4 border-t border-slate-200 space-y-1.5 text-xs text-slate-600">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span className="font-medium text-slate-900">₹{selectedOrder.subtotal?.toLocaleString("en-IN")}</span>
+                      <span className="font-medium text-slate-900">₹{(selectedOrder.subtotal || 0).toLocaleString("en-IN")}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>GST (18%):</span>
-                      <span className="font-medium text-slate-900">₹{selectedOrder.gst?.toLocaleString("en-IN")}</span>
+                      <span className="font-medium text-slate-900">₹{(selectedOrder.gst || 0).toLocaleString("en-IN")}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping:</span>
@@ -698,7 +938,7 @@ export default function AdminOrders() {
                     </div>
                     <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
                       <span>Total:</span>
-                      <span className="text-blue-600">₹{selectedOrder.total?.toLocaleString("en-IN")}</span>
+                      <span className="text-blue-600">₹{(selectedOrder.total || 0).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
                 </div>

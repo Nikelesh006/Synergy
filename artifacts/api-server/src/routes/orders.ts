@@ -1,5 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { Order } from "../models/Order.js";
+import { isDbConnected } from "../lib/db.js";
+import { inMemoryStore } from "../data/inMemoryStore.js";
 import crypto from "node:crypto";
 
 const router = Router();
@@ -8,17 +10,71 @@ function generateTrackingId(): string {
   return "SYN" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
 }
 
+function normalizeItem(item: any) {
+  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1 };
+  const prod = typeof item.product === "object" && item.product !== null ? item.product : {};
+  const productId = String(item.productId || prod.id || prod._id || (typeof item.product === "string" ? item.product : ""));
+  const name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
+  const sku = String(item.sku || prod.sku || "SYN-SKU");
+  const image = String(
+    item.image ||
+    (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) ||
+    "/categories/embedded-boards.jpg"
+  );
+  const price = Number(item.price ?? item.unitPrice ?? prod.price ?? 0) || 0;
+  const quantity = Number(item.quantity ?? 1) || 1;
+
+  return {
+    productId,
+    name,
+    sku,
+    image,
+    price,
+    quantity,
+  };
+}
+
+function formatOrder(order: any) {
+  if (!order) return order;
+  const rawItems = Array.isArray(order.items) ? order.items : [];
+  const items = rawItems.map(normalizeItem);
+  return {
+    ...order,
+    id: String(order._id || order.id),
+    items,
+  };
+}
+
 // POST /api/orders
 router.post("/", async (req: Request, res: Response) => {
   try {
+    const trackingId = generateTrackingId();
+    const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
+    const items = rawItems.map(normalizeItem);
     const orderData = {
       ...req.body,
-      trackingId: generateTrackingId(),
-      status: "pending",
-      paymentStatus: "pending",
+      items,
+      trackingId,
+      status: req.body.status || "pending",
+      paymentStatus: req.body.paymentStatus || "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    const order = await Order.create(orderData);
-    res.status(201).json({ ...order.toObject(), id: String(order._id) });
+
+    if (isDbConnected()) {
+      try {
+        const order = await Order.create(orderData);
+        const formatted = formatOrder(order.toObject());
+        inMemoryStore.addOrder(formatted);
+        res.status(201).json(formatted);
+        return;
+      } catch (dbErr) {
+        console.warn("MongoDB order creation failed, falling back to in-memory store:", dbErr);
+      }
+    }
+
+    const saved = inMemoryStore.addOrder(orderData);
+    res.status(201).json(formatOrder(saved));
   } catch (err) {
     res.status(400).json({ error: "Failed to create order", details: String(err) });
   }
@@ -29,10 +85,26 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const { userId, email } = req.query;
     const filter: Record<string, any> = {};
-    if (userId) filter.userId = userId;
-    if (email) filter["customer.email"] = email;
-    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
-    res.json({ success: true, orders: orders.map((o: any) => ({ ...o, id: String(o._id) })) });
+    if (userId) filter.userId = String(userId);
+    if (email) filter["customer.email"] = String(email);
+
+    if (isDbConnected()) {
+      try {
+        const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+        if (orders && orders.length > 0) {
+          res.json({ success: true, orders: orders.map(formatOrder) });
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB orders query failed, checking in-memory store:", dbErr);
+      }
+    }
+
+    const memOrders = inMemoryStore.getOrders({
+      userId: userId ? String(userId) : undefined,
+      email: email ? String(email) : undefined,
+    });
+    res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
   }
@@ -41,8 +113,21 @@ router.get("/", async (req: Request, res: Response) => {
 // GET /api/orders/user/:userId
 router.get("/user/:userId", async (req: Request, res: Response) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 }).lean();
-    res.json({ success: true, orders: orders.map((o: any) => ({ ...o, id: String(o._id) })) });
+    const userId = String(req.params.userId);
+    if (isDbConnected()) {
+      try {
+        const orders = await Order.find({ userId }).sort({ createdAt: -1 }).lean();
+        if (orders && orders.length > 0) {
+          res.json({ success: true, orders: orders.map(formatOrder) });
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB user orders query failed:", dbErr);
+      }
+    }
+
+    const memOrders = inMemoryStore.getOrders({ userId });
+    res.json({ success: true, orders: memOrders.map(formatOrder) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user orders", details: String(err) });
   }
@@ -53,15 +138,27 @@ router.get("/:trackingId", async (req: Request, res: Response) => {
   try {
     const trackingId = String(req.params.trackingId);
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(trackingId);
-    const raw = await Order.findOne({
-      $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }],
-    }).lean();
-    if (!raw) {
+
+    if (isDbConnected()) {
+      try {
+        const raw = await Order.findOne({
+          $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }],
+        }).lean();
+        if (raw) {
+          res.json(formatOrder(raw));
+          return;
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB order lookup failed:", dbErr);
+      }
+    }
+
+    const memOrder = inMemoryStore.findOrder(trackingId);
+    if (!memOrder) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
-    const order = raw as Record<string, unknown>;
-    res.json({ ...order, id: String(order["_id"]) });
+    res.json(formatOrder(memOrder));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch order", details: String(err) });
   }
@@ -72,15 +169,29 @@ router.put("/:id", async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
     const updateData = req.body;
-    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
-    
-    const updated = await Order.findOneAndUpdate(query, updateData, { new: true }).lean();
-    if (!updated) {
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { trackingId: id };
+
+    let updatedOrder: any = null;
+
+    if (isDbConnected()) {
+      try {
+        updatedOrder = await Order.findOneAndUpdate(query, updateData, { new: true }).lean();
+      } catch (dbErr) {
+        console.warn("MongoDB update order failed:", dbErr);
+      }
+    }
+
+    // Always update inMemoryStore
+    const memUpdated = inMemoryStore.updateOrder(id, updateData);
+    const result = updatedOrder || memUpdated;
+
+    if (!result) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
-    const order = updated as Record<string, unknown>;
-    res.json({ success: true, order: { ...order, id: String(order["_id"]) } });
+
+    res.json({ success: true, order: formatOrder(result) });
   } catch (err) {
     res.status(500).json({ error: "Failed to update order", details: String(err) });
   }
@@ -90,12 +201,25 @@ router.put("/:id", async (req: Request, res: Response) => {
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const id = String(req.params.id);
-    const query = /^[0-9a-fA-F]{24}$/.test(id) ? { _id: id } : { trackingId: id };
-    const deleted = await Order.findOneAndDelete(query).lean();
-    if (!deleted) {
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { trackingId: id };
+
+    let deleted = false;
+    if (isDbConnected()) {
+      try {
+        const resDb = await Order.findOneAndDelete(query).lean();
+        if (resDb) deleted = true;
+      } catch (dbErr) {
+        console.warn("MongoDB delete order failed:", dbErr);
+      }
+    }
+
+    const memDeleted = inMemoryStore.deleteOrder(id);
+    if (!deleted && !memDeleted) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
+
     res.json({ success: true, message: "Order deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete order", details: String(err) });

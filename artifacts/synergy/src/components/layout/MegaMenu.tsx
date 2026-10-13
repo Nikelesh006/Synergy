@@ -16,13 +16,12 @@ export default function MegaMenu() {
 
         {/* Development boards */}
         <li className="group relative">
-          <Link
-            href="/category/development-boards"
-            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize"
+          <div
+            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 group-hover:text-blue-600 transition-colors tracking-wide capitalize cursor-default select-none"
           >
             Development boards
             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
-          </Link>
+          </div>
 
           {/* Hover bridge keeps the cursor inside the group while moving down to the panel */}
           <div className="absolute top-full left-0 pt-2 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
@@ -66,13 +65,12 @@ export default function MegaMenu() {
 
         {/* Lab equipments */}
         <li className="group relative">
-          <Link
-            href="/category/lab-equipments"
-            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize"
+          <div
+            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 group-hover:text-blue-600 transition-colors tracking-wide capitalize cursor-default select-none"
           >
             Lab equipments
             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
-          </Link>
+          </div>
 
           <div className="absolute top-full left-0 pt-2 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
             <div
@@ -94,13 +92,12 @@ export default function MegaMenu() {
 
         {/* Blogs */}
         <li className="group relative">
-          <Link
-            href="/blogs"
-            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 hover:text-blue-600 transition-colors tracking-wide capitalize"
+          <div
+            className="flex items-center gap-1 py-3 px-3 text-[14px] font-semibold text-gray-700 group-hover:text-blue-600 transition-colors tracking-wide capitalize cursor-default select-none"
           >
             Blogs
             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
-          </Link>
+          </div>
 
           <div className="absolute top-full left-0 pt-2 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
             <div
