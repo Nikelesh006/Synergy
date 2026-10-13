@@ -18979,14 +18979,14 @@ var require_etag = __commonJS({
   "../../node_modules/etag/index.js"(exports, module) {
     "use strict";
     module.exports = etag;
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var Stats = __require("fs").Stats;
     var toString = Object.prototype.toString;
     function entitytag(entity) {
       if (entity.length === 0) {
         return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"';
       }
-      var hash2 = crypto3.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
+      var hash2 = crypto4.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
       var len = typeof entity === "string" ? Buffer.byteLength(entity, "utf8") : entity.length;
       return '"' + len.toString(16) + "-" + hash2 + '"';
     }
@@ -20709,27 +20709,27 @@ var require_router = __commonJS({
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
-    module.exports = Router16;
+    module.exports = Router17;
     module.exports.Route = Route;
-    function Router16(options) {
-      if (!(this instanceof Router16)) {
-        return new Router16(options);
+    function Router17(options) {
+      if (!(this instanceof Router17)) {
+        return new Router17(options);
       }
       const opts = options || {};
-      function router16(req, res, next) {
-        router16.handle(req, res, next);
+      function router17(req, res, next) {
+        router17.handle(req, res, next);
       }
-      Object.setPrototypeOf(router16, this);
-      router16.caseSensitive = opts.caseSensitive;
-      router16.mergeParams = opts.mergeParams;
-      router16.params = {};
-      router16.strict = opts.strict;
-      router16.stack = [];
-      return router16;
+      Object.setPrototypeOf(router17, this);
+      router17.caseSensitive = opts.caseSensitive;
+      router17.mergeParams = opts.mergeParams;
+      router17.params = {};
+      router17.strict = opts.strict;
+      router17.stack = [];
+      return router17;
     }
-    Router16.prototype = function() {
+    Router17.prototype = function() {
     };
-    Router16.prototype.param = function param(name, fn) {
+    Router17.prototype.param = function param(name, fn) {
       if (!name) {
         throw new TypeError("argument name is required");
       }
@@ -20749,7 +20749,7 @@ var require_router = __commonJS({
       params.push(fn);
       return this;
     };
-    Router16.prototype.handle = function handle(req, res, callback) {
+    Router17.prototype.handle = function handle(req, res, callback) {
       if (!callback) {
         throw new TypeError("argument callback is required");
       }
@@ -20876,7 +20876,7 @@ var require_router = __commonJS({
         }
       }
     };
-    Router16.prototype.use = function use(handler2) {
+    Router17.prototype.use = function use(handler2) {
       let offset = 0;
       let path = "/";
       if (typeof handler2 !== "function") {
@@ -20909,7 +20909,7 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router16.prototype.route = function route(path) {
+    Router17.prototype.route = function route(path) {
       const route2 = new Route(path);
       const layer = new Layer(path, {
         sensitive: this.caseSensitive,
@@ -20924,7 +20924,7 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router16.prototype[method] = function(path) {
+      Router17.prototype[method] = function(path) {
         const route = this.route(path);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
@@ -21107,13 +21107,13 @@ var require_application = __commonJS({
     var compileTrust = require_utils3().compileTrust;
     var resolve = __require("node:path").resolve;
     var once = require_once();
-    var Router16 = require_router();
+    var Router17 = require_router();
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var app2 = exports = module.exports = {};
     var trustProxyDefaultSymbol = "@@symbol:trust_proxy_default";
     app2.init = function init() {
-      var router16 = null;
+      var router17 = null;
       this.cache = /* @__PURE__ */ Object.create(null);
       this.engines = /* @__PURE__ */ Object.create(null);
       this.settings = /* @__PURE__ */ Object.create(null);
@@ -21122,13 +21122,13 @@ var require_application = __commonJS({
         configurable: true,
         enumerable: true,
         get: function getrouter() {
-          if (router16 === null) {
-            router16 = new Router16({
+          if (router17 === null) {
+            router17 = new Router17({
               caseSensitive: this.enabled("case sensitive routing"),
               strict: this.enabled("strict routing")
             });
           }
-          return router16;
+          return router17;
         }
       });
     };
@@ -21199,15 +21199,15 @@ var require_application = __commonJS({
       if (fns.length === 0) {
         throw new TypeError("app.use() requires a middleware function");
       }
-      var router16 = this.router;
+      var router17 = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router16.use(path, fn2);
+          return router17.use(path, fn2);
         }
         debug(".use app under %s", path);
         fn2.mountpath = path;
         fn2.parent = this;
-        router16.use(path, function mounted_app(req, res, next) {
+        router17.use(path, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -22473,17 +22473,17 @@ var require_content_disposition = __commonJS({
 // ../../node_modules/express/node_modules/cookie-signature/index.js
 var require_cookie_signature = __commonJS({
   "../../node_modules/express/node_modules/cookie-signature/index.js"(exports) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     exports.sign = function(val, secret) {
       if ("string" != typeof val) throw new TypeError("Cookie value must be provided as a string.");
       if (null == secret) throw new TypeError("Secret key must be provided.");
-      return val + "." + crypto3.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+      return val + "." + crypto4.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
     };
     exports.unsign = function(input, secret) {
       if ("string" != typeof input) throw new TypeError("Signed cookie string must be provided.");
       if (null == secret) throw new TypeError("Secret key must be provided.");
       var tentativeValue = input.slice(0, input.lastIndexOf(".")), expectedInput = exports.sign(tentativeValue, secret), expectedBuffer = Buffer.from(expectedInput), inputBuffer = Buffer.from(input);
-      return expectedBuffer.length === inputBuffer.length && crypto3.timingSafeEqual(expectedBuffer, inputBuffer) ? tentativeValue : false;
+      return expectedBuffer.length === inputBuffer.length && crypto4.timingSafeEqual(expectedBuffer, inputBuffer) ? tentativeValue : false;
     };
   }
 });
@@ -23792,7 +23792,7 @@ var require_express = __commonJS({
     var EventEmitter = __require("node:events").EventEmitter;
     var mixin = require_merge_descriptors();
     var proto = require_application();
-    var Router16 = require_router();
+    var Router17 = require_router();
     var req = require_request();
     var res = require_response();
     exports = module.exports = createApplication;
@@ -23814,8 +23814,8 @@ var require_express = __commonJS({
     exports.application = proto;
     exports.request = req;
     exports.response = res;
-    exports.Route = Router16.Route;
-    exports.Router = Router16;
+    exports.Route = Router17.Route;
+    exports.Router = Router17;
     exports.json = bodyParser.json;
     exports.raw = bodyParser.raw;
     exports.static = require_serve_static();
@@ -23918,10 +23918,10 @@ var require_lib3 = __commonJS({
       function isString(s2) {
         return typeof s2 === "string" || s2 instanceof String;
       }
-      function isOriginAllowed(origin, allowedOrigin) {
+      function isOriginAllowed2(origin, allowedOrigin) {
         if (Array.isArray(allowedOrigin)) {
           for (var i2 = 0; i2 < allowedOrigin.length; ++i2) {
-            if (isOriginAllowed(origin, allowedOrigin[i2])) {
+            if (isOriginAllowed2(origin, allowedOrigin[i2])) {
               return true;
             }
           }
@@ -23951,7 +23951,7 @@ var require_lib3 = __commonJS({
             value: "Origin"
           }]);
         } else {
-          isAllowed = isOriginAllowed(requestOrigin, options.origin);
+          isAllowed = isOriginAllowed2(requestOrigin, options.origin);
           headers.push([{
             key: "Access-Control-Allow-Origin",
             value: isAllowed ? requestOrigin : false
@@ -24107,6 +24107,119 @@ var require_lib3 = __commonJS({
       }
       module.exports = middlewareWrapper;
     })();
+  }
+});
+
+// ../../node_modules/cookie-signature/index.js
+var require_cookie_signature2 = __commonJS({
+  "../../node_modules/cookie-signature/index.js"(exports) {
+    var crypto4 = __require("crypto");
+    exports.sign = function(val, secret) {
+      if ("string" != typeof val) throw new TypeError("Cookie value must be provided as a string.");
+      if ("string" != typeof secret) throw new TypeError("Secret string must be provided.");
+      return val + "." + crypto4.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+    };
+    exports.unsign = function(val, secret) {
+      if ("string" != typeof val) throw new TypeError("Signed cookie string must be provided.");
+      if ("string" != typeof secret) throw new TypeError("Secret string must be provided.");
+      var str = val.slice(0, val.lastIndexOf(".")), mac = exports.sign(str, secret);
+      return sha1(mac) == sha1(val) ? str : false;
+    };
+    function sha1(str) {
+      return crypto4.createHash("sha1").update(str).digest("hex");
+    }
+  }
+});
+
+// ../../node_modules/cookie-parser/index.js
+var require_cookie_parser = __commonJS({
+  "../../node_modules/cookie-parser/index.js"(exports, module) {
+    "use strict";
+    var cookie = require_cookie();
+    var signature = require_cookie_signature2();
+    module.exports = cookieParser2;
+    module.exports.JSONCookie = JSONCookie;
+    module.exports.JSONCookies = JSONCookies;
+    module.exports.signedCookie = signedCookie;
+    module.exports.signedCookies = signedCookies;
+    function cookieParser2(secret, options) {
+      var secrets = !secret || Array.isArray(secret) ? secret || [] : [secret];
+      return function cookieParser3(req, res, next) {
+        if (req.cookies) {
+          return next();
+        }
+        var cookies = req.headers.cookie;
+        req.secret = secrets[0];
+        req.cookies = /* @__PURE__ */ Object.create(null);
+        req.signedCookies = /* @__PURE__ */ Object.create(null);
+        if (!cookies) {
+          return next();
+        }
+        req.cookies = cookie.parse(cookies, options);
+        if (secrets.length !== 0) {
+          req.signedCookies = signedCookies(req.cookies, secrets);
+          req.signedCookies = JSONCookies(req.signedCookies);
+        }
+        req.cookies = JSONCookies(req.cookies);
+        next();
+      };
+    }
+    function JSONCookie(str) {
+      if (typeof str !== "string" || str.substr(0, 2) !== "j:") {
+        return void 0;
+      }
+      try {
+        return JSON.parse(str.slice(2));
+      } catch (err) {
+        return void 0;
+      }
+    }
+    function JSONCookies(obj) {
+      var cookies = Object.keys(obj);
+      var key;
+      var val;
+      for (var i2 = 0; i2 < cookies.length; i2++) {
+        key = cookies[i2];
+        val = JSONCookie(obj[key]);
+        if (val) {
+          obj[key] = val;
+        }
+      }
+      return obj;
+    }
+    function signedCookie(str, secret) {
+      if (typeof str !== "string") {
+        return void 0;
+      }
+      if (str.substr(0, 2) !== "s:") {
+        return str;
+      }
+      var secrets = !secret || Array.isArray(secret) ? secret || [] : [secret];
+      for (var i2 = 0; i2 < secrets.length; i2++) {
+        var val = signature.unsign(str.slice(2), secrets[i2]);
+        if (val !== false) {
+          return val;
+        }
+      }
+      return false;
+    }
+    function signedCookies(obj, secret) {
+      var cookies = Object.keys(obj);
+      var dec;
+      var key;
+      var ret = /* @__PURE__ */ Object.create(null);
+      var val;
+      for (var i2 = 0; i2 < cookies.length; i2++) {
+        key = cookies[i2];
+        val = obj[key];
+        dec = signedCookie(val, secret);
+        if (val !== dec) {
+          ret[key] = dec;
+          delete obj[key];
+        }
+      }
+      return ret;
+    }
   }
 });
 
@@ -29254,13 +29367,13 @@ var require_on_headers = __commonJS({
 });
 
 // ../../node_modules/express-session/node_modules/cookie-signature/index.js
-var require_cookie_signature2 = __commonJS({
+var require_cookie_signature3 = __commonJS({
   "../../node_modules/express-session/node_modules/cookie-signature/index.js"(exports) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     exports.sign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Cookie value must be provided as a string.");
       if (null == secret) throw new TypeError("Secret key must be provided.");
-      return val + "." + crypto3.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+      return val + "." + crypto4.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
     };
     exports.unsign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Signed cookie string must be provided.");
@@ -29269,7 +29382,7 @@ var require_cookie_signature2 = __commonJS({
       return sha1(mac) == sha1(val) ? str : false;
     };
     function sha1(str) {
-      return crypto3.createHash("sha1").update(str).digest("hex");
+      return crypto4.createHash("sha1").update(str).digest("hex");
     }
   }
 });
@@ -29278,8 +29391,8 @@ var require_cookie_signature2 = __commonJS({
 var require_random_bytes = __commonJS({
   "../../node_modules/random-bytes/index.js"(exports, module) {
     "use strict";
-    var crypto3 = __require("crypto");
-    var generateAttempts = crypto3.randomBytes === crypto3.pseudoRandomBytes ? 1 : 3;
+    var crypto4 = __require("crypto");
+    var generateAttempts = crypto4.randomBytes === crypto4.pseudoRandomBytes ? 1 : 3;
     module.exports = randomBytes2;
     module.exports.sync = randomBytesSync;
     function randomBytes2(size, callback) {
@@ -29303,7 +29416,7 @@ var require_random_bytes = __commonJS({
       var err = null;
       for (var i2 = 0; i2 < generateAttempts; i2++) {
         try {
-          return crypto3.randomBytes(size);
+          return crypto4.randomBytes(size);
         } catch (e2) {
           err = e2;
         }
@@ -29311,7 +29424,7 @@ var require_random_bytes = __commonJS({
       throw err;
     }
     function generateRandomBytes(size, attempts, callback) {
-      crypto3.randomBytes(size, function onRandomBytes(err, buf) {
+      crypto4.randomBytes(size, function onRandomBytes(err, buf) {
         if (!err) return callback(null, buf);
         if (!--attempts) return callback(err);
         setTimeout(generateRandomBytes.bind(null, size, attempts, callback), 10);
@@ -29653,12 +29766,12 @@ var require_express_session = __commonJS({
     "use strict";
     var Buffer4 = require_safe_buffer().Buffer;
     var cookie = require_cookie();
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var debug = require_src2()("express-session");
     var deprecate3 = require_depd()("express-session");
     var onHeaders = require_on_headers();
     var parseUrl = require_parseurl();
-    var signature = require_cookie_signature2();
+    var signature = require_cookie_signature3();
     var uid = require_uid_safe().sync;
     var Cookie = require_cookie2();
     var MemoryStore = require_memory();
@@ -30026,7 +30139,7 @@ var require_express_session = __commonJS({
         }
         return val;
       });
-      return crypto3.createHash("sha1").update(str, "utf8").digest("hex");
+      return crypto4.createHash("sha1").update(str, "utf8").digest("hex");
     }
     function issecure(req, trustProxy) {
       if (req.connection && req.connection.encrypted) {
@@ -30763,7 +30876,7 @@ var require_lib5 = __commonJS({
 // ../../node_modules/uid2/index.js
 var require_uid2 = __commonJS({
   "../../node_modules/uid2/index.js"(exports, module) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var UIDCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     function tostr(bytes) {
       var r2, i2;
@@ -30775,9 +30888,9 @@ var require_uid2 = __commonJS({
     }
     function uid(length, cb) {
       if (typeof cb === "undefined") {
-        return tostr(crypto3.pseudoRandomBytes(length));
+        return tostr(crypto4.pseudoRandomBytes(length));
       } else {
-        crypto3.pseudoRandomBytes(length, function(err, bytes) {
+        crypto4.pseudoRandomBytes(length, function(err, bytes) {
           if (err) return cb(err);
           cb(null, tostr(bytes));
         });
@@ -31034,7 +31147,7 @@ var require_utils5 = __commonJS({
 // ../../node_modules/oauth/lib/oauth.js
 var require_oauth = __commonJS({
   "../../node_modules/oauth/lib/oauth.js"(exports) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var sha1 = require_sha1();
     var http3 = __require("http");
     var https2 = __require("https");
@@ -31200,12 +31313,12 @@ var require_oauth = __commonJS({
         hash2 = key;
       } else if (this._signatureMethod == "RSA-SHA1") {
         key = this._privateKey || "";
-        hash2 = crypto3.createSign("RSA-SHA1").update(signatureBase).sign(key, "base64");
+        hash2 = crypto4.createSign("RSA-SHA1").update(signatureBase).sign(key, "base64");
       } else if (this._signatureMethod == "HMAC-SHA256") {
-        hash2 = crypto3.createHmac("sha256", key).update(signatureBase).digest("base64");
+        hash2 = crypto4.createHmac("sha256", key).update(signatureBase).digest("base64");
       } else {
-        if (crypto3.Hmac) {
-          hash2 = crypto3.createHmac("sha1", key).update(signatureBase).digest("base64");
+        if (crypto4.Hmac) {
+          hash2 = crypto4.createHmac("sha1", key).update(signatureBase).digest("base64");
         } else {
           hash2 = sha1.HMACSHA1(key, signatureBase);
         }
@@ -31550,7 +31663,7 @@ var require_oauth = __commonJS({
 var require_oauth2 = __commonJS({
   "../../node_modules/oauth/lib/oauth2.js"(exports) {
     var querystring = __require("querystring");
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var https2 = __require("https");
     var http3 = __require("http");
     var URL2 = __require("url");
@@ -31981,7 +32094,7 @@ var require_strategy2 = __commonJS({
     var passport2 = require_lib4();
     var url = __require("url");
     var uid = require_uid2();
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var base64url = require_base64url2();
     var util = __require("util");
     var utils = require_utils4();
@@ -32161,13 +32274,13 @@ var require_strategy2 = __commonJS({
         }
         var verifier, challenge;
         if (this._pkceMethod) {
-          verifier = base64url(crypto3.pseudoRandomBytes(32));
+          verifier = base64url(crypto4.pseudoRandomBytes(32));
           switch (this._pkceMethod) {
             case "plain":
               challenge = verifier;
               break;
             case "S256":
-              challenge = base64url(crypto3.createHash("sha256").update(verifier).digest());
+              challenge = base64url(crypto4.createHash("sha256").update(verifier).digest());
               break;
             default:
               return this.error(new Error("Unsupported code verifier transformation method: " + this._pkceMethod));
@@ -32777,10 +32890,10 @@ var require_bson = __commonJS({
       return webByteUtils.fromNumberArray(Array.from({ length: byteLength }, () => Math.floor(Math.random() * 256)));
     }
     var webRandomBytes = (() => {
-      const { crypto: crypto3 } = globalThis;
-      if (crypto3 != null && typeof crypto3.getRandomValues === "function") {
+      const { crypto: crypto4 } = globalThis;
+      if (crypto4 != null && typeof crypto4.getRandomValues === "function") {
         return (byteLength) => {
-          return crypto3.getRandomValues(webByteUtils.allocate(byteLength));
+          return crypto4.getRandomValues(webByteUtils.allocate(byteLength));
         };
       } else {
         if (isReactNative()) {
@@ -38476,7 +38589,7 @@ var require_utils6 = __commonJS({
     exports.decorateDecryptionResult = decorateDecryptionResult;
     exports.addAbortListener = addAbortListener;
     exports.abortable = abortable;
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var fs_1 = __require("fs");
     var http3 = __require("http");
     var timers_1 = __require("timers");
@@ -38632,7 +38745,7 @@ var require_utils6 = __commonJS({
       }
     }
     function uuidV4() {
-      const result = crypto3.randomBytes(16);
+      const result = crypto4.randomBytes(16);
       result[6] = result[6] & 15 | 64;
       result[8] = result[8] & 63 | 128;
       return result;
@@ -39216,7 +39329,7 @@ var require_utils6 = __commonJS({
     function squashError(_error) {
       return;
     }
-    exports.randomBytes = (0, util_1.promisify)(crypto3.randomBytes);
+    exports.randomBytes = (0, util_1.promisify)(crypto4.randomBytes);
     async function once(ee, name, options) {
       options?.signal?.throwIfAborted();
       const { promise, resolve, reject } = promiseWithResolvers();
@@ -59134,12 +59247,12 @@ var require_crypto_callbacks = __commonJS({
     exports.sha256Hook = sha256Hook;
     exports.makeHmacHook = makeHmacHook;
     exports.signRsaSha256Hook = signRsaSha256Hook;
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     function makeAES256Hook(method, mode) {
       return function(key, iv, input, output) {
         let result;
         try {
-          const cipher = crypto3[method](mode, key, iv);
+          const cipher = crypto4[method](mode, key, iv);
           cipher.setAutoPadding(false);
           result = cipher.update(input);
           const final = cipher.final();
@@ -59155,7 +59268,7 @@ var require_crypto_callbacks = __commonJS({
     }
     function randomHook(buffer, count) {
       try {
-        crypto3.randomFillSync(buffer, 0, count);
+        crypto4.randomFillSync(buffer, 0, count);
       } catch (e2) {
         return e2;
       }
@@ -59164,7 +59277,7 @@ var require_crypto_callbacks = __commonJS({
     function sha256Hook(input, output) {
       let result;
       try {
-        result = crypto3.createHash("sha256").update(input).digest();
+        result = crypto4.createHash("sha256").update(input).digest();
       } catch (e2) {
         return e2;
       }
@@ -59175,7 +59288,7 @@ var require_crypto_callbacks = __commonJS({
       return (key, input, output) => {
         let result;
         try {
-          result = crypto3.createHmac(algorithm, key).update(input).digest();
+          result = crypto4.createHmac(algorithm, key).update(input).digest();
         } catch (e2) {
           return e2;
         }
@@ -59186,7 +59299,7 @@ var require_crypto_callbacks = __commonJS({
     function signRsaSha256Hook(key, input, output) {
       let result;
       try {
-        const signer = crypto3.createSign("sha256WithRSAEncryption");
+        const signer = crypto4.createSign("sha256WithRSAEncryption");
         const privateKey = Buffer.from(`-----BEGIN PRIVATE KEY-----
 ${key.toString("base64")}
 -----END PRIVATE KEY-----
@@ -68395,7 +68508,7 @@ var require_scram = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScramSHA256 = exports.ScramSHA1 = void 0;
     var saslprep_1 = require_node3();
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var bson_1 = require_bson2();
     var error_1 = require_error();
     var utils_1 = require_utils6();
@@ -68548,9 +68661,9 @@ var require_scram = __commonJS({
       }
       let md5;
       try {
-        md5 = crypto3.createHash("md5");
+        md5 = crypto4.createHash("md5");
       } catch (err) {
-        if (crypto3.getFips()) {
+        if (crypto4.getFips()) {
           throw new Error("Auth mechanism SCRAM-SHA-1 is not supported in FIPS mode");
         }
         throw err;
@@ -68573,10 +68686,10 @@ var require_scram = __commonJS({
       return Buffer.from(res).toString("base64");
     }
     function H(method, text) {
-      return crypto3.createHash(method).update(text).digest();
+      return crypto4.createHash(method).update(text).digest();
     }
     function HMAC(method, key, text) {
-      return crypto3.createHmac(method, key).update(text).digest();
+      return crypto4.createHmac(method, key).update(text).digest();
     }
     var _hiCache = {};
     var _hiCacheCount = 0;
@@ -68593,7 +68706,7 @@ var require_scram = __commonJS({
       if (_hiCache[key] != null) {
         return _hiCache[key];
       }
-      const saltedData = crypto3.pbkdf2Sync(data, salt, iterations, hiLengthMap[cryptoMethod], cryptoMethod);
+      const saltedData = crypto4.pbkdf2Sync(data, salt, iterations, hiLengthMap[cryptoMethod], cryptoMethod);
       if (_hiCacheCount >= 200) {
         _hiCachePurge();
       }
@@ -68605,8 +68718,8 @@ var require_scram = __commonJS({
       if (lhs.length !== rhs.length) {
         return false;
       }
-      if (typeof crypto3.timingSafeEqual === "function") {
-        return crypto3.timingSafeEqual(lhs, rhs);
+      if (typeof crypto4.timingSafeEqual === "function") {
+        return crypto4.timingSafeEqual(lhs, rhs);
       }
       let result = 0;
       for (let i2 = 0; i2 < lhs.length; i2++) {
@@ -117252,11 +117365,11 @@ var require_encodeDoubleArray = __commonJS({
 // ../../node_modules/cloudinary/lib/auth_token.js
 var require_auth_token = __commonJS({
   "../../node_modules/cloudinary/lib/auth_token.js"(exports, module) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var smart_escape = require_smart_escape();
     var unsafe = /([ "#%&'/:;<=>?@[\]^`{|}~]+)/g;
     function digest(message, key) {
-      return crypto3.createHmac("sha256", Buffer.from(key, "hex")).update(message).digest("hex");
+      return crypto4.createHmac("sha256", Buffer.from(key, "hex")).update(message).digest("hex");
     }
     function escapeToLower(url) {
       const safeUrl = smart_escape(url, unsafe);
@@ -117955,7 +118068,7 @@ var require_qPolyfill = __commonJS({
 // ../../node_modules/cloudinary/lib/utils/index.js
 var require_utils10 = __commonJS({
   "../../node_modules/cloudinary/lib/utils/index.js"(exports, module) {
-    var crypto3 = __require("crypto");
+    var crypto4 = __require("crypto");
     var querystring = __require("querystring");
     var { URL: URL2 } = __require("url");
     var compact = require_compact();
@@ -118802,7 +118915,7 @@ var require_utils10 = __commonJS({
       return base_api_url_v1_1()([resource_type, action], options);
     }
     function random_public_id() {
-      return crypto3.randomBytes(12).toString("base64").replace(/[^a-z0-9]/g, "");
+      return crypto4.randomBytes(12).toString("base64").replace(/[^a-z0-9]/g, "");
     }
     function signed_preloaded_image(result) {
       return `${result.resource_type}/upload/v${result.version}/${filter([result.public_id, result.format], utils.present).join(".")}#${result.signature}`;
@@ -118831,7 +118944,7 @@ var require_utils10 = __commonJS({
       if (!SUPPORTED_SIGNATURE_ALGORITHMS.includes(signature_algorithm)) {
         throw new Error(`Signature algorithm ${signature_algorithm} is not supported. Supported algorithms: ${SUPPORTED_SIGNATURE_ALGORITHMS.join(", ")}`);
       }
-      const hash2 = crypto3.createHash(signature_algorithm).update(input).digest();
+      const hash2 = crypto4.createHash(signature_algorithm).update(input).digest();
       return Buffer.from(hash2).toString(encoding);
     }
     function clear_blank(hash2) {
@@ -121718,8 +121831,9 @@ var require_cloudinary2 = __commonJS({
 });
 
 // src/app.ts
-var import_express16 = __toESM(require_express2(), 1);
+var import_express17 = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
+var import_cookie_parser = __toESM(require_cookie_parser(), 1);
 var import_pino_http = __toESM(require_logger(), 1);
 var import_express_session = __toESM(require_express_session(), 1);
 
@@ -122191,7 +122305,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 var passport_default = import_passport.default;
 
 // src/routes/index.ts
-var import_express15 = __toESM(require_express2(), 1);
+var import_express16 = __toESM(require_express2(), 1);
 
 // src/routes/health.ts
 var import_express = __toESM(require_express2(), 1);
@@ -125631,6 +125745,209 @@ var seed_default = router8;
 
 // src/routes/auth.ts
 var import_express9 = __toESM(require_express2(), 1);
+
+// src/lib/csrf.ts
+import crypto3 from "node:crypto";
+var CSRF_COOKIE_NAME = "_csrf";
+var CSRF_HEADER_NAME = "x-csrf-token";
+var DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1e3;
+function getCsrfSecret() {
+  const secret = process.env.CSRF_SECRET || process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CSRF_SECRET or SESSION_SECRET must be configured in production.");
+    }
+    return "synergy-csrf-dev-default-secret-key-32-chars-long";
+  }
+  return secret;
+}
+function safeCompare(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  if (bufA.length !== bufB.length) return false;
+  return crypto3.timingSafeEqual(bufA, bufB);
+}
+function signCsrfPayload(payload, secret = getCsrfSecret()) {
+  return crypto3.createHmac("sha256", secret).update(payload).digest("hex");
+}
+function generateCsrfToken(userContext = "anon", customTimestamp) {
+  const rawToken = crypto3.randomBytes(32).toString("hex");
+  const timestamp = customTimestamp ?? Date.now();
+  const sanitizedContext = (userContext || "anon").replace(/[^a-zA-Z0-9_-]/g, "");
+  const payload = `${rawToken}.${timestamp}.${sanitizedContext}`;
+  const signature = signCsrfPayload(payload);
+  const cookieValue = `${payload}.${signature}`;
+  return {
+    rawToken,
+    cookieValue
+  };
+}
+function validateCsrfToken(clientToken, cookieValue, expectedUserContext, maxAgeMs = DEFAULT_MAX_AGE_MS) {
+  if (!clientToken || typeof clientToken !== "string" || !clientToken.trim()) {
+    return { valid: false, reason: "CSRF token is missing from request header (X-CSRF-Token).", code: "MISSING_HEADER" };
+  }
+  if (!cookieValue || typeof cookieValue !== "string" || !cookieValue.trim()) {
+    return { valid: false, reason: "CSRF cookie (_csrf) is missing.", code: "MISSING_COOKIE" };
+  }
+  const parts = cookieValue.split(".");
+  if (parts.length !== 4) {
+    return { valid: false, reason: "CSRF cookie is malformed.", code: "MALFORMED" };
+  }
+  const [cookieRawToken, timestampStr, cookieUserContext, signature] = parts;
+  const payload = `${cookieRawToken}.${timestampStr}.${cookieUserContext}`;
+  const expectedSig = signCsrfPayload(payload);
+  if (!safeCompare(signature, expectedSig)) {
+    return { valid: false, reason: "CSRF cookie signature is invalid.", code: "INVALID_SIGNATURE" };
+  }
+  if (!safeCompare(clientToken.trim(), cookieRawToken)) {
+    return { valid: false, reason: "CSRF token does not match cookie.", code: "TOKEN_MISMATCH" };
+  }
+  const tokenTime = parseInt(timestampStr, 10);
+  if (Number.isNaN(tokenTime)) {
+    return { valid: false, reason: "Invalid CSRF token timestamp.", code: "MALFORMED" };
+  }
+  const now = Date.now();
+  if (tokenTime > now + 6e4) {
+    return { valid: false, reason: "CSRF token timestamp is in the future.", code: "MALFORMED" };
+  }
+  if (now - tokenTime > maxAgeMs) {
+    return { valid: false, reason: "CSRF token has expired.", code: "EXPIRED" };
+  }
+  if (cookieUserContext !== "anon" && expectedUserContext && expectedUserContext !== "anon") {
+    const currentContext = expectedUserContext.replace(/[^a-zA-Z0-9_-]/g, "");
+    if (cookieUserContext !== currentContext) {
+      return {
+        valid: false,
+        reason: "CSRF token user context does not match current authentication state.",
+        code: "CONTEXT_MISMATCH"
+      };
+    }
+  }
+  return { valid: true };
+}
+function getCsrfCookieOptions() {
+  const isProduction2 = process.env.NODE_ENV === "production";
+  const sameSiteEnv = (process.env.COOKIE_SAMESITE || "").toLowerCase();
+  let sameSite = "lax";
+  if (sameSiteEnv === "strict") {
+    sameSite = "strict";
+  } else if (sameSiteEnv === "none") {
+    sameSite = "none";
+  }
+  return {
+    httpOnly: true,
+    secure: isProduction2 || sameSite === "none",
+    sameSite,
+    path: "/",
+    maxAge: DEFAULT_MAX_AGE_MS
+  };
+}
+
+// src/middlewares/csrf.ts
+function getAllowedOrigins(req) {
+  const allowed = /* @__PURE__ */ new Set();
+  if (req?.headers.host) {
+    const proto = req.headers["x-forwarded-proto"] || (req.secure ? "https" : "http");
+    allowed.add(`${proto}://${req.headers.host}`);
+  }
+  if (process.env.FRONTEND_URL) {
+    allowed.add(process.env.FRONTEND_URL.replace(/\/$/, ""));
+  }
+  allowed.add("http://localhost:5173");
+  allowed.add("http://127.0.0.1:5173");
+  allowed.add("http://localhost:5000");
+  allowed.add("http://127.0.0.1:5000");
+  const extraOrigins = process.env.ALLOWED_ORIGINS || process.env.CSRF_ALLOWED_ORIGINS;
+  if (extraOrigins) {
+    extraOrigins.split(",").map((o) => o.trim().replace(/\/$/, "")).filter(Boolean).forEach((o) => allowed.add(o));
+  }
+  return Array.from(allowed);
+}
+function isOriginAllowed(origin, req) {
+  if (!origin) return true;
+  const normalized = origin.trim().replace(/\/$/, "");
+  const allowed = getAllowedOrigins(req);
+  if (allowed.includes(normalized)) {
+    return true;
+  }
+  if (process.env.NODE_ENV !== "production") {
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalized)) {
+      return true;
+    }
+  }
+  if (/^https:\/\/synergy[a-zA-Z0-9-]*\.vercel\.app$/.test(normalized)) {
+    return true;
+  }
+  return false;
+}
+function issueCsrfToken(res, userContext) {
+  const { rawToken, cookieValue } = generateCsrfToken(userContext);
+  res.cookie(CSRF_COOKIE_NAME, cookieValue, getCsrfCookieOptions());
+  return rawToken;
+}
+function clearCsrfCookie(res) {
+  res.clearCookie(CSRF_COOKIE_NAME, getCsrfCookieOptions());
+}
+function csrfProtection(req, res, next) {
+  const method = req.method.toUpperCase();
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) {
+    return next();
+  }
+  if (req.csrfExempt) {
+    return next();
+  }
+  const originHeader = req.headers["origin"];
+  const refererHeader = req.headers["referer"];
+  let requestOrigin = originHeader;
+  if (!requestOrigin && refererHeader) {
+    try {
+      requestOrigin = new URL(refererHeader).origin;
+    } catch {
+    }
+  }
+  if (requestOrigin && !isOriginAllowed(requestOrigin, req)) {
+    logger.warn(
+      {
+        method,
+        path: req.originalUrl,
+        origin: requestOrigin,
+        ip: req.ip
+      },
+      "CSRF defense-in-depth: rejected request from untrusted origin"
+    );
+    res.status(403).json({
+      error: "Forbidden",
+      message: "Request origin is untrusted or not allowed.",
+      code: "UNTRUSTED_ORIGIN"
+    });
+    return;
+  }
+  const clientToken = req.headers[CSRF_HEADER_NAME] || req.headers["x-xsrf-token"];
+  const cookieValue = req.cookies?.[CSRF_COOKIE_NAME];
+  const activeUserId = req.user?._id || req.user?.id || req.headers["x-user-id"] || "anon";
+  const result = validateCsrfToken(clientToken, cookieValue, String(activeUserId));
+  if (!result.valid) {
+    logger.warn(
+      {
+        method,
+        url: req.originalUrl?.split("?")[0],
+        code: result.code,
+        ip: req.ip
+      },
+      "CSRF validation failed"
+    );
+    res.status(403).json({
+      error: "Invalid CSRF token",
+      message: result.reason || "CSRF token validation failed.",
+      code: result.code
+    });
+    return;
+  }
+  next();
+}
+
+// src/routes/auth.ts
 var router9 = (0, import_express9.Router)();
 function getAdminEmails() {
   const envVal = process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "";
@@ -125707,7 +126024,8 @@ router9.post("/signup", async (req, res) => {
           provider: user.provider,
           emailVerified: user.emailVerified
         };
-        res.status(201).json({ success: true, user: userData2 });
+        const csrfToken2 = issueCsrfToken(res, String(userData2.userId));
+        res.status(201).json({ success: true, user: userData2, csrfToken: csrfToken2 });
         return;
       } catch (dbErr) {
         console.warn("MongoDB signup failed, falling back to in-memory store:", dbErr);
@@ -125733,7 +126051,8 @@ router9.post("/signup", async (req, res) => {
       provider: newUser.provider,
       emailVerified: newUser.emailVerified
     };
-    res.status(201).json({ success: true, user: userData });
+    const csrfToken = issueCsrfToken(res, String(userData.userId));
+    res.status(201).json({ success: true, user: userData, csrfToken });
   } catch (error) {
     console.error("Sign up error:", error);
     res.status(500).json({ error: "Failed to create account" });
@@ -125768,7 +126087,8 @@ router9.post("/signin", async (req, res) => {
               role: isUserAdmin ? "admin" : user.role || "user",
               isAdmin: isUserAdmin
             };
-            res.json({ success: true, user: userData });
+            const csrfToken = issueCsrfToken(res, String(userData.userId));
+            res.json({ success: true, user: userData, csrfToken });
             return;
           }
         }
@@ -125788,7 +126108,8 @@ router9.post("/signin", async (req, res) => {
           provider: memUser.provider,
           emailVerified: memUser.emailVerified
         };
-        res.json({ success: true, user: userData });
+        const csrfToken = issueCsrfToken(res, String(userData.userId));
+        res.json({ success: true, user: userData, csrfToken });
         return;
       }
     }
@@ -125800,7 +126121,8 @@ router9.post("/signin", async (req, res) => {
         provider: "local",
         emailVerified: true
       };
-      res.json({ success: true, user: demoUser });
+      const csrfToken = issueCsrfToken(res, String(demoUser.userId));
+      res.json({ success: true, user: demoUser, csrfToken });
       return;
     }
     res.status(401).json({ error: "Invalid email or password" });
@@ -125833,7 +126155,9 @@ router9.post("/logout", (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.json({ success: true, message: "Logged out successfully" });
+    clearCsrfCookie(res);
+    const csrfToken = issueCsrfToken(res, "anon");
+    res.json({ success: true, message: "Logged out successfully", csrfToken });
   });
 });
 var auth_default = router9;
@@ -126478,40 +126802,55 @@ router14.post("/", async (req, res) => {
 });
 var upload_default = router14;
 
-// src/routes/index.ts
+// src/routes/csrf.ts
+var import_express15 = __toESM(require_express2(), 1);
 var router15 = (0, import_express15.Router)();
-router15.use(health_default);
-router15.use("/products", products_default);
-router15.use("/categories", categories_default);
-router15.use("/brands", brands_default);
-router15.use("/blogs", blogs_default);
-router15.use("/tutorials", tutorials_default);
-router15.use("/orders", orders_default);
-router15.use("/seed", seed_default);
-router15.use("/auth", auth_default);
-router15.use("/cart", cart_default);
-router15.use("/wishlist", wishlist_default);
-router15.use("/users", users_default);
-router15.use("/addresses", addresses_default);
-router15.use("/upload", upload_default);
-var routes_default = router15;
+router15.get("/", (req, res) => {
+  const activeUserId = req.user?._id || req.user?.id || req.headers["x-user-id"] || "anon";
+  const shouldForceRefresh = req.query.refresh === "true" || req.query.refresh === "1";
+  const existingCookie = req.cookies?.[CSRF_COOKIE_NAME];
+  if (!shouldForceRefresh && existingCookie) {
+    const [rawToken] = existingCookie.split(".");
+    if (rawToken) {
+      const validation = validateCsrfToken(rawToken, existingCookie, String(activeUserId));
+      if (validation.valid) {
+        res.json({
+          success: true,
+          csrfToken: rawToken
+        });
+        return;
+      }
+    }
+  }
+  const freshToken = issueCsrfToken(res, String(activeUserId));
+  res.json({
+    success: true,
+    csrfToken: freshToken
+  });
+});
+var csrf_default = router15;
+
+// src/routes/index.ts
+var router16 = (0, import_express16.Router)();
+router16.use(health_default);
+router16.use("/csrf-token", csrf_default);
+router16.use("/products", products_default);
+router16.use("/categories", categories_default);
+router16.use("/brands", brands_default);
+router16.use("/blogs", blogs_default);
+router16.use("/tutorials", tutorials_default);
+router16.use("/orders", orders_default);
+router16.use("/seed", seed_default);
+router16.use("/auth", auth_default);
+router16.use("/cart", cart_default);
+router16.use("/wishlist", wishlist_default);
+router16.use("/users", users_default);
+router16.use("/addresses", addresses_default);
+router16.use("/upload", upload_default);
+var routes_default = router16;
 
 // src/app.ts
-var app = (0, import_express16.default)();
-app.use(
-  (0, import_express_session.default)({
-    secret: process.env.SESSION_SECRET || "your-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1e3
-      // 24 hours
-    }
-  })
-);
-app.use(passport_default.initialize());
-app.use(passport_default.session());
+var app = (0, import_express17.default)();
 var httpLogger = import_pino_http.default.default || import_pino_http.default;
 app.use(
   httpLogger({
@@ -126532,14 +126871,80 @@ app.use(
     }
   })
 );
-app.use((0, import_cors.default)());
-app.use(import_express16.default.json({ limit: "50mb" }));
-app.use(import_express16.default.urlencoded({ extended: true, limit: "50mb" }));
+var defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5000",
+  "http://127.0.0.1:5000"
+];
+var envFrontendUrl = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : null;
+var envAllowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.CSRF_ALLOWED_ORIGINS || "").split(",").map((o) => o.trim().replace(/\/$/, "")).filter(Boolean);
+var corsAllowedOrigins = /* @__PURE__ */ new Set([
+  ...defaultAllowedOrigins,
+  ...envFrontendUrl ? [envFrontendUrl] : [],
+  ...envAllowedOrigins
+]);
+app.use(
+  (0, import_cors.default)({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.trim().replace(/\/$/, "");
+      if (corsAllowedOrigins.has(normalized)) {
+        return callback(null, true);
+      }
+      if (process.env.NODE_ENV !== "production") {
+        if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalized)) {
+          return callback(null, true);
+        }
+      }
+      if (/^https:\/\/synergy[a-zA-Z0-9-]*\.vercel\.app$/.test(normalized)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "x-csrf-token",
+      "X-XSRF-Token",
+      "x-xsrf-token",
+      "x-user-id"
+    ],
+    exposedHeaders: ["X-CSRF-Token"]
+  })
+);
+var cookieSecret = process.env.COOKIE_SECRET || process.env.SESSION_SECRET || "synergy-cookie-secret";
+app.use((0, import_cookie_parser.default)(cookieSecret));
+app.use(
+  (0, import_express_session.default)({
+    secret: process.env.SESSION_SECRET || "your-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      maxAge: 24 * 60 * 60 * 1e3
+      // 24 hours
+    }
+  })
+);
+app.use(passport_default.initialize());
+app.use(passport_default.session());
+app.use(import_express17.default.json({ limit: "50mb" }));
+app.use(import_express17.default.urlencoded({ extended: true, limit: "50mb" }));
+app.use(csrfProtection);
 app.use("/api", routes_default);
 app.use(routes_default);
 app.use((err, _req, res, _next) => {
   if (err?.type === "entity.too.large") {
     return res.status(413).json({ error: "The uploaded file or request payload is too large." });
+  }
+  if (err?.code === "EBADCSRFTOKEN" || err?.status === 403) {
+    return res.status(403).json({ error: "Invalid CSRF token", message: err?.message || "Forbidden" });
   }
   return res.status(err?.status || 500).json({ error: err?.message || "Internal server error" });
 });
@@ -126861,6 +127266,14 @@ object-assign/index.js:
   (c) Sindre Sorhus
   @license MIT
   *)
+
+cookie-parser/index.js:
+  (*!
+   * cookie-parser
+   * Copyright(c) 2014 TJ Holowaychuk
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   *)
 
 safe-buffer/index.js:
   (*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> *)

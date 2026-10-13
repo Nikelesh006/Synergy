@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { getCsrfToken } from "./lib/api";
+
+// Proactively acquire CSRF token in memory on startup
+getCsrfToken().catch(() => {});
 
 // Enforce draggable = false for all images throughout the site
 if (typeof window !== "undefined") {

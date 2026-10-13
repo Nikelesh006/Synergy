@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { Product, CartItem, WishlistItem } from '../types';
-import { fetchApi } from '../lib/api';
+import { fetchApi, refreshCsrfToken } from '../lib/api';
 
 interface User {
   userId: string;
@@ -165,7 +165,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
   const closeAuth = useCallback(() => setAuthOpen(false), []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await fetchApi('/auth/logout', { method: 'POST' });
+    } catch {
+      // Proceed even if network request fails
+    }
     setUser(null);
     localStorage.removeItem('user');
     // Clear cart and wishlist when logging out
@@ -173,6 +178,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setWishlist([]);
     localStorage.removeItem('cart');
     localStorage.removeItem('wishlist');
+    refreshCsrfToken().catch(() => {});
     // Redirect to home page if not already there
     if (typeof window !== 'undefined' && window.location.pathname !== '/') {
       window.location.href = '/';

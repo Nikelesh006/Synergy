@@ -13,10 +13,12 @@ import wishlistRouter from "./wishlist.js";
 import usersRouter from "./users.js";
 import addressesRouter from "./addresses.js";
 import uploadRouter from "./upload.js";
+import csrfRouter from "./csrf.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/csrf-token", csrfRouter);
 router.use("/products", productsRouter);
 router.use("/categories", categoriesRouter);
 router.use("/brands", brandsRouter);

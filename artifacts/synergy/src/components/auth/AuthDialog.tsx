@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { fetchApi } from "@/lib/api";
+import { fetchApi, setCsrfToken } from "@/lib/api";
 import { useStore } from "@/context/StoreContext";
 
 type Mode = "signin" | "signup";
@@ -199,6 +199,9 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
           provider: (response as any).user.provider,
           emailVerified: (response as any).user.emailVerified,
         };
+        if ((response as any).csrfToken) {
+          setCsrfToken((response as any).csrfToken);
+        }
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setSuccessMessage(`Welcome back. Signing you in as ${signIn.email}…`);
@@ -239,6 +242,9 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
           provider: (response as any).user.provider,
           emailVerified: (response as any).user.emailVerified,
         };
+        if ((response as any).csrfToken) {
+          setCsrfToken((response as any).csrfToken);
+        }
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setSuccessMessage(`Account created for ${signUp.fullName}. You are now signed in.`);

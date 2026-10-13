@@ -1,3 +1,5 @@
+import { fetchApi } from "./api";
+
 /**
  * Cloudinary utilities for image uploading and optimized loading.
  */
@@ -48,19 +50,10 @@ export const uploadImageToCloudinary = async (
   dataUri: string,
   folder = "synergy"
 ): Promise<string> => {
-  const apiUrl = import.meta.env.VITE_API_URL || "/api";
-  const response = await fetch(`${apiUrl}/upload`, {
+  const data = await fetchApi<{ success: boolean; url: string }>("/upload", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ image: dataUri, folder }),
   });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.details || data.error || "Failed to upload image to Cloudinary");
-  }
 
   return data.url;
 };
@@ -72,19 +65,10 @@ export const uploadImagesToCloudinary = async (
   dataUris: string[],
   folder = "synergy"
 ): Promise<string[]> => {
-  const apiUrl = import.meta.env.VITE_API_URL || "/api";
-  const response = await fetch(`${apiUrl}/upload`, {
+  const data = await fetchApi<{ success: boolean; urls: string[] }>("/upload", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ images: dataUris, folder }),
   });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.details || data.error || "Failed to upload images to Cloudinary");
-  }
-
-  return (data.urls as string[]) || [];
+  return data.urls || [];
 };

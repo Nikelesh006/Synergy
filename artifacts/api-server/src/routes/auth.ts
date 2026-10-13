@@ -4,6 +4,7 @@ import { User } from "../models/index.js";
 import { isDbConnected } from "../lib/db.js";
 import { inMemoryStore } from "../data/inMemoryStore.js";
 import bcrypt from "bcryptjs";
+import { issueCsrfToken, clearCsrfCookie } from "../middlewares/csrf.js";
 
 const router = Router();
 
@@ -104,7 +105,8 @@ router.post("/signup", async (req: Request, res: Response) => {
           emailVerified: user.emailVerified,
         };
 
-        res.status(201).json({ success: true, user: userData });
+        const csrfToken = issueCsrfToken(res, String(userData.userId));
+        res.status(201).json({ success: true, user: userData, csrfToken });
         return;
       } catch (dbErr) {
         console.warn("MongoDB signup failed, falling back to in-memory store:", dbErr);
@@ -135,7 +137,8 @@ router.post("/signup", async (req: Request, res: Response) => {
       emailVerified: newUser.emailVerified,
     };
 
-    res.status(201).json({ success: true, user: userData });
+    const csrfToken = issueCsrfToken(res, String(userData.userId));
+    res.status(201).json({ success: true, user: userData, csrfToken });
   } catch (error) {
     console.error("Sign up error:", error);
     res.status(500).json({ error: "Failed to create account" });
@@ -177,7 +180,8 @@ router.post("/signin", async (req: Request, res: Response) => {
               role: isUserAdmin ? "admin" : (user.role || "user"),
               isAdmin: isUserAdmin,
             };
-            res.json({ success: true, user: userData });
+            const csrfToken = issueCsrfToken(res, String(userData.userId));
+            res.json({ success: true, user: userData, csrfToken });
             return;
           }
         }
@@ -204,7 +208,8 @@ router.post("/signin", async (req: Request, res: Response) => {
           provider: memUser.provider,
           emailVerified: memUser.emailVerified,
         };
-        res.json({ success: true, user: userData });
+        const csrfToken = issueCsrfToken(res, String(userData.userId));
+        res.json({ success: true, user: userData, csrfToken });
         return;
       }
     }
@@ -221,7 +226,8 @@ router.post("/signin", async (req: Request, res: Response) => {
         provider: "local",
         emailVerified: true,
       };
-      res.json({ success: true, user: demoUser });
+      const csrfToken = issueCsrfToken(res, String(demoUser.userId));
+      res.json({ success: true, user: demoUser, csrfToken });
       return;
     }
 
@@ -260,7 +266,9 @@ router.post("/logout", (req: Request, res: Response, next: NextFunction) => {
     if (err) {
       return next(err);
     }
-    res.json({ success: true, message: "Logged out successfully" });
+    clearCsrfCookie(res);
+    const csrfToken = issueCsrfToken(res, "anon");
+    res.json({ success: true, message: "Logged out successfully", csrfToken });
   });
 });
 
