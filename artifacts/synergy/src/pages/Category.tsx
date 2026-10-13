@@ -137,6 +137,7 @@ export default function Category() {
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>("relevance");
 
   const categories = categoriesData || [];
   const products = productsData?.products || [];
@@ -238,6 +239,44 @@ export default function Category() {
     else if (groupId === "availability") toggle(value, selectedAvailability, setSelectedAvailability);
   };
 
+  const visibleProducts = useMemo(() => {
+    let filtered = categoryProducts;
+
+    if (selectedSubcategories.length > 0) {
+      filtered = filtered.filter((p) => p.subcategory && selectedSubcategories.includes(p.subcategory));
+    }
+    if (selectedBrands.length > 0) {
+      filtered = filtered.filter((p) => p.brand && selectedBrands.includes(p.brand));
+    }
+    if (selectedAvailability.length > 0) {
+      filtered = filtered.filter((p) =>
+        selectedAvailability.every((flag) => {
+          if (flag === "in-stock") return p.inStock;
+          if (flag === "on-sale") return Boolean(p.compareAtPrice && p.compareAtPrice > p.price);
+          if (flag === "new") return p.isNewArrival;
+          return true;
+        })
+      );
+    }
+
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "price-asc":
+        sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "price-desc":
+        sorted.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        break;
+      case "newest":
+        sorted.sort((a, b) => (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0));
+        break;
+      case "relevance":
+      default:
+        break;
+    }
+    return sorted;
+  }, [categoryProducts, selectedSubcategories, selectedBrands, selectedAvailability, sortBy]);
+
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
       {/* Category Hero */}
@@ -324,23 +363,28 @@ export default function Category() {
             {/* Sort Bar */}
             <div className="bg-white border border-gray-200 rounded-md p-3 mb-6 flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                Showing {categoryProducts.length} products in {category.name}
+                Showing {visibleProducts.length} products in {category.name}
               </div>
               
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500">Sort by:</span>
-                <select className="border-gray-300 rounded text-sm py-1.5 focus:ring-blue-500 focus:border-blue-500">
-                  <option>Relevance</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
+                <span className="text-gray-500 whitespace-nowrap">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border border-gray-300 rounded-md text-sm py-1.5 px-2.5 bg-white text-gray-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none shadow-2xs cursor-pointer"
+                >
+                  <option value="relevance">Relevance</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="newest">Newest Arrivals</option>
                 </select>
               </div>
             </div>
 
             {/* Product Grid */}
-            {categoryProducts.length > 0 ? (
+            {visibleProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
-                {categoryProducts.map(product => (
+                {visibleProducts.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

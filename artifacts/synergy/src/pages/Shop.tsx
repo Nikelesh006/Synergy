@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useProducts } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types";
+import { Search, X, Package } from "lucide-react";
 
 const developmentBoardFilters = [
   {
@@ -38,13 +39,21 @@ const developmentBoardFilters = [
 ];
 
 export default function Shop() {
+  const [location, setLocation] = useLocation();
   const { data, isLoading } = useProducts();
   const products = data?.products || [];
+
+  const searchQuery = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("search") || params.get("q") || "").trim();
+  }, [location]);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>("relevance");
 
   const selectedFilters = developmentBoardFilters.filter((filter) =>
     selectedCategories.includes(filter.category)
@@ -164,8 +173,47 @@ export default function Shop() {
       );
     }
 
-    return filteredProducts;
-  }, [selectedCategories, selectedSubcategories, selectedPrice, selectedAvailability, products]);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filteredProducts = filteredProducts.filter((p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.subcategory?.toLowerCase().includes(q) ||
+        p.brand?.toLowerCase().includes(q) ||
+        p.sku?.toLowerCase().includes(q)
+      );
+    }
+
+    const sortedProducts = [...filteredProducts];
+    switch (sortBy) {
+      case "price-asc":
+        sortedProducts.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "price-desc":
+        sortedProducts.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        break;
+      case "newest":
+        sortedProducts.sort((a, b) => (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0));
+        break;
+      case "bestselling":
+        sortedProducts.sort((a, b) => (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0));
+        break;
+      case "relevance":
+      default:
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          sortedProducts.sort((a, b) => {
+            const aNameScore = a.name?.toLowerCase().startsWith(q) ? 3 : a.name?.toLowerCase().includes(q) ? 2 : 1;
+            const bNameScore = b.name?.toLowerCase().startsWith(q) ? 3 : b.name?.toLowerCase().includes(q) ? 2 : 1;
+            return bNameScore - aNameScore;
+          });
+        }
+        break;
+    }
+
+    return sortedProducts;
+  }, [selectedCategories, selectedSubcategories, selectedPrice, selectedAvailability, searchQuery, sortBy, products]);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((current) => {
@@ -236,6 +284,25 @@ export default function Shop() {
 
           {/* Main Content */}
           <main className="flex-1">
+            {/* Search Query Banner */}
+            {searchQuery && (
+              <div className="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 mb-6 flex items-center justify-between gap-3 animate-in fade-in-0 duration-200">
+                <div className="flex items-center gap-2">
+                  <Search className="h-4 w-4 text-blue-600 shrink-0" />
+                  <span className="text-sm text-slate-700">
+                    Search results for <strong className="text-blue-900 font-semibold">"{searchQuery}"</strong> ({visibleProducts.length} {visibleProducts.length === 1 ? "product" : "products"} found)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLocation("/shop")}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" /> Clear search
+                </button>
+              </div>
+            )}
+
             {/* Sort Bar */}
             <div className="bg-white border border-gray-200 rounded-md p-3 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">
@@ -284,13 +351,17 @@ export default function Shop() {
               </div>
 
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500">Sort by:</span>
-                <select className="border-gray-300 rounded text-sm py-1.5 focus:ring-blue-500 focus:border-blue-500">
-                  <option>Relevance</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Newest Arrivals</option>
-                  <option>Bestselling</option>
+                <span className="text-gray-500 whitespace-nowrap">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border border-gray-300 rounded-md text-sm py-1.5 px-2.5 bg-white text-gray-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none shadow-2xs cursor-pointer"
+                >
+                  <option value="relevance">Relevance</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="newest">Newest Arrivals</option>
+                  <option value="bestselling">Bestselling</option>
                 </select>
               </div>
             </div>
@@ -299,6 +370,33 @@ export default function Shop() {
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : visibleProducts.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-xs my-6">
+                <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-gray-900">No products found</h3>
+                <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
+                  {searchQuery
+                    ? `We couldn't find any products matching "${searchQuery}". Try checking the spelling or using broader keywords.`
+                    : "No products matched your selected filters."}
+                </p>
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  {searchQuery && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setLocation("/shop")}
+                      className="text-xs"
+                    >
+                      Clear Search
+                    </Button>
+                  )}
+                  <Button
+                    onClick={resetAll}
+                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Reset All Filters
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
