@@ -207,7 +207,7 @@ export default function Checkout() {
         // Clear cart once order is confirmed
         clearCart();
         
-        // Stage 2: Let green ticked loading symbol complete its animation and show full details
+        // Stage 2: Let green ticked loading s ymbol complete its animation and show full details
         setTimeout(() => {
           setAnimationPhase("done");
           setIsPlacing(false);
