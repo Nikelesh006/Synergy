@@ -193,8 +193,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCart([]);
     setWishlist([]);
     refreshCsrfToken().catch(() => {});
+    toast({
+      title: "Logged out successfully",
+      description: "You have been safely signed out of your account.",
+    });
     if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      window.location.href = '/';
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }, [user?.userId]);
 

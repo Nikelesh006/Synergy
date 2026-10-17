@@ -1,12 +1,13 @@
 import { Link, useParams, useLocation } from "wouter";
 import { Star, Check, Heart, Share2, Info, ShoppingCart, ShoppingBag, ArrowRight } from "lucide-react";
-import { useProduct } from "@/hooks/useProducts";
+import { useProduct, useProducts } from "@/hooks/useProducts";
+import ProductCard from "@/components/product/ProductCard";
 import { useStore } from "@/context/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import NotFound from "./not-found";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import { getProductDisplayImage, getCategoryFallbackImage } from "@/lib/productImage";
@@ -15,13 +16,64 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const { data: product, isLoading, isError } = useProduct(slug || "");
+  const { data: allProductsData } = useProducts();
   const { user, openAuth, addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
 
+  const relatedProducts = useMemo(() => {
+    if (!product || !allProductsData?.products) return [];
+
+    const otherProducts = allProductsData.products.filter(
+      (p) => p.id !== product.id && p.slug !== product.slug
+    );
+
+    // 1. Same subcategory products
+    const sameSubcategory = product.subcategory
+      ? otherProducts.filter(
+          (p) =>
+            p.subcategory &&
+            p.subcategory.toLowerCase() === product.subcategory.toLowerCase()
+        )
+      : [];
+
+    // 2. Same category products
+    const sameCategory = otherProducts.filter(
+      (p) =>
+        p.category &&
+        product.category &&
+        p.category.toLowerCase() === product.category.toLowerCase() &&
+        !sameSubcategory.some((s) => s.id === p.id)
+    );
+
+    // 3. Complementary products from other categories
+    const fallbackProducts = otherProducts.filter(
+      (p) =>
+        !sameSubcategory.some((s) => s.id === p.id) &&
+        !sameCategory.some((c) => c.id === p.id)
+    );
+
+    const ordered = [...sameSubcategory, ...sameCategory, ...fallbackProducts];
+
+    // Deduplicate and limit to 4 items
+    const seen = new Set<string>();
+    const result = [];
+    for (const item of ordered) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        result.push(item);
+      }
+      if (result.length >= 4) break;
+    }
+    return result;
+  }, [product, allProductsData]);
+
   useEffect(() => {
+    setQty(1);
+    setActiveImage(0);
+    setActiveTab("description");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       if (document.documentElement) document.documentElement.scrollTop = 0;
@@ -294,7 +346,7 @@ export default function ProductDetail() {
                       ),
                     });
                   }}
-                  className="flex-1 sm:flex-1 h-11 sm:h-12 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl shadow-xs transition-all"
+                  className="flex-1 sm:flex-1 h-11 sm:h-12 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl shadow-sm border-0 transition-all"
                 >
                   <div className="flex items-center justify-center gap-1.5">
                     <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -318,7 +370,7 @@ export default function ProductDetail() {
                   addToCart(product, qty);
                   setLocation('/checkout');
                 }}
-                className="w-full sm:flex-1 h-11 sm:h-12 bg-slate-800 hover:bg-slate-900 active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl shadow-xs transition-all"
+                className="w-full sm:flex-1 h-11 sm:h-12 bg-slate-800 hover:bg-slate-900 active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl shadow-sm border-0 transition-all"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -378,6 +430,38 @@ export default function ProductDetail() {
             )}
           </div>
         </div>
+
+        {/* Related Products Section */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-10 sm:mt-14 lg:mt-16 border-t border-slate-200 pt-8 sm:pt-12 pb-12 sm:pb-16 lg:pb-20">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-3">
+              <div>
+                <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-1.5">
+                  Recommended For You
+                </div>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Related Products
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
+                  Discover compatible hardware, development kits, and accessories tailored to your project.
+                </p>
+              </div>
+              <Link
+                href={product.category ? `/shop?category=${encodeURIComponent(product.category)}` : "/shop"}
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors shrink-0 group"
+              >
+                <span>View More in {product.category || "Catalog"}</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {relatedProducts.map((relProduct) => (
+                <ProductCard key={relProduct.id} product={relProduct} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

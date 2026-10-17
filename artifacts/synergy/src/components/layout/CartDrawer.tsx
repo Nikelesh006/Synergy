@@ -106,12 +106,12 @@ export default function CartDrawer() {
             </div>
             <SheetClose asChild>
               <Link href="/cart" className="w-full block mb-2">
-                <Button variant="outline" className="w-full">View Full Cart</Button>
+                <Button variant="outline" className="w-full rounded-xl border-slate-200">View Full Cart</Button>
               </Link>
             </SheetClose>
             <SheetClose asChild>
               <Link href="/checkout" className="w-full block">
-                <Button className="w-full bg-red-600 hover:bg-red-700 font-bold flex items-center gap-2">
+                <Button className="w-full bg-red-600 hover:bg-red-700 font-bold flex items-center justify-center gap-2 rounded-xl border-0 shadow-sm text-white">
                   Proceed to Checkout <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

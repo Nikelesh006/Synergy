@@ -472,7 +472,7 @@ export default function Checkout() {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         placeholder="John"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -484,7 +484,7 @@ export default function Checkout() {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         placeholder="Doe"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -498,7 +498,7 @@ export default function Checkout() {
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="+91 98765 43210"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -512,7 +512,7 @@ export default function Checkout() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="john@example.com"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -525,7 +525,7 @@ export default function Checkout() {
                         value={formData.address}
                         onChange={handleInputChange}
                         placeholder="Plot / Flat No, Street, Landmark"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -538,7 +538,7 @@ export default function Checkout() {
                         value={formData.city}
                         onChange={handleInputChange}
                         placeholder="Bengaluru"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -551,7 +551,7 @@ export default function Checkout() {
                         value={formData.state}
                         onChange={handleInputChange}
                         placeholder="Karnataka"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                     <div>
@@ -564,7 +564,7 @@ export default function Checkout() {
                         value={formData.pincode}
                         onChange={handleInputChange}
                         placeholder="560100"
-                        className="h-11 border-slate-200 focus-visible:ring-blue-600"
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 transition-all text-sm"
                       />
                     </div>
                   </div>
@@ -591,20 +591,20 @@ export default function Checkout() {
                           value={formData.gstin}
                           onChange={handleInputChange}
                           placeholder="GSTIN (e.g. 29ABCDE1234F1Z5)"
-                          className="bg-white h-10 border-slate-200"
+                          className="bg-white h-11 rounded-xl border-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 text-sm"
                         />
                         <Input
                           name="companyName"
                           value={formData.companyName}
                           onChange={handleInputChange}
                           placeholder="Company Legal Name"
-                          className="bg-white h-10 border-slate-200"
+                          className="bg-white h-11 rounded-xl border-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-600 text-sm"
                         />
                       </div>
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-bold shadow-xs">
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-bold rounded-xl shadow-sm border-0 text-white transition-all active:scale-[0.99]">
                     Continue to Payment &rarr;
                   </Button>
                 </form>
@@ -675,7 +675,7 @@ export default function Checkout() {
                       value={formData.notes}
                       onChange={handleInputChange}
                       placeholder="e.g. Leave package with security desk, gate passcode, or call upon arrival"
-                      className="w-full text-sm p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[70px]"
+                      className="w-full text-sm p-3.5 rounded-xl border border-slate-200 bg-slate-50/40 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 min-h-[75px] transition-all"
                     />
                   </div>
 
@@ -684,14 +684,14 @@ export default function Checkout() {
                       type="button"
                       variant="outline"
                       onClick={() => setStep(1)}
-                      className="h-12 px-6 border-slate-300 text-slate-700"
+                      className="h-12 px-6 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold transition-all"
                     >
                       Back
                     </Button>
                     <Button
                       type="submit"
                       disabled={isPlacing}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-bold shadow-sm text-white"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-bold rounded-xl shadow-md border-0 text-white transition-all active:scale-[0.99]"
                     >
                       {isPlacing ? (
                         <>

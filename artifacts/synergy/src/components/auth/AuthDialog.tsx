@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { fetchApi, setCsrfToken } from "@/lib/api";
 import { useStore } from "@/context/StoreContext";
+import { toast } from "@/hooks/use-toast";
 
 type Mode = "signin" | "signup";
 
@@ -205,6 +206,10 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setSuccessMessage(`Welcome back. Signing you in as ${signIn.email}…`);
+        toast({
+          title: "Signed in successfully",
+          description: `Welcome back, ${userData.name || userData.email}!`,
+        });
         setTimeout(() => onOpenChange(false), 1000);
       } else {
         setErrorMessage((response as any)?.error || 'Failed to sign in');
@@ -248,6 +253,10 @@ export function AuthDialog({ open, onOpenChange, initialMode = "signin" }: AuthD
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setSuccessMessage(`Account created for ${signUp.fullName}. You are now signed in.`);
+        toast({
+          title: "Account created successfully",
+          description: `Welcome to Synergy, ${userData.name || signUp.fullName}!`,
+        });
         setTimeout(() => onOpenChange(false), 1500);
       } else {
         setErrorMessage((response as any)?.error || 'Failed to create account');

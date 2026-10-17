@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/context/StoreContext";
 import { fetchApi } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 
 const PANEL_BG = "#0B192C";
 
@@ -55,6 +56,10 @@ export default function Login() {
         setUser(response.user);
         localStorage.setItem("user", JSON.stringify(response.user));
         setSuccessMessage(`Welcome back, ${response.user.name || "Engineer"}! Redirecting...`);
+        toast({
+          title: "Signed in successfully",
+          description: `Welcome back, ${response.user.name || response.user.email}!`,
+        });
         setTimeout(() => setLocation("/"), 800);
       } else {
         setErrorMessage(response?.error || "Invalid email or password.");
@@ -102,6 +107,10 @@ export default function Login() {
         setUser(response.user);
         localStorage.setItem("user", JSON.stringify(response.user));
         setSuccessMessage("Account created successfully! Redirecting...");
+        toast({
+          title: "Account created successfully",
+          description: `Welcome to Synergy, ${response.user.name || signUpData.fullName}!`,
+        });
         setTimeout(() => setLocation("/"), 900);
       } else {
         setErrorMessage(response?.error || "Failed to create account.");

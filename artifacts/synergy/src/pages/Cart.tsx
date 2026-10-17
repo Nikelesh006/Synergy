@@ -535,7 +535,7 @@ export default function Cart() {
                   <div className="mt-5 flex flex-col gap-2">
                     <Button
                       asChild
-                      className="h-12 w-full rounded-full bg-blue-600 text-sm font-semibold text-white border-blue-700 hover:bg-blue-700"
+                      className="h-12 w-full rounded-full bg-blue-600 text-sm font-semibold text-white border-0 hover:bg-blue-700 shadow-sm"
                     >
                       <Link href="/checkout">
                         Proceed to Checkout

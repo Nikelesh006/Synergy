@@ -316,86 +316,25 @@ export default function Header() {
           {/* Icons */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-6 flex-shrink-0">
             {isAdmin && (
-              <div className="group relative hidden sm:block">
-                <Link href="/admin/add-product" className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
-                  <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
-                </Link>
-                {/* Hover bridge so the cursor stays in the group while moving down to the panel */}
-                <div className="absolute top-full left-0 pt-3 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-150 z-50">
-                  <div
-                    className="w-52 origin-top-left rounded-xl border border-gray-100 bg-white/95 p-2 shadow-lg shadow-gray-900/5 ring-1 ring-black/5 backdrop-blur-sm
-                               opacity-0 -translate-y-1 scale-[0.98]
-                               transition-all duration-200 ease-out
-                               group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100"
-                  >
-                    {adminLinks.map((item) => {
-                      const Icon = item.icon;
-
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="group/item flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:text-blue-600"
-                        >
-                          <Icon className="h-4 w-4 text-gray-400 transition-colors group-hover/item:text-blue-600" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <Link
+                href="/admin/add-product"
+                className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
+                aria-label="Admin Dashboard"
+                title="Admin Dashboard"
+              >
+                <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6" />
+              </Link>
             )}
 
             {user ? (
-              <div className="relative group">
-                <Link
-                  href="/account"
-                  className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
-                  aria-label="Go to profile"
-                >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-xs font-semibold">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  )}
-                </Link>
-                {/* User Dropdown */}
-                <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50 animate-in fade-in-50 slide-in-from-top-1">
-                  <div className="px-3.5 py-2 border-b border-gray-100">
-                    <p className="text-xs font-bold text-gray-800 truncate">{user.name || "User"}</p>
-                    <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
-                  </div>
-                  <Link
-                    href="/account"
-                    className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  >
-                    <User className="h-3.5 w-3.5" />
-                    My Account
-                  </Link>
-                  <Link
-                    href="/account?tab=orders"
-                    className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  >
-                    <Package className="h-3.5 w-3.5" />
-                    My Orders
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => logout()}
-                    className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50 text-left transition-colors cursor-pointer"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Logout
-                  </button>
-                </div>
-              </div>
+              <Link
+                href="/account"
+                className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors p-1"
+                aria-label="My Account"
+                title="My Account"
+              >
+                <User className="h-5 w-5 md:h-6 md:w-6" />
+              </Link>
             ) : (
               <button
                 type="button"

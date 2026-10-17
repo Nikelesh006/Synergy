@@ -39,6 +39,7 @@ import {
   Copy,
   Check,
   Filter,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +49,7 @@ import { useStore } from "@/context/StoreContext";
 import { fetchApi } from "@/lib/api";
 import ProductCard from "@/components/product/ProductCard";
 import { products as catalogProducts } from "@/data/products";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
 import { Product } from "@/types";
 
 type SectionId =
@@ -1761,198 +1762,273 @@ function AddressesSection({
       description="Manage shipping addresses for office and project sites."
       action={
         <Button 
-          className="h-9 rounded-full bg-blue-600 px-4 text-sm text-white border-blue-700 hover:bg-blue-700"
+          className="h-9 rounded-full bg-blue-600 px-4 text-sm text-white hover:bg-blue-700 shadow-sm"
           onClick={onAdd}
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5 mr-1" />
           Add Address
         </Button>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {addresses.map((addr) => (
-          <div
-            key={addr._id || addr.line1}
-            className="rounded-xl border border-border/60 bg-background p-4"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {addr.isDefault ? `Default · ${addr.type}` : addr.type}
-              </span>
-              {addr.isDefault && (
-                <Badge
-                  variant="secondary"
-                  className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700"
-                >
-                  Default
-                </Badge>
-              )}
-            </div>
-            <p className="mt-2 text-sm font-semibold text-foreground">
-              {addr.name}
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {addr.line1}
-              <br />
-              {addr.line2}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">{addr.phone}</p>
-            <div className="mt-3 flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 rounded-full px-3 text-xs"
-                onClick={() => onEdit(addr)}
-              >
-                <Pencil className="h-3 w-3" />
-                Edit
-              </Button>
-              {!addr.isDefault && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 rounded-full px-3 text-xs text-muted-foreground"
-                  onClick={() => onSetDefault(addr._id!)}
-                >
-                  Set as default
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 rounded-full px-3 text-xs text-rose-600 hover:bg-rose-50"
-                onClick={() => onDelete(addr._id!)}
-              >
-                Delete
-              </Button>
-            </div>
+      {addresses.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-background/50 p-8 text-center sm:p-12">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 mb-3.5 shadow-sm">
+            <MapPin className="h-6 w-6" />
           </div>
-        ))}
-      </div>
+          <h4 className="text-base font-semibold text-foreground">No saved addresses yet</h4>
+          <p className="mt-1.5 max-w-sm text-xs text-muted-foreground leading-relaxed">
+            Add your office, warehouse, or lab delivery address for faster 1-click checkout and automated shipping documentation.
+          </p>
+          <Button
+            onClick={onAdd}
+            className="mt-4 h-9 rounded-full bg-blue-600 px-4 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm"
+          >
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Add First Address
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {addresses.map((addr) => {
+            const addressKey = addr._id || addr.line1;
+            return (
+              <div
+                key={addressKey}
+                className={cn(
+                  "rounded-2xl border p-5 transition-all flex flex-col justify-between",
+                  addr.isDefault
+                    ? "border-blue-500/60 bg-blue-50/20 shadow-sm ring-1 ring-blue-500/20"
+                    : "border-border/70 bg-card hover:border-border"
+                )}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-blue-600" />
+                      {addr.type || "Office"}
+                    </span>
+                    {addr.isDefault ? (
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full bg-blue-600 text-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-xs"
+                      >
+                        Default Address
+                      </Badge>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onSetDefault(addressKey)}
+                        className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                      >
+                        Make Default
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-sm font-bold text-foreground">
+                    {addr.name}
+                  </p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    {addr.line1}
+                    {addr.line2 && (
+                      <>
+                        <br />
+                        {addr.line2}
+                      </>
+                    )}
+                  </p>
+                  <p className="mt-2.5 text-xs font-medium text-foreground/85 flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-muted-foreground" />
+                    {addr.phone}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3.5 border-t border-border/60 flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-full px-3 text-xs font-medium"
+                    onClick={() => onEdit(addr)}
+                  >
+                    <Pencil className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                  {!addr.isDefault && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
+                      onClick={() => onSetDefault(addressKey)}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Set as default
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 rounded-full px-3 text-xs text-rose-600 hover:bg-rose-50 ml-auto"
+                    onClick={() => onDelete(addressKey)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </SectionShell>
   );
 }
 
 interface AddressModalProps {
   address?: Address;
+  isFirstAddress?: boolean;
   onClose: () => void;
   onSave: (data: Omit<Address, '_id'>) => void;
 }
 
-function AddressModal({ address, onClose, onSave }: AddressModalProps) {
+function AddressModal({ address, isFirstAddress, onClose, onSave }: AddressModalProps) {
   const [formData, setFormData] = useState({
     type: address?.type || 'Office',
     name: address?.name || '',
     line1: address?.line1 || '',
     line2: address?.line2 || '',
     phone: address?.phone || '',
-    isDefault: address?.isDefault || false,
+    isDefault: address ? Boolean(address.isDefault) : (isFirstAddress ? true : false),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    if (!formData.name.trim() || !formData.line1.trim() || !formData.phone.trim()) {
+      return;
+    }
+    onSave({
+      type: formData.type,
+      name: formData.name.trim(),
+      line1: formData.line1.trim(),
+      line2: formData.line2.trim(),
+      phone: formData.phone.trim(),
+      isDefault: isFirstAddress ? true : formData.isDefault,
+    });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-lg rounded-2xl bg-card border border-border/80 p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">{address ? 'Edit Address' : 'Add Address'}</h2>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              {address ? 'Edit Address' : 'Add New Address'}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Enter your shipping destination for delivery and GST invoices
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 hover:bg-muted"
+            className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+            aria-label="Close"
           >
-            <ChevronRight className="h-5 w-5 rotate-180" />
+            <X className="h-5 w-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground">
               Address Type
             </label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="h-11 w-full rounded-xl border border-border/80 bg-background px-3 text-sm text-foreground focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
             >
-              <option value="Office">Office</option>
-              <option value="Warehouse">Warehouse</option>
-              <option value="Home">Home</option>
+              <option value="Office">Office / HQ</option>
+              <option value="Warehouse">Warehouse / Depot</option>
+              <option value="Home">Home / Residential</option>
+              <option value="Lab">R&D Lab / Facility</option>
               <option value="Other">Other</option>
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Contact Name
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              Contact / Company Name <span className="text-rose-500">*</span>
             </label>
             <Input
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="h-11 rounded-xl border-border/80 bg-background"
+              placeholder="e.g. Code Craft Labs / Rahul Sharma"
+              className="h-11 rounded-xl border-border/80 bg-background text-sm"
               required
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Address Line 1
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              Address Line 1 <span className="text-rose-500">*</span>
             </label>
             <Input
               value={formData.line1}
               onChange={(e) => setFormData({ ...formData, line1: e.target.value })}
-              className="h-11 rounded-xl border-border/80 bg-background"
+              placeholder="Building, street, plot number, or tech park"
+              className="h-11 rounded-xl border-border/80 bg-background text-sm"
               required
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Address Line 2 (City, State, PIN)
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              Address Line 2 <span className="text-muted-foreground font-normal lowercase">(city, state, pin code)</span>
             </label>
             <Input
               value={formData.line2}
               onChange={(e) => setFormData({ ...formData, line2: e.target.value })}
-              className="h-11 rounded-xl border-border/80 bg-background"
-              required
+              placeholder="e.g. Electronic City Phase 1, Bengaluru, Karnataka - 560100"
+              className="h-11 rounded-xl border-border/80 bg-background text-sm"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Phone Number
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              Phone Number <span className="text-rose-500">*</span>
             </label>
             <Input
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="h-11 rounded-xl border-border/80 bg-background"
+              placeholder="+91 98765 43210"
+              className="h-11 rounded-xl border-border/80 bg-background text-sm"
               required
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 pt-1">
             <input
               type="checkbox"
               id="isDefault"
-              checked={formData.isDefault}
+              checked={formData.isDefault || isFirstAddress}
+              disabled={isFirstAddress}
               onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-              className="h-4 w-4 rounded border-border/80"
+              className="h-4 w-4 rounded border-border/80 text-blue-600 focus:ring-blue-600 cursor-pointer disabled:opacity-75"
             />
-            <label htmlFor="isDefault" className="text-sm text-foreground">
-              Set as default address
+            <label htmlFor="isDefault" className="text-sm font-medium text-foreground cursor-pointer select-none">
+              Set as default shipping address
+              {isFirstAddress && (
+                <span className="ml-1.5 text-xs text-muted-foreground font-normal">(first address is automatically default)</span>
+              )}
             </label>
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2.5 pt-4 border-t border-border/60">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-10 rounded-full px-5"
+              className="h-10 rounded-full px-5 text-sm font-medium"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="h-10 rounded-full bg-blue-600 px-5 text-white border-blue-700 hover:bg-blue-700"
+              className="h-10 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm"
             >
-              {address ? 'Update' : 'Add'} Address
+              {address ? 'Save Changes' : 'Add Address'}
             </Button>
           </div>
         </form>
@@ -2433,6 +2509,10 @@ export default function Account() {
     };
     setUser(demoUser);
     localStorage.setItem("user", JSON.stringify(demoUser));
+    toast({
+      title: "Signed in successfully",
+      description: "Welcome to your Demo Engineer account!",
+    });
   };
 
   // Fetch profile data
@@ -2492,19 +2572,66 @@ export default function Account() {
       return;
     }
 
+    // 1. Initial cached or demo addresses
+    let cached: Address[] = [];
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`addresses_${user.userId}`);
+        if (stored) {
+          cached = JSON.parse(stored);
+          if (Array.isArray(cached) && cached.length > 0) {
+            setAddresses(cached);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not read cached addresses:", err);
+      }
+    }
+
+    if (cached.length === 0 && (user.userId.includes("demo") || user.email?.includes("demo"))) {
+      const demoAddresses: Address[] = [
+        {
+          _id: "addr_demo_1",
+          type: "Office",
+          name: "Code Craft / IoT R&D Lab",
+          line1: "Synergy Tech Park, Block B, 4th Floor",
+          line2: "Electronic City Phase 1, Bengaluru, Karnataka - 560100",
+          phone: "+91 91234 56780",
+          isDefault: true,
+        },
+        {
+          _id: "addr_demo_2",
+          type: "Warehouse",
+          name: "Synergy Hardware Fulfillment Hub",
+          line1: "Plot 42, Peenya Industrial Area 2nd Stage",
+          line2: "Bengaluru, Karnataka - 560058",
+          phone: "+91 98765 43210",
+          isDefault: false,
+        },
+      ];
+      setAddresses(demoAddresses);
+      try {
+        localStorage.setItem(`addresses_${user.userId}`, JSON.stringify(demoAddresses));
+      } catch {}
+    }
+
+    // 2. Fetch from backend API
     const fetchAddresses = async () => {
       try {
         const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
-        if (response.success && response.addresses) {
+        if (response && response.success && Array.isArray(response.addresses) && response.addresses.length > 0) {
           setAddresses(response.addresses);
+          try {
+            localStorage.setItem(`addresses_${user.userId}`, JSON.stringify(response.addresses));
+          } catch {}
         }
       } catch (error) {
-        console.error('Failed to fetch addresses:', error);
+        console.warn('Backend addresses fetch note:', error);
       }
     };
 
     fetchAddresses();
-  }, [user]);
+  }, [user?.userId]);
 
   const handleAddAddress = () => {
     setEditingAddress(undefined);
@@ -2519,67 +2646,137 @@ export default function Account() {
   const handleSaveAddress = async (data: Omit<Address, '_id'>) => {
     if (!user?.userId) return;
 
+    const isEdit = Boolean(editingAddress?._id);
+    const targetId = editingAddress?._id || `addr_${Date.now()}`;
+    const shouldBeDefault = data.isDefault || addresses.length === 0;
+
+    const updatedItem: Address = {
+      _id: targetId,
+      type: data.type || "Office",
+      name: data.name,
+      line1: data.line1,
+      line2: data.line2 || "",
+      phone: data.phone,
+      isDefault: shouldBeDefault,
+    };
+
+    let nextAddresses: Address[];
+    if (isEdit) {
+      nextAddresses = addresses.map((a) => {
+        if (a._id === targetId || (editingAddress && a.line1 === editingAddress.line1)) {
+          return updatedItem;
+        }
+        return shouldBeDefault ? { ...a, isDefault: false } : a;
+      });
+    } else {
+      nextAddresses = shouldBeDefault
+        ? [...addresses.map((a) => ({ ...a, isDefault: false })), updatedItem]
+        : [...addresses, updatedItem];
+    }
+
+    // Ensure at least one default address exists
+    if (!nextAddresses.some((a) => a.isDefault) && nextAddresses.length > 0) {
+      nextAddresses[0].isDefault = true;
+    }
+
+    setAddresses(nextAddresses);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`addresses_${user.userId}`, JSON.stringify(nextAddresses));
+      } catch {}
+    }
+
+    setAddressModalOpen(false);
+    setEditingAddress(undefined);
+
+    toast({
+      title: isEdit ? "Address Updated" : "Address Added",
+      description: `Delivery address for ${data.name} has been saved.`,
+    });
+
     try {
-      if (editingAddress?._id) {
-        // Update existing address
+      if (isEdit && editingAddress?._id && !editingAddress._id.startsWith("addr_")) {
         await fetchApi(`/addresses/${user.userId}/${editingAddress._id}`, {
           method: 'PUT',
           body: JSON.stringify(data),
         });
       } else {
-        // Create new address
-        await fetchApi(`/addresses/${user.userId}`, {
+        const res = await fetchApi<{ success: boolean; address?: Address }>(`/addresses/${user.userId}`, {
           method: 'POST',
           body: JSON.stringify(data),
         });
+        if (res?.address?._id) {
+          setAddresses((prev) =>
+            prev.map((a) => (a._id === targetId ? { ...a, _id: res.address!._id } : a))
+          );
+        }
       }
-
-      // Refetch addresses
-      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
-      if (response.success && response.addresses) {
-        setAddresses(response.addresses);
-      }
-
-      setAddressModalOpen(false);
-      setEditingAddress(undefined);
     } catch (error) {
-      console.error('Failed to save address:', error);
+      console.warn('Backend address save fallback:', error);
     }
   };
 
   const handleSetDefault = async (addressId: string) => {
-    if (!user?.userId) return;
+    if (!user?.userId || !addressId) return;
+
+    const nextAddresses = addresses.map((addr) => ({
+      ...addr,
+      isDefault: addr._id === addressId || addr.line1 === addressId,
+    }));
+
+    setAddresses(nextAddresses);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`addresses_${user.userId}`, JSON.stringify(nextAddresses));
+      } catch {}
+    }
+
+    toast({
+      title: "Default Address Set",
+      description: "This address has been marked as your default shipping location.",
+    });
 
     try {
-      await fetchApi(`/addresses/${user.userId}/${addressId}/default`, {
-        method: 'PATCH',
-      });
-
-      // Refetch addresses
-      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
-      if (response.success && response.addresses) {
-        setAddresses(response.addresses);
+      if (!addressId.startsWith("addr_")) {
+        await fetchApi(`/addresses/${user.userId}/${addressId}/default`, {
+          method: 'PATCH',
+        });
       }
     } catch (error) {
-      console.error('Failed to set default address:', error);
+      console.warn('Backend set default address fallback:', error);
     }
   };
 
   const handleDeleteAddress = async (addressId: string) => {
-    if (!user?.userId) return;
+    if (!user?.userId || !addressId) return;
+
+    const target = addresses.find((a) => a._id === addressId || a.line1 === addressId);
+    let remaining = addresses.filter((a) => a._id !== addressId && a.line1 !== addressId);
+
+    if (target?.isDefault && remaining.length > 0) {
+      remaining = remaining.map((a, idx) => (idx === 0 ? { ...a, isDefault: true } : a));
+    }
+
+    setAddresses(remaining);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`addresses_${user.userId}`, JSON.stringify(remaining));
+      } catch {}
+    }
+
+    toast({
+      title: "Address Removed",
+      description: "The address has been deleted from your saved list.",
+    });
 
     try {
-      await fetchApi(`/addresses/${user.userId}/${addressId}`, {
-        method: 'DELETE',
-      });
-
-      // Refetch addresses
-      const response = await fetchApi<{ success: boolean; addresses: Address[] }>(`/addresses/${user.userId}`);
-      if (response.success && response.addresses) {
-        setAddresses(response.addresses);
+      if (!addressId.startsWith("addr_")) {
+        await fetchApi(`/addresses/${user.userId}/${addressId}`, {
+          method: 'DELETE',
+        });
       }
     } catch (error) {
-      console.error('Failed to delete address:', error);
+      console.warn('Backend delete address fallback:', error);
     }
   };
 
@@ -2703,34 +2900,36 @@ export default function Account() {
           <aside className="w-full shrink-0 lg:w-72">
             <div className="sticky top-6 space-y-4">
               {/* Identity card */}
-              <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+              <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-br from-blue-600 to-blue-700"
+                  className="h-20 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700"
                 />
-                <div className="relative px-5 pb-5 pt-12">
-                  <div className="absolute -top-9 left-5 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-card bg-gradient-to-br from-blue-600 to-blue-700 text-xl font-semibold text-white shadow-sm">
-                    {profile.avatar ? (
-                      <img src={profile.avatar} alt="Avatar" className="h-full w-full rounded-2xl object-cover" />
-                    ) : (
-                      getInitials(profile.name)
-                    )}
+                <div className="relative px-5 pb-5 pt-0">
+                  <div className="-mt-9 mb-3 flex items-end">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-card bg-gradient-to-br from-blue-600 to-blue-700 text-xl font-bold text-white shadow-md overflow-hidden">
+                      {profile.avatar ? (
+                        <img src={profile.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                      ) : (
+                        getInitials(profile.name)
+                      )}
+                    </div>
                   </div>
-                  <div className="ml-[76px] sm:ml-[80px]">
-                    <p className="text-sm font-semibold text-foreground">
+                  <div>
+                    <h3 className="text-base font-bold text-foreground">
                       {profile.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {profile.role || "Customer"}
                     </p>
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200/60">
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700 ring-1 ring-blue-200/60 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800/60">
                       <Crown className="h-3 w-3" />
                       {profile.accountType || "B2B Business"}
                     </span>
                     {profile.emailVerified && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200/60">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/60">
                         <CheckCircle2 className="h-3 w-3" />
                         Verified
                       </span>
@@ -2888,6 +3087,7 @@ export default function Account() {
       {addressModalOpen && (
         <AddressModal
           address={editingAddress}
+          isFirstAddress={addresses.length === 0}
           onClose={() => {
             setAddressModalOpen(false);
             setEditingAddress(undefined);

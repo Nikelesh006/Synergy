@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreProvider, useStore } from "@/context/StoreContext";
+import { toast } from "@/hooks/use-toast";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
@@ -144,6 +145,11 @@ function OAuthCallbackHandler() {
         setUser(userData);
         // Close auth modal
         closeAuth();
+        // Toast notification
+        toast({
+          title: "Signed in successfully",
+          description: `Welcome back, ${userData.name || userData.email}!`,
+        });
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (error) {

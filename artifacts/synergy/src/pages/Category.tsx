@@ -1,11 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
-import { Package, Cpu, Wifi, CircuitBoard, Layers, Brain, Bot, Cog, Cpu as CpuIcon, Microscope, Activity } from "lucide-react";
+import { Package, Cpu, Wifi, CircuitBoard, Layers, Brain, Bot, Cog, Cpu as CpuIcon, Microscope, Activity, ChevronLeft, ChevronRight } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar, { type FilterGroup } from "@/components/layout/FilterSidebar";
+import { Button } from "@/components/ui/button";
 import NotFound from "./not-found";
+
+const PRODUCTS_PER_PAGE = 12;
 
 // Per-category banner content: theme color, headline, sub-points and visual badge
 const categoryTheme: Record<
@@ -138,15 +141,25 @@ export default function Category() {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("relevance");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const categories = categoriesData || [];
   const products = productsData?.products || [];
 
   const category = categories.find(c => c.slug === slug);
 
-  const categoryProducts = category ? products.filter(p => p.category === category.name) : [];
-  const subcategories = Array.from(new Set(categoryProducts.map(p => p.subcategory).filter(Boolean))) as string[];
-  const brands = Array.from(new Set(categoryProducts.map(p => p.brand).filter(Boolean))) as string[];
+  const categoryProducts = useMemo(() => {
+    return category ? products.filter(p => p.category === category.name) : [];
+  }, [category, products]);
+
+  const subcategories = useMemo(() => {
+    return Array.from(new Set(categoryProducts.map(p => p.subcategory).filter(Boolean))) as string[];
+  }, [categoryProducts]);
+
+  const brands = useMemo(() => {
+    return Array.from(new Set(categoryProducts.map(p => p.brand).filter(Boolean))) as string[];
+  }, [categoryProducts]);
+
   const theme = categoryTheme[slug || ""] ?? defaultTheme;
   const hasCustomTheme = slug ? Object.prototype.hasOwnProperty.call(categoryTheme, slug) : false;
 
@@ -165,6 +178,87 @@ export default function Category() {
     });
     return counts;
   }, [categoryProducts]);
+
+  const visibleProducts = useMemo(() => {
+    let filtered = categoryProducts;
+
+    if (selectedSubcategories.length > 0) {
+      filtered = filtered.filter((p) => p.subcategory && selectedSubcategories.includes(p.subcategory));
+    }
+    if (selectedBrands.length > 0) {
+      filtered = filtered.filter((p) => p.brand && selectedBrands.includes(p.brand));
+    }
+    if (selectedAvailability.length > 0) {
+      filtered = filtered.filter((p) =>
+        selectedAvailability.every((flag) => {
+          if (flag === "in-stock") return p.inStock;
+          if (flag === "on-sale") return Boolean(p.compareAtPrice && p.compareAtPrice > p.price);
+          if (flag === "new") return p.isNewArrival;
+          return true;
+        })
+      );
+    }
+
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "price-asc":
+        sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "price-desc":
+        sorted.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        break;
+      case "newest":
+        sorted.sort((a, b) => (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0));
+        break;
+      case "relevance":
+      default:
+        break;
+    }
+    return sorted;
+  }, [categoryProducts, selectedSubcategories, selectedBrands, selectedAvailability, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleProducts.length / PRODUCTS_PER_PAGE));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [slug, selectedSubcategories, selectedBrands, selectedAvailability, sortBy]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    return visibleProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  }, [visibleProducts, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    setCurrentPage(page);
+    if (typeof window !== "undefined") {
+      const el = document.getElementById("products");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+  };
 
   if (categoriesLoading || productsLoading) {
     return (
@@ -238,44 +332,6 @@ export default function Category() {
     else if (groupId === "brands") toggle(value, selectedBrands, setSelectedBrands);
     else if (groupId === "availability") toggle(value, selectedAvailability, setSelectedAvailability);
   };
-
-  const visibleProducts = useMemo(() => {
-    let filtered = categoryProducts;
-
-    if (selectedSubcategories.length > 0) {
-      filtered = filtered.filter((p) => p.subcategory && selectedSubcategories.includes(p.subcategory));
-    }
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter((p) => p.brand && selectedBrands.includes(p.brand));
-    }
-    if (selectedAvailability.length > 0) {
-      filtered = filtered.filter((p) =>
-        selectedAvailability.every((flag) => {
-          if (flag === "in-stock") return p.inStock;
-          if (flag === "on-sale") return Boolean(p.compareAtPrice && p.compareAtPrice > p.price);
-          if (flag === "new") return p.isNewArrival;
-          return true;
-        })
-      );
-    }
-
-    const sorted = [...filtered];
-    switch (sortBy) {
-      case "price-asc":
-        sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-        break;
-      case "price-desc":
-        sorted.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-        break;
-      case "newest":
-        sorted.sort((a, b) => (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0));
-        break;
-      case "relevance":
-      default:
-        break;
-    }
-    return sorted;
-  }, [categoryProducts, selectedSubcategories, selectedBrands, selectedAvailability, sortBy]);
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
@@ -363,7 +419,7 @@ export default function Category() {
             {/* Sort Bar */}
             <div className="bg-white border border-gray-200 rounded-md p-3 mb-6 flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                Showing {visibleProducts.length} products in {category.name}
+                Showing {visibleProducts.length > 0 ? `${(currentPage - 1) * PRODUCTS_PER_PAGE + 1}–${Math.min(currentPage * PRODUCTS_PER_PAGE, visibleProducts.length)} of ${visibleProducts.length}` : 0} products in {category.name}
               </div>
               
               <div className="flex items-center gap-2 text-sm">
@@ -383,11 +439,73 @@ export default function Category() {
 
             {/* Product Grid */}
             {visibleProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
-                {visibleProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-8 sm:gap-y-10 md:gap-y-12 mb-8">
+                  {paginatedProducts.map(product => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200 mt-8 mb-6">
+                    <p className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
+                      Showing <span className="font-semibold text-gray-900">{(currentPage - 1) * PRODUCTS_PER_PAGE + 1}</span> to{" "}
+                      <span className="font-semibold text-gray-900">{Math.min(currentPage * PRODUCTS_PER_PAGE, visibleProducts.length)}</span> of{" "}
+                      <span className="font-semibold text-gray-900">{visibleProducts.length}</span> products
+                    </p>
+
+                    <nav className="flex items-center gap-1.5 order-1 sm:order-2" aria-label="Pagination">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="h-9 px-3 gap-1 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline text-xs font-semibold">Prev</span>
+                      </Button>
+
+                      {getPageNumbers().map((page, idx) =>
+                        typeof page === "number" ? (
+                          <Button
+                            key={idx}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(page)}
+                            className={`h-9 w-9 rounded-xl text-xs font-bold transition-all ${
+                              currentPage === page
+                                ? "bg-blue-600 text-white border-0 shadow-sm hover:bg-blue-700"
+                                : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                            }`}
+                            aria-current={currentPage === page ? "page" : undefined}
+                          >
+                            {page}
+                          </Button>
+                        ) : (
+                          <span key={idx} className="px-1.5 text-xs font-bold text-gray-400 select-none">
+                            ...
+                          </span>
+                        )
+                      )}
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="h-9 px-3 gap-1 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                        aria-label="Next page"
+                      >
+                        <span className="hidden sm:inline text-xs font-semibold">Next</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </nav>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="bg-white border border-gray-200 rounded-md p-12 text-center">
                 <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />

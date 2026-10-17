@@ -34,8 +34,8 @@ router.post("/:userId", requireUserAccess, async (req, res): Promise<void> => {
   try {
     const { type, name, line1, line2, phone, isDefault } = req.body;
     
-    if (!name || !line1 || !line2 || !phone) {
-      res.status(400).json({ error: "Name, line1, line2, and phone are required" });
+    if (!name || !line1 || !phone) {
+      res.status(400).json({ error: "Name, address line 1, and phone are required" });
       return;
     }
 
@@ -52,7 +52,7 @@ router.post("/:userId", requireUserAccess, async (req, res): Promise<void> => {
       type: type || 'Office',
       name,
       line1,
-      line2,
+      line2: line2 || '',
       phone,
       isDefault: isDefault || false,
     });

@@ -33,7 +33,7 @@ const addressSchema = new mongoose.Schema<IAddress>(
     },
     line2: {
       type: String,
-      required: true,
+      default: '',
     },
     phone: {
       type: String,
