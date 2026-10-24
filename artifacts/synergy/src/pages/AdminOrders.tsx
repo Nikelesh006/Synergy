@@ -69,6 +69,8 @@ interface AdminOrder {
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentMethod: string;
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -751,6 +753,11 @@ export default function AdminOrders() {
                             <div className="text-[11px] font-normal text-slate-400 uppercase mt-0.5">
                               {order.paymentMethod || "COD"}
                             </div>
+                            {order.razorpayPaymentId && (
+                              <div className="text-[10px] font-mono text-emerald-600 mt-0.5 truncate max-w-[130px]" title={order.razorpayPaymentId}>
+                                {order.razorpayPaymentId}
+                              </div>
+                            )}
                           </td>
 
                           {/* Column 5: Payment */}
@@ -893,9 +900,14 @@ export default function AdminOrders() {
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Payment Status</span>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="text-sm font-semibold capitalize text-slate-800">{selectedOrder.paymentStatus || "pending"}</span>
                       <span className="text-xs text-slate-400">via {(selectedOrder.paymentMethod || "COD").toUpperCase()}</span>
+                      {selectedOrder.razorpayPaymentId && (
+                        <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Ref: {selectedOrder.razorpayPaymentId}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">

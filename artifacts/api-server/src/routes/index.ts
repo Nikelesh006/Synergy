@@ -14,11 +14,13 @@ import usersRouter from "./users.js";
 import addressesRouter from "./addresses.js";
 import uploadRouter from "./upload.js";
 import csrfRouter from "./csrf.js";
+import paymentRouter from "./payment.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use("/csrf-token", csrfRouter);
+router.use("/payment", paymentRouter);
 router.use("/products", productsRouter);
 router.use("/categories", categoriesRouter);
 router.use("/brands", brandsRouter);

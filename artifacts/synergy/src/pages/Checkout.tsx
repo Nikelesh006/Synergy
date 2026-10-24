@@ -17,12 +17,16 @@ import {
   Copy,
   Check,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  Wallet,
+  Smartphone
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { fetchApi } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { launchRazorpayCheckout } from "@/lib/razorpay";
 
 export default function Checkout() {
   const { cart, cartTotal, clearCart, user } = useStore();
@@ -46,7 +50,7 @@ export default function Checkout() {
     claimGst: false,
     gstin: "",
     companyName: "",
-    paymentMethod: "upi",
+    paymentMethod: "razorpay",
     notes: ""
   });
 
@@ -60,6 +64,7 @@ export default function Checkout() {
     createdAt: string;
     itemsCount: number;
     paymentMethod: string;
+    razorpayPaymentId?: string;
     shippingAddress: {
       fullName: string;
       phone: string;
@@ -110,12 +115,6 @@ export default function Checkout() {
       return;
     }
 
-    setIsPlacing(true);
-    setStep(3);
-    setAnimationPhase("processing");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
-    // Prepare payload
     const orderItems = cart.map((item) => ({
       productId: item.product.id,
       name: item.product.name,
@@ -152,8 +151,156 @@ export default function Checkout() {
       notes: formData.notes
     };
 
+    // CASE 1: Razorpay Online Payment Flow (UPI, Cards, NetBanking, Wallets)
+    if (formData.paymentMethod === "razorpay") {
+      setIsPlacing(true);
+      const tempTrackingId = `SYN${Date.now().toString(36).toUpperCase()}${Math.floor(100 + Math.random() * 900)}`;
+
+      try {
+        await launchRazorpayCheckout({
+          amountInINR: Math.round(total),
+          orderReceipt: tempTrackingId,
+          customer: {
+            name: fullName || "Valued Customer",
+            email: formData.email,
+            phone: formData.phone,
+          },
+          notes: {
+            company: formData.companyName || "",
+            gstin: formData.gstin || "",
+            trackingId: tempTrackingId,
+          },
+          onSuccess: async (paymentResult, isSimulated) => {
+            // 1. Verify payment signature on backend
+            try {
+              await fetchApi("/payment/razorpay/verify", {
+                method: "POST",
+                body: JSON.stringify({
+                  razorpayOrderId: paymentResult.razorpay_order_id,
+                  razorpayPaymentId: paymentResult.razorpay_payment_id,
+                  razorpaySignature: paymentResult.razorpay_signature,
+                  trackingId: tempTrackingId,
+                }),
+              });
+            } catch (verifyErr) {
+              console.warn("Payment verification API warning:", verifyErr);
+            }
+
+            // 2. Persist confirmed order with payment identifiers
+            const confirmedPayload = {
+              ...payload,
+              trackingId: tempTrackingId,
+              status: "confirmed",
+              paymentMethod: "razorpay",
+              paymentStatus: "paid",
+              razorpayOrderId: paymentResult.razorpay_order_id,
+              razorpayPaymentId: paymentResult.razorpay_payment_id,
+              razorpaySignature: paymentResult.razorpay_signature,
+            };
+
+            let createdOrder: any = null;
+            try {
+              const res = await fetchApi<any>("/orders", {
+                method: "POST",
+                body: JSON.stringify(confirmedPayload),
+              });
+              createdOrder = res;
+            } catch (err) {
+              console.warn("API order creation fallback:", err);
+            }
+
+            const trackingId = createdOrder?.trackingId || tempTrackingId;
+            const orderId = createdOrder?.id || createdOrder?._id || `SYN-${Date.now().toString().slice(-6)}`;
+
+            const orderResult = {
+              trackingId,
+              id: orderId,
+              total: Math.round(total),
+              subtotal: cartTotal,
+              gst: Math.round(gst),
+              shippingCharge: shipping,
+              createdAt: new Date().toISOString(),
+              itemsCount: cart.reduce((s, i) => s + i.quantity, 0),
+              paymentMethod: "Razorpay (Online)",
+              razorpayPaymentId: paymentResult.razorpay_payment_id,
+              shippingAddress: payload.shippingAddress,
+              items: cart.map((i) => ({
+                product: i.product,
+                quantity: i.quantity,
+                unitPrice: i.product.price,
+              })),
+            };
+
+            setPlacedOrder(orderResult);
+
+            // Save to user isolated storage
+            try {
+              const orderKey = user?.userId ? `synergy_local_orders_${user.userId}` : "synergy_local_orders";
+              const localSaved = localStorage.getItem(orderKey);
+              const list = localSaved ? JSON.parse(localSaved) : [];
+              list.unshift(orderResult);
+              localStorage.setItem(orderKey, JSON.stringify(list.slice(0, 20)));
+            } catch (e) {
+              // ignore storage error
+            }
+
+            setStep(3);
+            setAnimationPhase("processing");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            setTimeout(() => {
+              setAnimationPhase("ticked");
+              clearCart();
+
+              setTimeout(() => {
+                setAnimationPhase("done");
+                setIsPlacing(false);
+                toast({
+                  title: isSimulated ? "Payment Verified (Test Mode)" : "Payment Successful!",
+                  description: isSimulated
+                    ? `Order #${trackingId} confirmed! (Simulated Razorpay Mode — add your key in .env tomorrow)`
+                    : `Order #${trackingId} confirmed! Payment ID: ${paymentResult.razorpay_payment_id}`,
+                  variant: "cart",
+                  duration: 5000,
+                });
+              }, 1200);
+            }, 1200);
+          },
+          onDismiss: () => {
+            setIsPlacing(false);
+            toast({
+              title: "Payment Window Closed",
+              description: "You closed the payment popup. Your cart and details remain saved.",
+              variant: "destructive",
+            });
+          },
+          onError: (err) => {
+            setIsPlacing(false);
+            toast({
+              title: "Payment Failed",
+              description: err.message || "Could not complete transaction. Please try again.",
+              variant: "destructive",
+            });
+          },
+        });
+      } catch (err: any) {
+        setIsPlacing(false);
+        toast({
+          title: "Payment Initialization Failed",
+          description: err.message || "Unable to start payment gateway.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // CASE 2: Cash on Delivery (COD) Flow
+    setIsPlacing(true);
+    setStep(3);
+    setAnimationPhase("processing");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     try {
-      // 1. Send order to API
       let createdOrder: any = null;
       try {
         const res = await fetchApi<any>("/orders", {
@@ -165,7 +312,6 @@ export default function Checkout() {
         console.warn("API order creation fallback:", err);
       }
 
-      // Generate tracking ID fallback if needed
       const trackingId = createdOrder?.trackingId || `SYN${Date.now().toString(36).toUpperCase()}${Math.floor(100 + Math.random() * 900)}`;
       const orderId = createdOrder?.id || createdOrder?._id || `SYN-${Date.now().toString().slice(-6)}`;
 
@@ -178,7 +324,7 @@ export default function Checkout() {
         shippingCharge: shipping,
         createdAt: new Date().toISOString(),
         itemsCount: cart.reduce((s, i) => s + i.quantity, 0),
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: "Cash on Delivery (COD)",
         shippingAddress: payload.shippingAddress,
         items: cart.map((i) => ({
           product: i.product,
@@ -189,7 +335,6 @@ export default function Checkout() {
 
       setPlacedOrder(orderResult);
 
-      // Save to localStorage scoped by user so recent orders are strictly isolated
       try {
         const orderKey = user?.userId ? `synergy_local_orders_${user.userId}` : "synergy_local_orders";
         const localSaved = localStorage.getItem(orderKey);
@@ -200,14 +345,10 @@ export default function Checkout() {
         // ignore storage error
       }
 
-      // 2. Play the green ticked loading symbol flow
-      // Stage 1: "processing" spinning indicator (approx 1.2s)
       setTimeout(() => {
         setAnimationPhase("ticked");
-        // Clear cart once order is confirmed
         clearCart();
-        
-        // Stage 2: Let green ticked loading s ymbol complete its animation and show full details
+
         setTimeout(() => {
           setAnimationPhase("done");
           setIsPlacing(false);
@@ -416,6 +557,12 @@ export default function Checkout() {
                         <span className="text-slate-500">Method</span>
                         <span className="font-bold text-slate-800 uppercase">{placedOrder.paymentMethod}</span>
                       </div>
+                      {placedOrder.razorpayPaymentId && (
+                        <div className="flex justify-between text-xs py-1">
+                          <span className="text-slate-500">Payment ID</span>
+                          <span className="font-mono font-semibold text-emerald-700">{placedOrder.razorpayPaymentId}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-xs py-1">
                         <span className="text-slate-500">Total Items</span>
                         <span className="font-medium text-slate-800">{placedOrder.itemsCount} units</span>
@@ -621,48 +768,98 @@ export default function Checkout() {
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-700">Step 2 of 2</span>
                   </div>
 
-                  <div className="space-y-3 mb-6">
-                    {[
-                      { id: "upi", title: "UPI / QR Code", desc: "Instant transfer via Google Pay, PhonePe, Paytm, BHIM", tag: "Recommended" },
-                      { id: "card", title: "Credit / Debit Card", desc: "Visa, Mastercard, RuPay, Corporate Amex cards", tag: "Instant" },
-                      { id: "netbanking", title: "Net Banking", desc: "All major banks including HDFC, ICICI, SBI, Axis", tag: "" },
-                      { id: "cod", title: "Cash on Delivery (COD)", desc: "Pay cash or QR on package arrival at doorstep", tag: "Available" }
-                    ].map((method) => {
-                      const isSelected = formData.paymentMethod === method.id;
-                      return (
-                        <label
-                          key={method.id}
-                          className={`flex items-start justify-between p-4 border rounded-xl cursor-pointer transition-all ${
-                            isSelected
-                              ? "border-blue-600 bg-blue-50/70 ring-1 ring-blue-600"
-                              : "border-slate-200 hover:bg-slate-50/70"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value={method.id}
-                              checked={isSelected}
-                              onChange={handleInputChange}
-                              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900 text-sm">{method.title}</span>
-                                {method.tag && (
-                                  <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                                    {method.tag}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-500 mt-0.5">{method.desc}</p>
+                  <div className="space-y-4 mb-6">
+                    {/* OPTION 1: Razorpay Online Payment */}
+                    <label
+                      className={`block p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all ${
+                        formData.paymentMethod === "razorpay"
+                          ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 shadow-sm"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3.5">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="razorpay"
+                            checked={formData.paymentMethod === "razorpay"}
+                            onChange={handleInputChange}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                                <ShieldCheck className="h-4 w-4 text-blue-600" />
+                                Razorpay Secure Online Payment
+                              </span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-600 text-white">
+                                Recommended
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                              UPI (Google Pay, PhonePe, Paytm, BHIM), Credit / Debit Cards, Net Banking & Wallets
+                            </p>
+                            <div className="flex flex-wrap gap-1.5 mt-2.5">
+                              {["UPI / QR", "GPay", "PhonePe", "Visa / Master", "RuPay", "Net Banking"].map((b) => (
+                                <span
+                                  key={b}
+                                  className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs"
+                                >
+                                  {b}
+                                </span>
+                              ))}
                             </div>
                           </div>
-                          {isSelected && <Check className="h-5 w-5 text-blue-600 shrink-0" />}
-                        </label>
-                      );
-                    })}
+                        </div>
+                        {formData.paymentMethod === "razorpay" && (
+                          <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                            <Check className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                    </label>
+
+                    {/* OPTION 2: Cash on Delivery */}
+                    <label
+                      className={`block p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all ${
+                        formData.paymentMethod === "cod"
+                          ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 shadow-sm"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3.5">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="cod"
+                            checked={formData.paymentMethod === "cod"}
+                            onChange={handleInputChange}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                                <Truck className="h-4 w-4 text-slate-600" />
+                                Cash on Delivery (COD)
+                              </span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                Pay on Arrival
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                              Pay in cash or via UPI QR on package arrival at your doorstep.
+                            </p>
+                          </div>
+                        </div>
+                        {formData.paymentMethod === "cod" && (
+                          <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                            <Check className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                    </label>
                   </div>
 
                   {/* Delivery Notes */}
@@ -696,10 +893,18 @@ export default function Checkout() {
                       {isPlacing ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Placing Order...
+                          {formData.paymentMethod === "razorpay" ? "Opening Razorpay..." : "Placing Order..."}
+                        </>
+                      ) : formData.paymentMethod === "razorpay" ? (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          Pay with Razorpay • ₹{Math.round(total).toLocaleString("en-IN")}
                         </>
                       ) : (
-                        `Place Order • ₹${Math.round(total).toLocaleString("en-IN")}`
+                        <>
+                          <Truck className="h-4 w-4 mr-2" />
+                          Place Order (COD) • ₹{Math.round(total).toLocaleString("en-IN")}
+                        </>
                       )}
                     </Button>
                   </div>

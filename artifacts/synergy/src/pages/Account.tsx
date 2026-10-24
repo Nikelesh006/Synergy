@@ -122,6 +122,7 @@ export interface DetailedOrder {
   trackingNumber: string;
   paymentMethod: string;
   paymentStatus: "Paid" | "Pending" | "Refunded";
+  razorpayPaymentId?: string;
   subtotal: number;
   gst: number;
   shippingCharge: number;
