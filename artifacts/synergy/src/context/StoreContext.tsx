@@ -15,6 +15,7 @@ interface User {
 
 import { isEmailAdmin } from '../lib/admin';
 import { toast } from '@/hooks/use-toast';
+import { products as fallbackProducts } from '../data/products';
 
 interface StoreContextType {
   cart: CartItem[];
@@ -112,15 +113,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         try {
           const response = await fetchApi('/cart');
           if (response && typeof response === 'object' && 'cart' in response) {
-            const dbCart = (response as any).cart.map((item: any) => ({
-              product: {
-                id: item.productId,
+            const dbCart = (response as any).cart.map((item: any) => {
+              const catalogMatch = fallbackProducts.find(
+                (p) =>
+                  String(p.id) === String(item.productId) ||
+                  String((p as any)._id) === String(item.productId) ||
+                  (item.slug && p.slug === item.slug) ||
+                  (item.sku && p.sku === item.sku) ||
+                  p.name.toLowerCase() === String(item.name || "").toLowerCase()
+              );
+
+              const resolvedProduct: Product = catalogMatch || {
+                id: String(item.productId),
+                _id: String(item.productId),
                 name: item.name,
-                price: item.price,
+                price: Number(item.price) || 0,
                 images: item.image ? [item.image] : [],
-              },
-              quantity: item.quantity,
-            }));
+                slug: item.slug || (item.name ? item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : String(item.productId)),
+                sku: item.sku || "SYN-SKU",
+                brand: "Synergy",
+                category: item.category || "Hardware",
+                subcategory: item.subcategory || "Components",
+                shortDescription: item.name,
+                description: "",
+                specifications: {},
+                features: [],
+                applications: [],
+                currency: "INR",
+                stock: 50,
+                inStock: true,
+                minOrderQty: 1,
+                rating: 4.8,
+                reviewCount: 12,
+                isFeatured: true,
+                isNewArrival: false,
+                isBestSeller: true,
+                warrantyInfo: "1 Year",
+                shippingInfo: "Ships within 24 hours",
+              };
+
+              return {
+                product: resolvedProduct,
+                quantity: Number(item.quantity) || 1,
+              };
+            });
             setCart(dbCart);
           }
         } catch (error) {
@@ -138,14 +174,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         try {
           const response = await fetchApi('/wishlist');
           if (response && typeof response === 'object' && 'wishlist' in response) {
-            const dbWishlist = (response as any).wishlist.map((item: any) => ({
-              product: {
-                id: item.productId,
+            const dbWishlist = (response as any).wishlist.map((item: any) => {
+              const catalogMatch = fallbackProducts.find(
+                (p) =>
+                  String(p.id) === String(item.productId) ||
+                  String((p as any)._id) === String(item.productId) ||
+                  (item.slug && p.slug === item.slug) ||
+                  (item.sku && p.sku === item.sku) ||
+                  p.name.toLowerCase() === String(item.name || "").toLowerCase()
+              );
+
+              const resolvedProduct: Product = catalogMatch || {
+                id: String(item.productId),
+                _id: String(item.productId),
                 name: item.name,
-                price: item.price,
+                price: Number(item.price) || 0,
                 images: item.image ? [item.image] : [],
-              },
-            }));
+                slug: item.slug || (item.name ? item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : String(item.productId)),
+                sku: item.sku || "SYN-SKU",
+                brand: "Synergy",
+                category: item.category || "Hardware",
+                subcategory: item.subcategory || "Components",
+                shortDescription: item.name,
+                description: "",
+                specifications: {},
+                features: [],
+                applications: [],
+                currency: "INR",
+                stock: 50,
+                inStock: true,
+                minOrderQty: 1,
+                rating: 4.8,
+                reviewCount: 12,
+                isFeatured: true,
+                isNewArrival: false,
+                isBestSeller: true,
+                warrantyInfo: "1 Year",
+                shippingInfo: "Ships within 24 hours",
+              };
+
+              return {
+                product: resolvedProduct,
+              };
+            });
             setWishlist(dbWishlist);
           }
         } catch (error) {
@@ -216,11 +287,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const targetId = String(product.id || (product as any)._id);
     setCart(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existing = prev.find(item => String(item.product.id || (item.product as any)._id) === targetId);
       if (existing) {
         return prev.map(item => 
-          item.product.id === product.id 
+          String(item.product.id || (item.product as any)._id) === targetId 
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -232,11 +304,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await fetchApi('/cart', {
         method: 'POST',
         body: JSON.stringify({
-          productId: product.id,
+          productId: targetId,
           quantity,
           name: product.name,
           price: product.price,
-          image: product.images[0] || '',
+          image: product.images?.[0] || '',
+          slug: product.slug || targetId,
+          sku: product.sku || '',
+          category: product.category || '',
+          subcategory: product.subcategory || '',
         }),
       });
     } catch (error) {
@@ -245,11 +321,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user, openAuth]);
 
   const removeFromCart = useCallback(async (productId: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+    const targetId = String(productId);
+    setCart(prev => prev.filter(item => String(item.product.id || (item.product as any)._id) !== targetId));
 
     if (user) {
       try {
-        await fetchApi(`/cart/${productId}`, {
+        await fetchApi(`/cart/${encodeURIComponent(targetId)}`, {
           method: 'DELETE',
         });
       } catch (error) {
@@ -259,13 +336,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const updateQuantity = useCallback(async (productId: string, quantity: number) => {
+    const targetId = String(productId);
     setCart(prev => prev.map(item => 
-      item.product.id === productId ? { ...item, quantity } : item
+      String(item.product.id || (item.product as any)._id) === targetId ? { ...item, quantity } : item
     ));
 
     if (user) {
       try {
-        await fetchApi(`/cart/${productId}`, {
+        await fetchApi(`/cart/${encodeURIComponent(targetId)}`, {
           method: 'PUT',
           body: JSON.stringify({ quantity }),
         });
@@ -306,17 +384,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!wishlist.find(item => item.product.id === product.id)) {
+    const targetId = String(product.id || (product as any)._id);
+    if (!wishlist.find(item => String(item.product.id || (item.product as any)._id) === targetId)) {
       setWishlist(prev => [...prev, { product }]);
 
       try {
         await fetchApi('/wishlist', {
           method: 'POST',
           body: JSON.stringify({
-            productId: product.id,
+            productId: targetId,
             name: product.name,
             price: product.price,
-            image: product.images[0] || '',
+            image: product.images?.[0] || '',
+            slug: product.slug || targetId,
+            sku: product.sku || '',
+            category: product.category || '',
+            subcategory: product.subcategory || '',
           }),
         });
       } catch (error) {
@@ -326,11 +409,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [wishlist, user, openAuth]);
 
   const removeFromWishlist = useCallback(async (productId: string) => {
-    setWishlist(prev => prev.filter(item => item.product.id !== productId));
+    const targetId = String(productId);
+    setWishlist(prev => prev.filter(item => String(item.product.id || (item.product as any)._id) !== targetId));
 
     if (user) {
       try {
-        await fetchApi(`/wishlist/${productId}`, {
+        await fetchApi(`/wishlist/${encodeURIComponent(targetId)}`, {
           method: 'DELETE',
         });
       } catch (error) {
@@ -339,7 +423,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const isInWishlist = useCallback((productId: string) => !!wishlist.find(item => item.product.id === productId), [wishlist]);
+  const isInWishlist = useCallback((productId: string) => {
+    const targetId = String(productId);
+    return wishlist.some(item => String(item.product.id || (item.product as any)._id) === targetId);
+  }, [wishlist]);
 
   // Compare actions
   const addToCompare = useCallback((product: Product) => {

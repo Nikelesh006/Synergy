@@ -255,7 +255,7 @@ export default function Cart() {
                       {/* Product */}
                       <div className="flex items-start gap-4 md:col-span-6">
                         <Link
-                          href={`/product/${item.product.slug}`}
+                          href={`/product/${encodeURIComponent(item.product.slug || item.product.id)}`}
                           className="block shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30"
                         >
                           <img
@@ -273,7 +273,7 @@ export default function Cart() {
                             {item.product.brand}
                           </p>
                           <Link
-                            href={`/product/${item.product.slug}`}
+                            href={`/product/${encodeURIComponent(item.product.slug || item.product.id)}`}
                             className="mt-0.5 block text-sm font-semibold leading-snug text-foreground transition-colors hover:text-blue-600 sm:text-base"
                           >
                             {item.product.name}

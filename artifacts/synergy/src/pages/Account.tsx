@@ -611,7 +611,12 @@ function OrdersSection() {
             response.orders.forEach((o: any) => {
               const mappedItems: OrderItem[] = (o.items || []).map((it: any) => {
                 const matchedCatalog = catalogProducts.find(
-                  (cp) => cp.id === it.productId || cp.sku === it.sku || cp.name?.toLowerCase() === (it.name || "").toLowerCase()
+                  (cp) =>
+                    (it.slug && cp.slug === it.slug) ||
+                    String(cp.id) === String(it.productId) ||
+                    String((cp as any)._id) === String(it.productId) ||
+                    (it.sku && it.sku !== "SYN-SKU" && cp.sku?.toLowerCase() === it.sku.toLowerCase()) ||
+                    (it.name && cp.name?.toLowerCase() === (it.name || "").toLowerCase())
                 );
                 const fallbackProduct: Product = {
                   id: it.productId || `prod_${Date.now()}`,
@@ -736,10 +741,19 @@ function OrdersSection() {
               if (localId && !ordersMap.has(localId)) {
                 const localItems: OrderItem[] = Array.isArray(lo.items) && lo.items.length > 0
                   ? lo.items.map((it: any) => {
-                      const prod = it.product || {
+                      const matchedCatalog = catalogProducts.find(
+                        (cp) =>
+                          (it.slug && cp.slug === it.slug) ||
+                          (it.product?.slug && cp.slug === it.product.slug) ||
+                          String(cp.id) === String(it.productId || it.product?.id) ||
+                          String((cp as any)._id) === String(it.productId || it.product?._id) ||
+                          (it.sku && it.sku !== "SYN-SKU" && cp.sku?.toLowerCase() === it.sku.toLowerCase()) ||
+                          (it.name && cp.name?.toLowerCase() === (it.name || "").toLowerCase())
+                      );
+                      const prod = matchedCatalog || it.product || {
                         id: it.productId || "p-local",
                         name: it.name || "Hardware Component",
-                        slug: "component",
+                        slug: it.slug || (it.name ? it.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "component"),
                         sku: it.sku || "SYN-HW",
                         brand: "Synergy",
                         category: "Components",
@@ -1480,7 +1494,7 @@ function OrdersSection() {
                                   />
                                   <div className="min-w-0">
                                     <Link
-                                      href={`/product/${item.product.slug}`}
+                                      href={`/product/${encodeURIComponent(item.product.slug || item.product.id)}`}
                                       className="text-xs font-semibold text-foreground hover:text-blue-600 line-clamp-1"
                                     >
                                       {item.product.name}

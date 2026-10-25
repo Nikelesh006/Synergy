@@ -157,33 +157,16 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 });
 
 // GET /api/products/:slug
-router.get("/:slug", async (req: Request, res: Response): Promise<void> => {
-  const rawParam = req.params["slug"];
-  const slugParam = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-  if (typeof slugParam !== "string") {
-    res.status(400).json({ error: "Invalid product parameter" });
-    return;
-  }
-
-  if (!isDbConnected()) {
-    const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
-    if (memProd) {
-      res.json(memProd);
+  router.get("/:slug", async (req: Request, res: Response): Promise<void> => {
+    const rawParam = req.params["slug"];
+    const rawSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    if (typeof rawSlug !== "string" || !rawSlug.trim()) {
+      res.status(400).json({ error: "Invalid product parameter" });
       return;
     }
-    res.status(404).json({ error: "Product not found" });
-    return;
-  }
+    const slugParam = decodeURIComponent(rawSlug).trim();
 
-  try {
-    let raw = null;
-    if (mongoose.Types.ObjectId.isValid(slugParam)) {
-      raw = await Product.findById(slugParam).lean();
-    }
-    if (!raw) {
-      raw = await Product.findOne({ slug: slugParam }).lean();
-    }
-    if (!raw) {
+    if (!isDbConnected()) {
       const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
       if (memProd) {
         res.json(memProd);
@@ -192,21 +175,54 @@ router.get("/:slug", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ error: "Product not found" });
       return;
     }
-    const product = raw as Record<string, unknown>;
-    res.json({
-      ...product,
-      id: String(product["_id"]),
-      specifications: product["specifications"] instanceof Map
-        ? Object.fromEntries(product["specifications"] as Map<string, string>)
-        : product["specifications"],
-    });
-  } catch (err) {
-    const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
-    if (memProd) {
-      res.json(memProd);
-      return;
-    }
-    res.status(500).json({ error: "Failed to fetch product", details: String(err) });
+
+    try {
+      let raw = null;
+      const escaped = slugParam.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      // 1. Direct slug match
+      raw = await Product.findOne({ slug: slugParam }).lean();
+
+      // 2. Case-insensitive slug match
+      if (!raw) {
+        raw = await Product.findOne({ slug: { $regex: new RegExp(`^${escaped}$`, "i") } }).lean();
+      }
+
+      // 3. Match by ID if valid ObjectId
+      if (!raw && mongoose.Types.ObjectId.isValid(slugParam)) {
+        raw = await Product.findById(slugParam).lean();
+      }
+
+      // 4. Match by SKU
+      if (!raw) {
+        raw = await Product.findOne({ sku: { $regex: new RegExp(`^${escaped}$`, "i") } }).lean();
+      }
+
+      // 5. In-memory store fallback
+      if (!raw) {
+        const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
+        if (memProd) {
+          res.json(memProd);
+          return;
+        }
+        res.status(404).json({ error: "Product not found" });
+        return;
+      }
+      const product = raw as Record<string, unknown>;
+      res.json({
+        ...product,
+        id: String(product["_id"]),
+        specifications: product["specifications"] instanceof Map
+          ? Object.fromEntries(product["specifications"] as Map<string, string>)
+          : product["specifications"],
+      });
+    } catch (err) {
+      const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
+      if (memProd) {
+        res.json(memProd);
+        return;
+      }
+      res.status(500).json({ error: "Failed to fetch product", details: String(err) });
   }
 });
 

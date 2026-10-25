@@ -140571,7 +140571,7 @@ var import_passport = __toESM(require_lib5(), 1);
 var import_passport_google_oauth20 = __toESM(require_lib7(), 1);
 
 // src/models/index.ts
-var import_mongoose4 = __toESM(require_mongoose2(), 1);
+var import_mongoose5 = __toESM(require_mongoose2(), 1);
 
 // src/models/Product.ts
 var import_mongoose = __toESM(require_mongoose2(), 1);
@@ -140643,8 +140643,72 @@ var brandSchema = new import_mongoose3.Schema(
 );
 var Brand = import_mongoose3.default.models["Brand"] ?? import_mongoose3.default.model("Brand", brandSchema);
 
+// src/models/Order.ts
+var import_mongoose4 = __toESM(require_mongoose2(), 1);
+var orderItemSchema = new import_mongoose4.Schema(
+  {
+    productId: String,
+    name: String,
+    sku: String,
+    image: String,
+    price: Number,
+    quantity: Number,
+    slug: String,
+    category: String,
+    subcategory: String
+  },
+  { _id: false }
+);
+var shippingAddressSchema = new import_mongoose4.Schema(
+  {
+    fullName: String,
+    phone: String,
+    addressLine1: String,
+    addressLine2: String,
+    city: String,
+    state: String,
+    pincode: String
+  },
+  { _id: false }
+);
+var orderSchema = new import_mongoose4.Schema(
+  {
+    trackingId: { type: String, required: true, unique: true },
+    userId: { type: String, index: true },
+    customer: {
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+      phone: { type: String, required: true }
+    },
+    items: [orderItemSchema],
+    shippingAddress: shippingAddressSchema,
+    subtotal: { type: Number, required: true },
+    gst: { type: Number, default: 0 },
+    shippingCharge: { type: Number, default: 0 },
+    total: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"],
+      default: "pending"
+    },
+    paymentMethod: { type: String, default: "cod" },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending"
+    },
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
+    notes: String
+  },
+  { timestamps: true }
+);
+orderSchema.index({ "customer.email": 1 });
+var Order = import_mongoose4.default.models["Order"] ?? import_mongoose4.default.model("Order", orderSchema);
+
 // src/models/index.ts
-var userSchema = new import_mongoose4.default.Schema(
+var userSchema = new import_mongoose5.default.Schema(
   {
     name: {
       type: String,
@@ -140689,13 +140753,21 @@ var userSchema = new import_mongoose4.default.Schema(
       quantity: Number,
       name: String,
       price: Number,
-      image: String
+      image: String,
+      slug: String,
+      sku: String,
+      category: String,
+      subcategory: String
     }],
     wishlist: [{
       productId: String,
       name: String,
       price: Number,
-      image: String
+      image: String,
+      slug: String,
+      sku: String,
+      category: String,
+      subcategory: String
     }],
     // Profile stats
     totalOrdersValue: {
@@ -140742,41 +140814,8 @@ var userSchema = new import_mongoose4.default.Schema(
     timestamps: true
   }
 );
-var User = import_mongoose4.default.model("User", userSchema);
-var orderSchema = new import_mongoose4.default.Schema(
-  {
-    userId: {
-      type: String,
-      required: true
-    },
-    total: {
-      type: Number,
-      required: true
-    },
-    status: {
-      type: String,
-      enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
-      default: "pending"
-    },
-    items: [{
-      productId: String,
-      quantity: Number,
-      price: Number
-    }],
-    shippingAddress: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String
-    }
-  },
-  {
-    timestamps: true
-  }
-);
-var Order = import_mongoose4.default.model("Order", orderSchema);
-var blogSchema = new import_mongoose4.default.Schema(
+var User = import_mongoose5.default.model("User", userSchema);
+var blogSchema = new import_mongoose5.default.Schema(
   {
     title: {
       type: String,
@@ -140841,8 +140880,8 @@ var blogSchema = new import_mongoose4.default.Schema(
     timestamps: true
   }
 );
-var Blog = import_mongoose4.default.model("Blog", blogSchema);
-var tutorialSchema = new import_mongoose4.default.Schema(
+var Blog = import_mongoose5.default.model("Blog", blogSchema);
+var tutorialSchema = new import_mongoose5.default.Schema(
   {
     title: {
       type: String,
@@ -140922,8 +140961,8 @@ var tutorialSchema = new import_mongoose4.default.Schema(
     timestamps: true
   }
 );
-var Tutorial = import_mongoose4.default.model("Tutorial", tutorialSchema);
-var enquirySchema = new import_mongoose4.default.Schema(
+var Tutorial = import_mongoose5.default.model("Tutorial", tutorialSchema);
+var enquirySchema = new import_mongoose5.default.Schema(
   {
     companyName: {
       type: String,
@@ -140950,7 +140989,7 @@ var enquirySchema = new import_mongoose4.default.Schema(
     timestamps: true
   }
 );
-var Enquiry = import_mongoose4.default.model("Enquiry", enquirySchema);
+var Enquiry = import_mongoose5.default.model("Enquiry", enquirySchema);
 
 // src/config/passport.ts
 import_passport.default.serializeUser((user, done) => {
@@ -141051,7 +141090,7 @@ var health_default = router;
 var import_express2 = __toESM(require_express2(), 1);
 
 // src/lib/db.ts
-var import_mongoose5 = __toESM(require_mongoose2(), 1);
+var import_mongoose6 = __toESM(require_mongoose2(), 1);
 import dns from "node:dns";
 
 // src/lib/logger.ts
@@ -141213,7 +141252,7 @@ var seedData = {
 // src/lib/db.ts
 var isConnected = false;
 function isDbConnected() {
-  return isConnected && import_mongoose5.default.connection.readyState === 1;
+  return isConnected && import_mongoose6.default.connection.readyState === 1;
 }
 if (process.platform === "win32") {
   try {
@@ -141262,16 +141301,16 @@ async function autoSeedIfEmpty() {
   }
 }
 async function connectDB() {
-  if (isConnected && import_mongoose5.default.connection.readyState === 1) return;
+  if (isConnected && import_mongoose6.default.connection.readyState === 1) return;
   const uri = process.env["MONGODB_URL"];
   if (!uri) {
     logger.warn("MONGODB_URL environment variable is not defined. Running in in-memory fallback mode.");
     isConnected = false;
-    import_mongoose5.default.set("bufferCommands", false);
+    import_mongoose6.default.set("bufferCommands", false);
     return;
   }
   try {
-    await import_mongoose5.default.connect(uri, {
+    await import_mongoose6.default.connect(uri, {
       dbName: "synergy",
       serverSelectionTimeoutMS: 4e3,
       connectTimeoutMS: 4e3
@@ -141281,7 +141320,7 @@ async function connectDB() {
     await autoSeedIfEmpty();
   } catch (err) {
     isConnected = false;
-    import_mongoose5.default.set("bufferCommands", false);
+    import_mongoose6.default.set("bufferCommands", false);
     logger.warn(
       { message: err?.message || String(err) },
       "Could not connect to MongoDB Atlas. API server will operate seamlessly using resilient in-memory data store."
@@ -143290,7 +143329,11 @@ var InMemoryStore = class {
     };
   }
   getProductBySlugOrId(identifier) {
-    return this.products.find((p) => p.slug === identifier || p.id === identifier || p._id === identifier) || null;
+    if (!identifier) return null;
+    const clean = decodeURIComponent(String(identifier)).trim().toLowerCase();
+    return this.products.find(
+      (p, idx) => p.slug && p.slug.toLowerCase() === clean || p.id && String(p.id).toLowerCase() === clean || p._id && String(p._id).toLowerCase() === clean || p.sku && String(p.sku).toLowerCase() === clean || String(idx + 1) === clean || String(p.id).toLowerCase() === `mem_prod_${clean}`
+    ) || null;
   }
   addProduct(data) {
     const slug = data.slug || slugify(data.name || "product");
@@ -143519,7 +143562,7 @@ var uploadToCloudinary = async (file, options = {}) => {
 };
 
 // src/routes/products.ts
-var import_mongoose6 = __toESM(require_mongoose2(), 1);
+var import_mongoose7 = __toESM(require_mongoose2(), 1);
 
 // src/middlewares/admin.ts
 function getAdminEmails() {
@@ -143705,11 +143748,12 @@ router2.get("/", async (req, res) => {
 });
 router2.get("/:slug", async (req, res) => {
   const rawParam = req.params["slug"];
-  const slugParam = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-  if (typeof slugParam !== "string") {
+  const rawSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+  if (typeof rawSlug !== "string" || !rawSlug.trim()) {
     res.status(400).json({ error: "Invalid product parameter" });
     return;
   }
+  const slugParam = decodeURIComponent(rawSlug).trim();
   if (!isDbConnected()) {
     const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
     if (memProd) {
@@ -143721,11 +143765,16 @@ router2.get("/:slug", async (req, res) => {
   }
   try {
     let raw = null;
-    if (import_mongoose6.default.Types.ObjectId.isValid(slugParam)) {
+    const escaped = slugParam.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    raw = await Product.findOne({ slug: slugParam }).lean();
+    if (!raw) {
+      raw = await Product.findOne({ slug: { $regex: new RegExp(`^${escaped}$`, "i") } }).lean();
+    }
+    if (!raw && import_mongoose7.default.Types.ObjectId.isValid(slugParam)) {
       raw = await Product.findById(slugParam).lean();
     }
     if (!raw) {
-      raw = await Product.findOne({ slug: slugParam }).lean();
+      raw = await Product.findOne({ sku: { $regex: new RegExp(`^${escaped}$`, "i") } }).lean();
     }
     if (!raw) {
       const memProd = inMemoryStore.getProductBySlugOrId(slugParam);
@@ -143988,11 +144037,11 @@ var brands_default = router4;
 
 // src/routes/blogs.ts
 var import_express5 = __toESM(require_express2(), 1);
-var import_mongoose8 = __toESM(require_mongoose2(), 1);
+var import_mongoose9 = __toESM(require_mongoose2(), 1);
 
 // src/models/BlogPost.ts
-var import_mongoose7 = __toESM(require_mongoose2(), 1);
-var blogPostSchema = new import_mongoose7.Schema(
+var import_mongoose8 = __toESM(require_mongoose2(), 1);
+var blogPostSchema = new import_mongoose8.Schema(
   {
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -144014,7 +144063,7 @@ var blogPostSchema = new import_mongoose7.Schema(
 blogPostSchema.index({ category: 1 });
 blogPostSchema.index({ status: 1 });
 blogPostSchema.index({ isFeatured: 1 });
-var BlogPost = import_mongoose7.default.models["BlogPost"] ?? import_mongoose7.default.model("BlogPost", blogPostSchema);
+var BlogPost = import_mongoose8.default.models["BlogPost"] ?? import_mongoose8.default.model("BlogPost", blogPostSchema);
 
 // src/routes/blogs.ts
 var router5 = (0, import_express5.Router)();
@@ -144152,7 +144201,7 @@ router5.get("/:idOrSlug", async (req, res) => {
   }
   try {
     let blog = null;
-    if (import_mongoose8.default.isValidObjectId(target)) {
+    if (import_mongoose9.default.isValidObjectId(target)) {
       blog = await BlogPost.findById(target).lean();
     }
     if (!blog) {
@@ -144234,7 +144283,7 @@ var blogs_default = router5;
 
 // src/routes/tutorials.ts
 var import_express6 = __toESM(require_express2(), 1);
-var import_mongoose9 = __toESM(require_mongoose2(), 1);
+var import_mongoose10 = __toESM(require_mongoose2(), 1);
 var router6 = (0, import_express6.Router)();
 router6.post("/", requireAdmin, async (req, res) => {
   try {
@@ -144397,7 +144446,7 @@ router6.get("/:idOrSlug", async (req, res) => {
   }
   try {
     let tutorial = null;
-    if (import_mongoose9.default.isValidObjectId(target)) {
+    if (import_mongoose10.default.isValidObjectId(target)) {
       tutorial = await Tutorial.findById(target).lean();
     }
     if (!tutorial) {
@@ -144475,69 +144524,6 @@ var tutorials_default = router6;
 
 // src/routes/orders.ts
 var import_express7 = __toESM(require_express2(), 1);
-
-// src/models/Order.ts
-var import_mongoose10 = __toESM(require_mongoose2(), 1);
-var orderItemSchema = new import_mongoose10.Schema(
-  {
-    productId: String,
-    name: String,
-    sku: String,
-    image: String,
-    price: Number,
-    quantity: Number
-  },
-  { _id: false }
-);
-var shippingAddressSchema = new import_mongoose10.Schema(
-  {
-    fullName: String,
-    phone: String,
-    addressLine1: String,
-    addressLine2: String,
-    city: String,
-    state: String,
-    pincode: String
-  },
-  { _id: false }
-);
-var orderSchema2 = new import_mongoose10.Schema(
-  {
-    trackingId: { type: String, required: true, unique: true },
-    userId: { type: String, index: true },
-    customer: {
-      name: { type: String, required: true },
-      email: { type: String, required: true },
-      phone: { type: String, required: true }
-    },
-    items: [orderItemSchema],
-    shippingAddress: shippingAddressSchema,
-    subtotal: { type: Number, required: true },
-    gst: { type: Number, default: 0 },
-    shippingCharge: { type: Number, default: 0 },
-    total: { type: Number, required: true },
-    status: {
-      type: String,
-      enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"],
-      default: "pending"
-    },
-    paymentMethod: { type: String, default: "cod" },
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
-      default: "pending"
-    },
-    razorpayOrderId: String,
-    razorpayPaymentId: String,
-    razorpaySignature: String,
-    notes: String
-  },
-  { timestamps: true }
-);
-orderSchema2.index({ "customer.email": 1 });
-var Order2 = import_mongoose10.default.models["Order"] ?? import_mongoose10.default.model("Order", orderSchema2);
-
-// src/routes/orders.ts
 import crypto2 from "node:crypto";
 var router7 = (0, import_express7.Router)();
 function getRequesterIdentity(req) {
@@ -144561,23 +144547,40 @@ function generateTrackingId() {
   return "SYN" + Date.now().toString(36).toUpperCase() + crypto2.randomBytes(3).toString("hex").toUpperCase();
 }
 function normalizeItem(item) {
-  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1 };
+  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1, slug: "", category: "", subcategory: "" };
   const prod = typeof item.product === "object" && item.product !== null ? item.product : {};
   const productId = String(item.productId || prod.id || prod._id || (typeof item.product === "string" ? item.product : ""));
-  const name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
-  const sku = String(item.sku || prod.sku || "SYN-SKU");
-  const image = String(
+  let name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
+  let sku = String(item.sku || prod.sku || "SYN-SKU");
+  let slug = String(item.slug || prod.slug || "");
+  let category = String(item.category || prod.category || "");
+  let subcategory = String(item.subcategory || prod.subcategory || "");
+  let image = String(
     item.image || (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) || "/categories/embedded-boards.jpg"
   );
   const price = Number(item.price ?? item.unitPrice ?? prod.price ?? 0) || 0;
   const quantity = Number(item.quantity ?? 1) || 1;
+  if (!slug || !category || sku === "SYN-SKU" || name === "Hardware Item") {
+    const matched = inMemoryStore.getProductBySlugOrId(productId) || (slug ? inMemoryStore.getProductBySlugOrId(slug) : null) || (sku !== "SYN-SKU" ? inMemoryStore.products.find((p) => p.sku === sku) : null) || inMemoryStore.products.find((p) => p.name.toLowerCase() === name.toLowerCase());
+    if (matched) {
+      if (!slug) slug = matched.slug;
+      if (!category) category = matched.category || "";
+      if (!subcategory) subcategory = matched.subcategory || "";
+      if (sku === "SYN-SKU" && matched.sku) sku = matched.sku;
+      if (name === "Hardware Item" && matched.name) name = matched.name;
+      if (image === "/categories/embedded-boards.jpg" && matched.images?.[0]) image = matched.images[0];
+    }
+  }
   return {
     productId,
     name,
     sku,
     image,
     price,
-    quantity
+    quantity,
+    slug,
+    category,
+    subcategory
   };
 }
 function formatOrder(order) {
@@ -144606,7 +144609,7 @@ router7.post("/", async (req, res) => {
     };
     if (isDbConnected()) {
       try {
-        const order = await Order2.create(orderData);
+        const order = await Order.create(orderData);
         const formatted = formatOrder(order.toObject());
         inMemoryStore.addOrder(formatted);
         res.status(201).json(formatted);
@@ -144646,21 +144649,33 @@ router7.get("/", async (req, res) => {
       }
       filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
     }
-    if (isDbConnected()) {
-      try {
-        const orders = await Order2.find(filter).sort({ createdAt: -1 }).lean();
-        if (orders && orders.length > 0) {
-          res.json({ success: true, orders: orders.map(formatOrder) });
-          return;
-        }
-      } catch (dbErr) {
-        console.warn("MongoDB orders query failed, checking in-memory store:", dbErr);
-      }
-    }
+    const allOrdersMap = /* @__PURE__ */ new Map();
     const memOrders = inMemoryStore.getOrders(
       isAdmin ? { userId: queryUserId || void 0, email: queryEmail || void 0 } : { userId: authUserId || queryUserId || void 0, email: authEmail || queryEmail || void 0 }
     );
-    res.json({ success: true, orders: memOrders.map(formatOrder) });
+    memOrders.forEach((o) => {
+      const formatted = formatOrder(o);
+      const key = formatted.trackingId || formatted.id;
+      if (key) allOrdersMap.set(key, formatted);
+    });
+    if (isDbConnected()) {
+      try {
+        const dbOrders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+        if (dbOrders && dbOrders.length > 0) {
+          dbOrders.forEach((o) => {
+            const formatted = formatOrder(o);
+            const key = formatted.trackingId || formatted.id;
+            if (key) allOrdersMap.set(key, formatted);
+          });
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB orders query failed, relying on in-memory store:", dbErr);
+      }
+    }
+    const mergedOrders = Array.from(allOrdersMap.values()).sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+    res.json({ success: true, orders: mergedOrders });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
   }
@@ -144676,7 +144691,7 @@ router7.get("/user/:userId", async (req, res) => {
     const filter = { userId: targetUserId };
     if (isDbConnected()) {
       try {
-        const orders = await Order2.find(filter).sort({ createdAt: -1 }).lean();
+        const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
         if (orders && orders.length > 0) {
           res.json({ success: true, orders: orders.map(formatOrder) });
           return;
@@ -144697,7 +144712,7 @@ router7.get("/:trackingId", async (req, res) => {
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(trackingId);
     if (isDbConnected()) {
       try {
-        const raw = await Order2.findOne({
+        const raw = await Order.findOne({
           $or: [{ trackingId }, { _id: isObjectId ? trackingId : null }]
         }).lean();
         if (raw) {
@@ -144727,7 +144742,7 @@ router7.put("/:id", requireAdmin, async (req, res) => {
     let updatedOrder = null;
     if (isDbConnected()) {
       try {
-        updatedOrder = await Order2.findOneAndUpdate(query, updateData, { new: true }).lean();
+        updatedOrder = await Order.findOneAndUpdate(query, updateData, { new: true }).lean();
       } catch (dbErr) {
         console.warn("MongoDB update order failed:", dbErr);
       }
@@ -144751,7 +144766,7 @@ router7.delete("/:id", requireAdmin, async (req, res) => {
     let deleted = false;
     if (isDbConnected()) {
       try {
-        const resDb = await Order2.findOneAndDelete(query).lean();
+        const resDb = await Order.findOneAndDelete(query).lean();
         if (resDb) deleted = true;
       } catch (dbErr) {
         console.warn("MongoDB delete order failed:", dbErr);
@@ -145296,7 +145311,7 @@ router10.post("/", async (req, res) => {
       res.status(401).json({ error: "User not authenticated" });
       return;
     }
-    const { productId, quantity, name, price, image } = req.body;
+    const { productId, quantity, name, price, image, slug, sku, category, subcategory } = req.body;
     if (!productId || !quantity || !name || !price) {
       res.status(400).json({ error: "Missing required fields: productId, quantity, name, price" });
       return;
@@ -145312,10 +145327,25 @@ router10.post("/", async (req, res) => {
     if (existingItemIndex !== -1) {
       if (user.cart) {
         user.cart[existingItemIndex].quantity += quantity;
+        if (slug) user.cart[existingItemIndex].slug = slug;
+        if (sku) user.cart[existingItemIndex].sku = sku;
+        if (category) user.cart[existingItemIndex].category = category;
+        if (subcategory) user.cart[existingItemIndex].subcategory = subcategory;
+        if (image) user.cart[existingItemIndex].image = image;
       }
     } else {
       if (!user.cart) user.cart = [];
-      user.cart.push({ productId, quantity, name, price, image });
+      user.cart.push({
+        productId,
+        quantity,
+        name,
+        price,
+        image,
+        slug: slug || "",
+        sku: sku || "",
+        category: category || "",
+        subcategory: subcategory || ""
+      });
     }
     await user.save();
     res.json({ cart: user.cart });
@@ -146118,7 +146148,7 @@ router16.post("/razorpay/verify", async (req, res) => {
       };
       if (isDbConnected()) {
         try {
-          await Order2.findOneAndUpdate(
+          await Order.findOneAndUpdate(
             { $or: [{ _id: targetId }, { id: targetId }, { trackingId: targetId }] },
             { $set: updateData },
             { new: true }

@@ -7,6 +7,9 @@ interface IOrderItem {
   image: string;
   price: number;
   quantity: number;
+  slug?: string;
+  category?: string;
+  subcategory?: string;
 }
 
 interface IShippingAddress {
@@ -50,6 +53,9 @@ const orderItemSchema = new Schema<IOrderItem>(
     image: String,
     price: Number,
     quantity: Number,
+    slug: String,
+    category: String,
+    subcategory: String,
   },
   { _id: false },
 );

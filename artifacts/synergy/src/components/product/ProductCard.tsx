@@ -94,9 +94,12 @@ export default function ProductCard({ product }: ProductCardProps) {
   const savings = displayOriginalPrice ? displayOriginalPrice - displayPrice : 0;
   const discount = displayOriginalPrice ? Math.round((savings / displayOriginalPrice) * 100) : 0;
 
+  const productSlug = product.slug || product.id || "";
+  const productDetailHref = `/product/${encodeURIComponent(productSlug)}`;
+
   return (
     <Link
-      href={`/product/${product.slug}`}
+      href={productDetailHref}
       onClick={() => {
         if (typeof window !== "undefined") {
           window.scrollTo({ top: 0, left: 0, behavior: "instant" });

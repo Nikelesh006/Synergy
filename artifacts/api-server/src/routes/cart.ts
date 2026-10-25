@@ -35,7 +35,7 @@ router.post("/", async (req: Request, res: Response) => {
       return;
     }
 
-    const { productId, quantity, name, price, image } = req.body;
+    const { productId, quantity, name, price, image, slug, sku, category, subcategory } = req.body;
 
     if (!productId || !quantity || !name || !price) {
       res.status(400).json({ error: "Missing required fields: productId, quantity, name, price" });
@@ -54,14 +54,29 @@ router.post("/", async (req: Request, res: Response) => {
     );
 
     if (existingItemIndex !== -1) {
-      // Update quantity
+      // Update quantity and metadata
       if (user.cart) {
         user.cart[existingItemIndex].quantity += quantity;
+        if (slug) user.cart[existingItemIndex].slug = slug;
+        if (sku) user.cart[existingItemIndex].sku = sku;
+        if (category) user.cart[existingItemIndex].category = category;
+        if (subcategory) user.cart[existingItemIndex].subcategory = subcategory;
+        if (image) user.cart[existingItemIndex].image = image;
       }
     } else {
       // Add new item
       if (!user.cart) user.cart = [];
-      user.cart.push({ productId, quantity, name, price, image });
+      user.cart.push({
+        productId,
+        quantity,
+        name,
+        price,
+        image,
+        slug: slug || "",
+        sku: sku || "",
+        category: category || "",
+        subcategory: subcategory || "",
+      });
     }
 
     await user.save();

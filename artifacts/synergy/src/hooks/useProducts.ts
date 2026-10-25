@@ -79,13 +79,23 @@ export function useProduct(slug: string) {
   return useQuery({
     queryKey: ["product", slug],
     queryFn: async () => {
+      const cleanSlug = decodeURIComponent(slug || "").trim();
+      if (!cleanSlug) throw new Error("Product identifier missing");
+
       try {
-        const res = await fetchApi<Product>(`/products/${slug}`);
+        const res = await fetchApi<Product>(`/products/${encodeURIComponent(cleanSlug)}`);
         if (res && res.name) return res;
       } catch (err) {
         console.warn("API single product fallback used:", err);
       }
-      const found = fallbackProducts.find((p) => p.slug === slug || p.id === slug);
+
+      const lower = cleanSlug.toLowerCase();
+      const found = fallbackProducts.find(
+        (p) =>
+          (p.slug && p.slug.toLowerCase() === lower) ||
+          (p.id && String(p.id).toLowerCase() === lower) ||
+          (p.sku && p.sku.toLowerCase() === lower)
+      );
       if (found) return found;
       throw new Error("Product not found");
     },

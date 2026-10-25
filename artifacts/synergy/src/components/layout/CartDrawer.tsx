@@ -50,19 +50,31 @@ export default function CartDrawer() {
             <ul className="space-y-4">
               {cart.map((item) => (
                 <li key={item.product.id} className="flex gap-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                  <div className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-200 overflow-hidden flex-shrink-0">
-                    <img
-                      src={getProductDisplayImage(item.product.images?.[0], item.product.category, item.product.subcategory, 160)}
-                      alt={item.product.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = getCategoryFallbackImage(item.product.category, item.product.subcategory);
-                      }}
-                    />
-                  </div>
+                  <SheetClose asChild>
+                    <Link
+                      href={`/product/${encodeURIComponent(item.product.slug || item.product.id)}`}
+                      className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-200 overflow-hidden flex-shrink-0 cursor-pointer block hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src={getProductDisplayImage(item.product.images?.[0], item.product.category, item.product.subcategory, 160)}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = getCategoryFallbackImage(item.product.category, item.product.subcategory);
+                        }}
+                      />
+                    </Link>
+                  </SheetClose>
                   <div className="flex-1 flex flex-col">
-                    <h4 className="text-sm font-semibold text-slate-900 line-clamp-2">{item.product.name}</h4>
+                    <SheetClose asChild>
+                      <Link
+                        href={`/product/${encodeURIComponent(item.product.slug || item.product.id)}`}
+                        className="text-sm font-semibold text-slate-900 line-clamp-2 hover:text-blue-600 transition-colors"
+                      >
+                        {item.product.name}
+                      </Link>
+                    </SheetClose>
                     <span className="text-xs text-slate-500 font-mono mt-1">SKU: {item.product.sku}</span>
                     <div className="flex items-center justify-between mt-auto pt-2">
                       <div className="flex items-center border border-slate-300 rounded-md h-7 overflow-hidden bg-white">

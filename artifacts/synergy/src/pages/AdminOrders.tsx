@@ -40,6 +40,9 @@ interface OrderItem {
   image?: string;
   price: number;
   quantity: number;
+  slug?: string;
+  category?: string;
+  subcategory?: string;
 }
 
 interface AdminOrder {
@@ -198,6 +201,9 @@ export function normalizeOrderItem(item: any): OrderItem {
 
   let name = item.name || prod.name || item.title || prod.title || "";
   let sku = item.sku || prod.sku || "";
+  let slug = item.slug || prod.slug || "";
+  let category = item.category || prod.category || "";
+  let subcategory = item.subcategory || prod.subcategory || "";
   let image =
     item.image ||
     (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) ||
@@ -208,6 +214,7 @@ export function normalizeOrderItem(item: any): OrderItem {
   // Catalog match fallback
   const catalogMatch = fallbackProducts.find(
     (p) =>
+      (slug && p.slug === slug) ||
       (productId && (p.id === productId || (p as any)._id === productId)) ||
       (sku && sku !== "SYN-SKU" && p.sku?.toLowerCase() === sku.toLowerCase()) ||
       (name && name !== "Hardware Item" && p.name?.toLowerCase() === name.toLowerCase())
@@ -216,13 +223,17 @@ export function normalizeOrderItem(item: any): OrderItem {
   if (catalogMatch) {
     if (!name || name === "Hardware Item") name = catalogMatch.name;
     if (!sku || sku === "SYN-SKU") sku = catalogMatch.sku;
+    if (!slug) slug = catalogMatch.slug;
+    if (!category) category = catalogMatch.category;
+    if (!subcategory) subcategory = catalogMatch.subcategory;
     if (!image) image = catalogMatch.images?.[0] || "";
     if (!price) price = catalogMatch.price;
   }
 
   name = name || "Hardware Component";
   sku = sku || "SYN-SKU";
-  image = getProductDisplayImage(image, catalogMatch?.category || prod.category, catalogMatch?.subcategory || prod.subcategory);
+  slug = slug || (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : String(productId || ""));
+  image = getProductDisplayImage(image, category || catalogMatch?.category, subcategory || catalogMatch?.subcategory);
 
   return {
     productId,
@@ -231,6 +242,9 @@ export function normalizeOrderItem(item: any): OrderItem {
     image,
     price,
     quantity,
+    slug,
+    category,
+    subcategory,
   };
 }
 
@@ -823,7 +837,13 @@ export default function AdminOrders() {
                                           className="w-12 h-12 object-cover rounded-lg border border-slate-200 bg-slate-50 shrink-0"
                                         />
                                         <div>
-                                          <p className="text-xs font-bold text-slate-900">{it.name}</p>
+                                          <Link
+                                            href={`/product/${encodeURIComponent(it.slug || it.productId || "")}`}
+                                            className="text-xs font-bold text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1 group"
+                                          >
+                                            <span>{it.name}</span>
+                                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600" />
+                                          </Link>
                                           <div className="flex items-center gap-2 mt-0.5">
                                             <span className="text-[11px] text-slate-400 font-mono">SKU: {it.sku || "N/A"}</span>
                                             <span className="text-slate-300">•</span>
@@ -971,7 +991,13 @@ export default function AdminOrders() {
                             className="w-12 h-12 object-cover rounded-lg border border-slate-200 bg-slate-50 shrink-0"
                           />
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                            <Link
+                              href={`/product/${encodeURIComponent(item.slug || item.productId || "")}`}
+                              className="text-sm font-semibold text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1 group"
+                            >
+                              <span>{item.name}</span>
+                              <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600" />
+                            </Link>
                             <p className="text-xs text-slate-400">SKU: {item.sku || "N/A"} • Qty: {item.quantity}</p>
                           </div>
                         </div>

@@ -320,7 +320,19 @@ class InMemoryStore {
   }
 
   getProductBySlugOrId(identifier: string) {
-    return this.products.find((p) => p.slug === identifier || p.id === identifier || p._id === identifier) || null;
+    if (!identifier) return null;
+    const clean = decodeURIComponent(String(identifier)).trim().toLowerCase();
+    return (
+      this.products.find(
+        (p, idx) =>
+          (p.slug && p.slug.toLowerCase() === clean) ||
+          (p.id && String(p.id).toLowerCase() === clean) ||
+          (p._id && String(p._id).toLowerCase() === clean) ||
+          (p.sku && String(p.sku).toLowerCase() === clean) ||
+          String(idx + 1) === clean ||
+          String(p.id).toLowerCase() === `mem_prod_${clean}`
+      ) || null
+    );
   }
 
   addProduct(data: any) {

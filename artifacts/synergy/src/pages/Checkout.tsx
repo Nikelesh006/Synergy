@@ -116,12 +116,15 @@ export default function Checkout() {
     }
 
     const orderItems = cart.map((item) => ({
-      productId: item.product.id,
+      productId: String(item.product.id || (item.product as any)._id),
       name: item.product.name,
       sku: item.product.sku || "SYN-SKU",
       image: item.product.images?.[0] || "",
       price: item.product.price,
-      quantity: item.quantity
+      quantity: item.quantity,
+      slug: item.product.slug || String(item.product.id || (item.product as any)._id),
+      category: item.product.category || "",
+      subcategory: item.product.subcategory || "",
     }));
 
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
@@ -226,8 +229,14 @@ export default function Checkout() {
               shippingAddress: payload.shippingAddress,
               items: cart.map((i) => ({
                 product: i.product,
+                productId: String(i.product.id || (i.product as any)._id),
+                name: i.product.name,
+                sku: i.product.sku || "SYN-SKU",
+                image: i.product.images?.[0] || "",
+                slug: i.product.slug || String(i.product.id || (i.product as any)._id),
                 quantity: i.quantity,
                 unitPrice: i.product.price,
+                price: i.product.price,
               })),
             };
 
@@ -328,8 +337,14 @@ export default function Checkout() {
         shippingAddress: payload.shippingAddress,
         items: cart.map((i) => ({
           product: i.product,
+          productId: String(i.product.id || (i.product as any)._id),
+          name: i.product.name,
+          sku: i.product.sku || "SYN-SKU",
+          image: i.product.images?.[0] || "",
+          slug: i.product.slug || String(i.product.id || (i.product as any)._id),
           quantity: i.quantity,
           unitPrice: i.product.price,
+          price: i.product.price,
         })),
       };
 

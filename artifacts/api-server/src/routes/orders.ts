@@ -33,18 +33,38 @@ function generateTrackingId(): string {
 }
 
 function normalizeItem(item: any) {
-  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1 };
+  if (!item) return { productId: "", name: "Hardware Item", sku: "SYN-SKU", image: "/categories/embedded-boards.jpg", price: 0, quantity: 1, slug: "", category: "", subcategory: "" };
   const prod = typeof item.product === "object" && item.product !== null ? item.product : {};
   const productId = String(item.productId || prod.id || prod._id || (typeof item.product === "string" ? item.product : ""));
-  const name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
-  const sku = String(item.sku || prod.sku || "SYN-SKU");
-  const image = String(
+  let name = String(item.name || prod.name || item.title || prod.title || "Hardware Item");
+  let sku = String(item.sku || prod.sku || "SYN-SKU");
+  let slug = String(item.slug || prod.slug || "");
+  let category = String(item.category || prod.category || "");
+  let subcategory = String(item.subcategory || prod.subcategory || "");
+  let image = String(
     item.image ||
     (Array.isArray(prod.images) && prod.images.length > 0 ? prod.images[0] : prod.image) ||
     "/categories/embedded-boards.jpg"
   );
   const price = Number(item.price ?? item.unitPrice ?? prod.price ?? 0) || 0;
   const quantity = Number(item.quantity ?? 1) || 1;
+
+  // If slug or category is missing, resolve from inMemoryStore
+  if (!slug || !category || sku === "SYN-SKU" || name === "Hardware Item") {
+    const matched = inMemoryStore.getProductBySlugOrId(productId) ||
+      (slug ? inMemoryStore.getProductBySlugOrId(slug) : null) ||
+      (sku !== "SYN-SKU" ? inMemoryStore.products.find((p) => p.sku === sku) : null) ||
+      inMemoryStore.products.find((p) => p.name.toLowerCase() === name.toLowerCase());
+
+    if (matched) {
+      if (!slug) slug = matched.slug;
+      if (!category) category = matched.category || "";
+      if (!subcategory) subcategory = matched.subcategory || "";
+      if (sku === "SYN-SKU" && matched.sku) sku = matched.sku;
+      if (name === "Hardware Item" && matched.name) name = matched.name;
+      if (image === "/categories/embedded-boards.jpg" && matched.images?.[0]) image = matched.images[0];
+    }
+  }
 
   return {
     productId,
@@ -53,6 +73,9 @@ function normalizeItem(item: any) {
     image,
     price,
     quantity,
+    slug,
+    category,
+    subcategory,
   };
 }
 
@@ -136,24 +159,40 @@ router.get("/", async (req: Request, res: Response) => {
       filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
     }
 
-    if (isDbConnected()) {
-      try {
-        const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
-        if (orders && orders.length > 0) {
-          res.json({ success: true, orders: orders.map(formatOrder) });
-          return;
-        }
-      } catch (dbErr) {
-        console.warn("MongoDB orders query failed, checking in-memory store:", dbErr);
-      }
-    }
+    const allOrdersMap = new Map<string, any>();
 
+    // 1. In-memory store orders
     const memOrders = inMemoryStore.getOrders(
       isAdmin
         ? { userId: queryUserId || undefined, email: queryEmail || undefined }
         : { userId: authUserId || queryUserId || undefined, email: authEmail || queryEmail || undefined }
     );
-    res.json({ success: true, orders: memOrders.map(formatOrder) });
+    memOrders.forEach((o) => {
+      const formatted = formatOrder(o);
+      const key = formatted.trackingId || formatted.id;
+      if (key) allOrdersMap.set(key, formatted);
+    });
+
+    // 2. MongoDB orders (take precedence / merge)
+    if (isDbConnected()) {
+      try {
+        const dbOrders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+        if (dbOrders && dbOrders.length > 0) {
+          dbOrders.forEach((o) => {
+            const formatted = formatOrder(o);
+            const key = formatted.trackingId || formatted.id;
+            if (key) allOrdersMap.set(key, formatted);
+          });
+        }
+      } catch (dbErr) {
+        console.warn("MongoDB orders query failed, relying on in-memory store:", dbErr);
+      }
+    }
+
+    const mergedOrders = Array.from(allOrdersMap.values()).sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+    res.json({ success: true, orders: mergedOrders });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch orders", details: String(err) });
   }

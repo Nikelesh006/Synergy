@@ -18,12 +18,20 @@ export interface IUser {
     name: string;
     price: number;
     image: string;
+    slug?: string;
+    sku?: string;
+    category?: string;
+    subcategory?: string;
   }>;
   wishlist?: Array<{
     productId: string;
     name: string;
     price: number;
     image: string;
+    slug?: string;
+    sku?: string;
+    category?: string;
+    subcategory?: string;
   }>;
   // Profile stats
   totalOrdersValue?: number;
@@ -88,12 +96,20 @@ const userSchema = new mongoose.Schema<IUser>(
       name: String,
       price: Number,
       image: String,
+      slug: String,
+      sku: String,
+      category: String,
+      subcategory: String,
     }],
     wishlist: [{
       productId: String,
       name: String,
       price: Number,
       image: String,
+      slug: String,
+      sku: String,
+      category: String,
+      subcategory: String,
     }],
     // Profile stats
     totalOrdersValue: {
@@ -148,61 +164,7 @@ export { Product } from './Product.js';
 export { Category } from './Category.js';
 export { Brand } from './Brand.js';
 
-// Order Model
-export interface IOrder {
-  userId: string;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const orderSchema = new mongoose.Schema<IOrder>(
-  {
-    userId: {
-      type: String,
-      required: true,
-    },
-    total: {
-      type: Number,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-      default: 'pending',
-    },
-    items: [{
-      productId: String,
-      quantity: Number,
-      price: Number,
-    }],
-    shippingAddress: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-export const Order = mongoose.model<IOrder>('Order', orderSchema);
+export { Order, type IOrder } from './Order.js';
 
 // Blog Model
 export interface IBlog {
